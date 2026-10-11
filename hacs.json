@@ -1,0 +1,7 @@
+{
+  "name": "Dockbar",
+  "zip_release": true,
+  "filename": "dockbar.zip",
+  "render_readme": true,
+  "homeassistant": "2026.10.0"
+}

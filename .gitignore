@@ -1,0 +1,9 @@
+node_modules/
+dist/
+custom_components/dockbar/frontend/
+__pycache__/
+.deploy-target
+*.log
+
+# Local screenshots
+Screenshot*.png

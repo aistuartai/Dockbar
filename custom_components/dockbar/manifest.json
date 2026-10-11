@@ -1,0 +1,19 @@
+{
+  "domain": "dockbar",
+  "name": "Dockbar",
+  "codeowners": [
+    "@aistuartai"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http"
+  ],
+  "documentation": "https://github.com/aistuartai/Dockbar",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/aistuartai/Dockbar/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.4.0"
+}

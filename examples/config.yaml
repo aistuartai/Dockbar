@@ -1,0 +1,49 @@
+# Optional starting config. Save as /config/www/dockbar/config.yaml
+# Easier: use the Settings button on the bar. Once an admin saves under "Everyone",
+# the config lives in Home Assistant and this file is ignored.
+# Note: files in /config/www are served at /local/ WITHOUT authentication. Don't put secrets here.
+
+position: left            # left | right | top | bottom
+mobile_position: bottom   # used below mobile_breakpoint; set to none to keep `position`
+mobile_breakpoint: 600    # px
+hide_sidebar: true        # hide HA's sidebar (the pinned Menu button still opens it)
+hide_header: true         # hide the dashboard header (it comes back in edit mode)
+
+size: 88                  # bar thickness, px
+padding: 8
+gap: 8
+# button_length: 72       # default: square buttons; they shrink to fit, down to button_min_length
+button_min_length: 52
+background: rgba(18, 12, 38, 0.92)
+background_opacity: 100      # 0-100, fades the background colour (100 = as written)
+backdrop_filter: blur(8px)
+show_names: true
+footer: [settings, menu, header, off]   # pinned at the end of the bar
+
+defaults:                 # applied to every button, each button can override any of these
+  background: rgba(30, 20, 60, 0.8)
+  border: 1px solid transparent
+  border_radius: 12px
+  icon_color: var(--primary-text-color)
+  name_color: '#9C88FF'
+  icon_size: 28px
+  font_size: 11px
+
+active:                   # applied on top of the button that matches the current page
+  background: rgba(70, 50, 140, 0.9)
+  border: 1px solid #9C88FF
+
+buttons:
+  - name: Home
+    icon: mdi:home
+    path: /lovelace/0
+  - name: Energy
+    icon: mdi:lightning-bolt
+    path: /energy
+    icon_color: '#FFD54F'
+  - name: Docs
+    icon: mdi:open-in-new
+    url: https://www.home-assistant.io
+
+# style: |                # raw CSS inside the bar's shadow root
+#   .btn.active { box-shadow: 0 0 12px #9C88FF; }
