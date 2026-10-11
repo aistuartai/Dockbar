@@ -37,7 +37,9 @@ class Dockbar implements EditorHost {
   private statesKey = "";
   private position: Position | null = null;
   private mobileQuery: MediaQueryList | null = null;
-  private onMobileChange = () => this.layout();
+  private onMobileChange = () => this.refresh();
+  /** Below mobile_breakpoint with mobile_position "hidden". */
+  private phoneHidden = false;
 
   constructor(
     private store: LayerStore,
@@ -112,36 +114,46 @@ class Dockbar implements EditorHost {
 
   /** No bar on screen and no space reserved for it. HA's own sidebar/header settings still apply on hide_on pages. */
   private get barGone() {
-    return this.off || this.routeHidden;
+    return this.chromeOff || this.routeHidden;
+  }
+
+  /** HA's sidebar and header come back, so a phone without the bar can still get around. */
+  private get chromeOff() {
+    return this.off || this.phoneHidden;
   }
 
   private get headerHidden() {
-    return !this.off && (this.headerToggle ?? this.config.hide_header);
+    return !this.chromeOff && (this.headerToggle ?? this.config.hide_header);
   }
 
   /** Re-merges every layer and re-applies everything. Called on any config change. */
   refresh() {
-    this.config = merge(this.layers(SCOPE_ORDER.length, this.draft));
-    this.bar.config = this.config;
-    this.bar.off = this.deviceOff;
-    this.routeHidden = onAnyPath(location.pathname, this.config.hide_on);
-    this.applyVisibility();
-    this.statesKey = "";
-
-    const query = `(max-width: ${this.config.mobile_breakpoint - 1}px)`;
+    const merged = merge(this.layers(SCOPE_ORDER.length, this.draft));
+    const query = `(max-width: ${merged.mobile_breakpoint - 1}px)`;
     if (this.mobileQuery?.media !== query) {
       this.mobileQuery?.removeEventListener("change", this.onMobileChange);
       this.mobileQuery = window.matchMedia(query);
       this.mobileQuery.addEventListener("change", this.onMobileChange);
     }
+    const phone = this.mobileQuery.matches;
+    this.phoneHidden = phone && merged.mobile_position === "hidden";
+    // On phones the bar uses its own thickness, so everything downstream just reads config.size.
+    this.config = phone && merged.mobile_size ? { ...merged, size: merged.mobile_size } : merged;
+
+    this.bar.config = this.config;
+    this.bar.off = this.deviceOff;
+    this.routeHidden = onAnyPath(location.pathname, this.config.hide_on);
+    this.applyVisibility();
+    this.statesKey = "";
     this.layout();
-    ha.setSidebarHidden(!this.off && this.config.hide_sidebar);
+    ha.setSidebarHidden(!this.chromeOff && this.config.hide_sidebar);
     this.onRoute();
   }
 
   private layout() {
     const c = this.config;
-    const pos = this.mobileQuery?.matches && c.mobile_position ? c.mobile_position : c.position;
+    const mobile = this.mobileQuery?.matches ? c.mobile_position : null;
+    const pos = mobile && mobile !== "hidden" ? mobile : c.position;
     this.position = pos;
     this.bar.position = pos;
     ha.setInset(this.barGone ? null : pos, c.size);
@@ -149,7 +161,7 @@ class Dockbar implements EditorHost {
   }
 
   private applyVisibility() {
-    this.bar.hidden = this.globalOff || this.routeHidden;
+    this.bar.hidden = this.globalOff || this.routeHidden || this.phoneHidden;
   }
 
   private syncChrome() {

@@ -4,7 +4,8 @@
 # Note: files in /config/www are served at /local/ WITHOUT authentication. Don't put secrets here.
 
 position: left            # left | right | top | bottom
-mobile_position: bottom   # used below mobile_breakpoint; set to none to keep `position`
+mobile_position: bottom   # used below mobile_breakpoint; none keeps `position`, hidden = no bar on phones
+mobile_size: 64           # bar thickness on phones; leave out to use `size`
 mobile_breakpoint: 600    # px
 hide_sidebar: true        # hide HA's sidebar (the pinned Menu button still opens it)
 hide_header: true         # hide the dashboard header (it comes back in edit mode)

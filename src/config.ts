@@ -64,8 +64,11 @@ export const BUTTON_KEYS = ["name", "icon", "action", "path", "url", "hidden", "
 export interface Settings {
   position: Position;
   /** null keeps `position` on small screens. */
-  mobile_position: Position | null;
+  /** Position below mobile_breakpoint: an edge, "hidden" for no bar on phones, or null to keep `position`. */
+  mobile_position: Position | "hidden" | null;
   mobile_breakpoint: number;
+  /** Bar thickness on phones in px; null uses `size`. */
+  mobile_size: number | null;
   hide_sidebar: boolean;
   hide_header: boolean;
   /** Bar thickness in px. */
@@ -94,6 +97,7 @@ export const SETTING_KEYS: SettingKey[] = [
   "position",
   "mobile_position",
   "mobile_breakpoint",
+  "mobile_size",
   "hide_sidebar",
   "hide_header",
   "size",
@@ -137,6 +141,7 @@ export const DEFAULT_SETTINGS: Settings = {
   position: "left",
   mobile_position: "bottom",
   mobile_breakpoint: 600,
+  mobile_size: null,
   hide_sidebar: false,
   hide_header: false,
   size: 88,
@@ -287,7 +292,13 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
   if (raw.position !== undefined) set("position", position(raw.position, "position", warn));
   if (raw.mobile_position !== undefined) {
     const v = raw.mobile_position;
-    set("mobile_position", v === null || v === false || v === "none" ? null : position(v, "mobile_position", warn));
+    set(
+      "mobile_position",
+      v === null || v === false || v === "none" ? null : v === "hidden" ? "hidden" : position(v, "mobile_position", warn),
+    );
+  }
+  if (raw.mobile_size !== undefined) {
+    set("mobile_size", raw.mobile_size === null ? null : num(raw.mobile_size, "mobile_size", warn));
   }
   for (const key of ["mobile_breakpoint", "size", "padding", "gap", "button_min_length"] as const) {
     if (raw[key] !== undefined) set(key, num(raw[key], key, warn));

@@ -110,11 +110,20 @@ test("a user can hide a shared button and another level can show it again", () =
 
 test("hide_on and live value fields survive sanitising", () => {
   const layer = sanitiseLayer({
-    hide_on: ["wall-panel", "/f1-new/f1-next-race", "", 5],
+    hide_on: ["wall-panel", "/racing/next", "", 5],
     buttons: [{ path: "/s", entity: "sensor.pv_power", attribute: "today", state_color: "#FFD54F" }],
   });
-  assert.deepEqual(layer.hide_on, ["/wall-panel", "/f1-new/f1-next-race"]);
+  assert.deepEqual(layer.hide_on, ["/wall-panel", "/racing/next"]);
   assert.equal(layer.buttons?.[0].entity, "sensor.pv_power");
   assert.equal(layer.buttons?.[0].attribute, "today");
   assert.equal(layer.buttons?.[0].state_color, "#FFD54F");
+});
+
+test("phone settings: hidden position and a separate thickness", () => {
+  assert.equal(sanitiseLayer({ mobile_position: "hidden" }).mobile_position, "hidden");
+  assert.equal(sanitiseLayer({ mobile_position: "none" }).mobile_position, null);
+  assert.equal(sanitiseLayer({ mobile_position: "sideways" }, () => {}).mobile_position, undefined);
+  assert.equal(sanitiseLayer({ mobile_size: 64 }).mobile_size, 64);
+  assert.equal(sanitiseLayer({ mobile_size: null }).mobile_size, null);
+  assert.equal(merge([{ mobile_size: 64 }, { mobile_size: null }]).mobile_size, null);
 });

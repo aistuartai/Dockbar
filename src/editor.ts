@@ -392,8 +392,11 @@ export class DockbarEditor extends LitElement {
         <h3>Layout</h3>
         <div class="grid">
           ${this.select("Position", "position", positions)}
-          ${this.select("On phones", "mobile_position", [["none", "Same as position"], ...positions])}
+          ${this.select("On phones", "mobile_position", [["none", "Same as position"], ...positions, ["hidden", "Hidden"]])}
           ${this.number("Phone width below", "mobile_breakpoint", "px")}
+          ${this.working.mobile_position === "hidden"
+            ? nothing
+            : this.number("Phone bar thickness", "mobile_size", "px, blank = same as Bar thickness")}
           ${this.number("Bar thickness", "size", "px")} ${this.number("Padding", "padding", "px")}
           ${this.number("Gap", "gap", "px")}
           ${this.number("Button length", "button_length", "px, blank = square")}
@@ -610,7 +613,7 @@ export class DockbarEditor extends LitElement {
             </select>
           </label>
           ${b.action === "navigate"
-            ? this.buttonText(i, "Page", "path", { list: "dockbar-paths", placeholder: "/dashboard-main/0" })
+            ? this.buttonText(i, "Page", "path", { list: "dockbar-paths", placeholder: "/lovelace/0" })
             : nothing}
           ${b.action === "url" ? this.buttonText(i, "Link", "url", { placeholder: "https://…" }) : nothing}
         </div>

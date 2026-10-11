@@ -11,14 +11,39 @@ A persistent, fully styleable navigation bar for **every** Home Assistant dashbo
 
 Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header, each on its own setting.
 
-- Configured in the UI with a live preview, for everyone, per user or per device
-- Per-button colours, borders and icons, plus a dashboard and view picker
-- Pinned Settings, Menu, Header and Turn off buttons
+## Features
+
+**Looks**
+- **Glass effect:** a background opacity slider plus backdrop blur, so your dashboard shows through the bar
+- Per-button colours, borders, corner radius and icon sizes, plus a style for every button and one for the current page's button
+- Follows your HA theme by default
+- Custom CSS for anything the settings don't cover
+
+**Navigation**
+- **Scrollable:** buttons shrink to fit, down to a minimum size you choose, then the bar scrolls (swipe or mouse wheel) so any number of buttons fit
 - Highlights the button for the page you're on
-- Live entity values on buttons, e.g. solar power or battery %
-- Can be hidden on chosen dashboards, e.g. a wall tablet's kiosk view
-- Can move to a different edge on phones
-- Reserves its space through HA's own safe-area insets, so pages lay themselves out around it instead of being covered
+- **Live entity values** on buttons, e.g. solar power or battery %, using HA's own formatting and units
+- Buttons can open a dashboard or view, open a link, open HA's sidebar, or toggle the header
+- Pinned **Settings**, **Menu**, **Header** and **Turn off** buttons at the end of the bar
+
+**Layout**
+- Left, right, top or bottom, with adjustable thickness, padding, gap and button size
+- **On phones:** a different edge, its own thickness, or hidden altogether
+- Hide HA's sidebar and the dashboard header, each on its own setting. The header stays hidden when you switch dashboards (no flash), and it comes back when you edit a dashboard.
+- Reserves its space through HA's own safe-area insets, so pages lay themselves out around the bar instead of being covered. It also works with phone notches.
+- **Hide on chosen dashboards,** e.g. a wall tablet's kiosk view
+
+**Setup**
+- Everything is configured in the UI, with a live preview and nothing saved until you click Save
+- Three levels: **everyone**, **just me** and **this device**, so a wall tablet can have its own layout
+- Drag to reorder; hide a button or delete it; import buttons from YAML
+- A dashboard and view picker, plus HA's icon picker
+- Changes sync live to every open screen
+
+**Control**
+- `switch.dockbar` turns the bar on or off everywhere, from automations, scripts or a dashboard
+- Disable or enable the integration from **Settings → Devices & services**, with no reload needed
+- A one-tap Turn off for a single device, and a corner button to bring it back
 
 > Tested on Home Assistant 2026.10.
 
@@ -100,7 +125,8 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 | Option | Default | Description |
 |---|---|---|
 | `position` | `left` | `left`, `right`, `top`, `bottom` |
-| `mobile_position` | `bottom` | Position below `mobile_breakpoint`; `none` keeps `position` |
+| `mobile_position` | `bottom` | Position below `mobile_breakpoint`; `none` keeps `position`; `hidden` shows no bar on phones (HA's sidebar and header come back there) |
+| `mobile_size` | same as `size` | Bar thickness in px on phones |
 | `mobile_breakpoint` | `600` | Width in px |
 | `hide_sidebar` | `false` | Uses HA's "always hidden" sidebar mode; your previous setting is restored when turned off |
 | `hide_header` | `false` | Hides the dashboard header (it comes back in edit mode) |
@@ -124,7 +150,7 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 ```yaml
 - name: Solar
   icon: mdi:solar-power-variant
-  path: /dashboard-solar/main
+  path: /energy/solar
   entity: sensor.pv_power
   state_color: "#FFD54F"
 ```
