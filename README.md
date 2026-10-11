@@ -7,6 +7,8 @@
 
 A persistent, fully styleable navigation bar for **every** Home Assistant dashboard, on the left, right, top or bottom of the screen.
 
+![Dockbar on the left of a Home Assistant energy dashboard](docs/hero.png)
+
 Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header, each on its own setting.
 
 - Configured in the UI with a live preview, for everyone, per user or per device
