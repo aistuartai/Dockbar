@@ -9,21 +9,36 @@ A persistent, fully styleable navigation bar for **every** Home Assistant dashbo
 
 ![Dockbar on the left of a Home Assistant energy dashboard](docs/hero.png)
 
+<p>
+  <img alt="A section open in place, showing its pages" src="docs/sections-open.png" width="32%">
+  <img alt="Badges on Notifications and Settings" src="docs/teal-badges.png" width="32%">
+  <img alt="A section with a Settings badge" src="docs/sections-badges.png" width="32%">
+</p>
+<p>
+  <img alt="Dockbar as a top bar on a phone" src="docs/phone-home.png" width="40%">
+  <img alt="Badges on a phone" src="docs/phone-badges.png" width="40%">
+</p>
+
 Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header, each on its own setting.
 
 ## Features
 
 **Looks**
+- **Presets:** Glass, Flat, Neon, Material, 3D and Dock, one click each, then adjust anything
+- **Current page marker:** fill, a line on the edge, a pill behind the icon, a dot, or a glow
+- **Hover effects** (brighten, lift, grow, glow) and **button shadows** (soft, raised, glow, **3D keys that press in**, or your own CSS)
 - **Glass effect:** a background opacity slider plus backdrop blur, so your dashboard shows through the bar
 - Per-button colours, borders, corner radius and icon sizes, plus a style for every button and one for the current page's button
 - Follows your HA theme by default
-- Custom CSS for anything the settings don't cover
+- An **Advanced** tab with a YAML editor for every setting, plus custom CSS for anything else
 
 **Navigation**
 - **Scrollable:** buttons shrink to fit, down to a minimum size you choose, then the bar scrolls (swipe or mouse wheel) so any number of buttons fit
 - Highlights the button for the page you're on
+- **Sections:** group buttons under a top-level button that opens in place to show them, like folders. The section you're in opens by itself, and a closed section adds up its buttons' badges.
 - **Live entity values** on buttons, e.g. solar power or battery %, using HA's own formatting and units
-- Buttons can open a dashboard or view, open a link, open HA's sidebar, or toggle the header
+- **Count badges** like HA's sidebar: a Settings button shows pending updates and repairs, a Notifications button shows unread notifications, with a number in the corner and a ring around the button
+- Buttons can open a dashboard or view, open a link, open HA's notifications, open HA's sidebar, or toggle the header
 - Pinned **Settings**, **Menu**, **Header** and **Turn off** buttons at the end of the bar
 
 **Layout**
@@ -34,6 +49,8 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **Hide on chosen dashboards,** e.g. a wall tablet's kiosk view
 
 **Setup**
+- **Works out of the box:** on first install the bar mirrors your HA sidebar, in your order, including Notifications, Settings and Profile. Save it under Everyone to keep it, or start changing it.
+- Buttons for pages someone can't open, such as Settings or HACS for a non-admin, are left off their bar automatically
 - Everything is configured in the UI, with a live preview and nothing saved until you click Save
 - Three levels: **everyone**, **just me** and **this device**, so a wall tablet can have its own layout
 - Drag to reorder; hide a button or delete it; import buttons from YAML
@@ -55,7 +72,7 @@ Dockbar is a small integration that loads the bar on every page. There's no YAML
 
 1. HACS → ⋮ → **Custom repositories** → add `https://github.com/aistuartai/Dockbar`, type **Integration**.
 2. Download **Dockbar** and restart Home Assistant.
-3. **Settings → Devices & services → Add integration → Dockbar.** The bar appears straight away.
+3. **Settings → Devices & services → Add integration → Dockbar.** The bar appears straight away, already filled with your sidebar: every dashboard and panel in your order, then Notifications, Settings and Profile.
 
 ### Manual
 
@@ -72,7 +89,7 @@ Unzip `dockbar.zip` from the latest [release](https://github.com/aistuartai/Dock
 ## Configure
 
 <p>
-  <img alt="General settings" src="docs/settings-general.png" width="49%">
+  <img alt="General settings with the Look section" src="docs/settings-look.png" width="49%">
   <img alt="Button list" src="docs/settings-buttons.png" width="49%">
 </p>
 
@@ -109,6 +126,8 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 |---|---|---|
 | `navigate` (default) | `path` | Opens a dashboard or view. The editor suggests every dashboard and view you can open. |
 | `url` | `url` | Opens a link in a new tab |
+| `notifications` | | Opens HA's notifications drawer |
+| `section` | | Only opens and closes the buttons inside it |
 | `toggle_sidebar` | | Opens HA's sidebar |
 | `toggle_header` | | Shows or hides the dashboard header |
 | `settings` | | Opens Dockbar settings |
@@ -141,9 +160,41 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 | `footer` | all four | Pinned buttons: any of `settings`, `menu`, `header`, `off` |
 | `defaults` | theme | Style for every button |
 | `active` | primary border | Style applied on top of the current page's button |
-| `style` | | Raw CSS inside the bar's shadow root |
+| `alert` | none | Style applied on top while a button shows a count badge, e.g. `icon_color: "#FF5252"` |
+| `active_indicator` | `fill` | How the current page is marked: `fill`, `line`, `pill`, `dot`, `glow` |
+| `indicator_color` | primary colour | Colour of the line, pill, dot or glow |
+| `hover_effect` | `brighten` | `brighten`, `lift`, `grow`, `glow`, `none` |
+| `style` | | Raw CSS inside the bar's shadow root. Parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer` |
 
-**Button style keys** (in `defaults`, `active`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`.
+**Button style keys** (in `defaults`, `active`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, or any CSS box-shadow).
+
+**Sections:** open a button in the Buttons tab and pick **Inside section** to put it inside another top-level button. That button becomes a section: tapping it opens its page (if it has one) and shows its buttons underneath, and only one section is open at a time. Give a section the action **Only open its buttons** if it has no page of its own. In YAML, add `parent: <section id>` to a button.
+
+```yaml
+- id: energy
+  name: Energy
+  icon: mdi:lightning-bolt
+  action: section
+- name: Solar
+  icon: mdi:solar-power-variant
+  path: /solar/main
+  parent: energy
+- name: Costs
+  icon: mdi:cash
+  path: /home-dash/finance
+  parent: energy
+```
+
+**Count badges:** the Buttons tab has one-click **+ Settings**, **+ Notifications**, **+ Updates**, **+ Repairs** and **+ Profile** buttons. A button that opens `/config`, `/config/updates` or `/config/repairs`, or HA's notifications, gets the matching badge automatically. Set `badge` to `notifications`, `updates`, `repairs`, `config` (updates + repairs, like HA's Settings) or `none` to choose it yourself. `badge_color` sets its colour (default: your theme's accent). To change the icon too while there's a badge, use the `alert` style for every button, or `alert_icon_color` on one button. Repairs are only counted for admins, the same as in HA.
+
+```yaml
+- name: Settings
+  icon: mdi:cog
+  path: /config
+- name: Notifications
+  icon: mdi:bell
+  action: notifications
+```
 
 **Live values:** give a button `entity: sensor.pv_power` to show its state under the name, formatted the way HA shows it (units, translations). Add `attribute: <name>` to show an attribute instead. `state_color` colours the value.
 

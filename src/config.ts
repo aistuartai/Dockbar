@@ -9,7 +9,9 @@ export type ButtonAction =
   | "toggle_sidebar"
   | "toggle_header"
   | "settings"
-  | "disable";
+  | "disable"
+  | "notifications"
+  | "section";
 export const ACTIONS: ButtonAction[] = [
   "navigate",
   "url",
@@ -17,7 +19,16 @@ export const ACTIONS: ButtonAction[] = [
   "toggle_header",
   "settings",
   "disable",
+  "notifications",
+  "section",
 ];
+
+/**
+ * What a button's count badge shows. "config" is HA's Settings badge (updates + repairs).
+ * Left unset, a button that opens Settings or the notifications drawer gets the matching badge.
+ */
+export type BadgeSource = "none" | "notifications" | "updates" | "repairs" | "config";
+export const BADGE_SOURCES: BadgeSource[] = ["none", "notifications", "updates", "repairs", "config"];
 
 /** Built-in buttons pinned to the end of the bar. */
 export type FooterTool = "settings" | "menu" | "header" | "off";
@@ -33,6 +44,10 @@ export interface ButtonStyle {
   font_size?: string;
   /** Colour of the live entity value. */
   state_color?: string;
+  /** Colour of the count badge, and of the ring around a button that has one. */
+  badge_color?: string;
+  /** none, soft, raised, glow, or any CSS box-shadow. */
+  shadow?: string;
 }
 export const STYLE_KEYS: (keyof ButtonStyle)[] = [
   "background",
@@ -43,7 +58,15 @@ export const STYLE_KEYS: (keyof ButtonStyle)[] = [
   "icon_size",
   "font_size",
   "state_color",
+  "badge_color",
+  "shadow",
 ];
+
+/** How the current page's button is marked, on top of its "active" style. */
+export type ActiveIndicator = "fill" | "line" | "pill" | "dot" | "glow";
+export const ACTIVE_INDICATORS: ActiveIndicator[] = ["fill", "line", "pill", "dot", "glow"];
+export type HoverEffect = "brighten" | "lift" | "grow" | "glow" | "none";
+export const HOVER_EFFECTS: HoverEffect[] = ["brighten", "lift", "grow", "glow", "none"];
 
 export interface DockbarButton extends ButtonStyle {
   /** Stable id, so user and device overrides survive the shared list changing. */
@@ -58,8 +81,13 @@ export interface DockbarButton extends ButtonStyle {
   /** Shows this entity's live state (or one of its attributes) on the button. */
   entity?: string;
   attribute?: string;
+  badge?: BadgeSource;
+  /** Icon colour while this button shows a count badge; overrides the "alert" style. */
+  alert_icon_color?: string;
+  /** Puts this button inside another one, which then opens and closes to show it. */
+  parent?: string;
 }
-export const BUTTON_KEYS = ["name", "icon", "action", "path", "url", "hidden", "entity", "attribute", ...STYLE_KEYS] as const;
+export const BUTTON_KEYS = ["name", "icon", "action", "path", "url", "hidden", "entity", "attribute", "badge", "parent", "alert_icon_color", ...STYLE_KEYS] as const;
 
 export interface Settings {
   position: Position;
@@ -86,6 +114,12 @@ export interface Settings {
   show_names: boolean;
   defaults: ButtonStyle;
   active: ButtonStyle;
+  /** Applied on top while a button shows a count badge. */
+  alert: ButtonStyle;
+  active_indicator: ActiveIndicator;
+  hover_effect: HoverEffect;
+  /** Colour of the line, pill, dot or glow that marks the current page, and of hover glows. */
+  indicator_color: string;
   footer: FooterTool[];
   /** Pages where the bar is hidden: a dashboard ("/wall-panel") or one view ("/wall-panel/kiosk"). */
   hide_on: string[];
@@ -111,6 +145,10 @@ export const SETTING_KEYS: SettingKey[] = [
   "show_names",
   "defaults",
   "active",
+  "alert",
+  "active_indicator",
+  "hover_effect",
+  "indicator_color",
   "footer",
   "hide_on",
   "style",
@@ -165,6 +203,10 @@ export const DEFAULT_SETTINGS: Settings = {
   active: {
     border: "1px solid var(--primary-color)",
   },
+  alert: {},
+  active_indicator: "fill",
+  hover_effect: "brighten",
+  indicator_color: "var(--primary-color)",
   footer: [...FOOTER_TOOLS],
   hide_on: [],
   style: "",
@@ -218,6 +260,9 @@ function sanitiseButtonFields(raw: Record<string, unknown>): Partial<Omit<Dockba
   if (typeof raw.hidden === "boolean") out.hidden = raw.hidden;
   if (typeof raw.entity === "string" && raw.entity.includes(".")) out.entity = raw.entity.trim();
   if (typeof raw.attribute === "string" && raw.attribute) out.attribute = raw.attribute.trim();
+  if (BADGE_SOURCES.includes(raw.badge as BadgeSource)) out.badge = raw.badge as BadgeSource;
+  if (typeof raw.parent === "string") out.parent = raw.parent;
+  if (typeof raw.alert_icon_color === "string" && raw.alert_icon_color) out.alert_icon_color = raw.alert_icon_color;
   return out;
 }
 
@@ -313,11 +358,20 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
   for (const key of ["hide_sidebar", "hide_header", "show_names"] as const) {
     if (raw[key] !== undefined) set(key, Boolean(raw[key]));
   }
-  for (const key of ["background", "backdrop_filter", "style"] as const) {
+  if (raw.active_indicator !== undefined) {
+    if (ACTIVE_INDICATORS.includes(raw.active_indicator as ActiveIndicator)) set("active_indicator", raw.active_indicator as ActiveIndicator);
+    else warn(`active_indicator must be one of ${ACTIVE_INDICATORS.join(", ")}`);
+  }
+  if (raw.hover_effect !== undefined) {
+    if (HOVER_EFFECTS.includes(raw.hover_effect as HoverEffect)) set("hover_effect", raw.hover_effect as HoverEffect);
+    else warn(`hover_effect must be one of ${HOVER_EFFECTS.join(", ")}`);
+  }
+  for (const key of ["background", "backdrop_filter", "style", "indicator_color"] as const) {
     if (raw[key] !== undefined && raw[key] !== null) set(key, String(raw[key]));
   }
   if (raw.defaults !== undefined) set("defaults", sanitiseStyle(raw.defaults));
   if (raw.active !== undefined) set("active", sanitiseStyle(raw.active));
+  if (raw.alert !== undefined) set("alert", sanitiseStyle(raw.alert));
   if (raw.footer !== undefined) {
     if (Array.isArray(raw.footer)) {
       set("footer", raw.footer.filter((t): t is FooterTool => FOOTER_TOOLS.includes(t as FooterTool)));

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { findActive, onAnyPath } from "../src/match.ts";
+import { badgeSource, findActive, onAnyPath } from "../src/match.ts";
 import type { DockbarButton } from "../src/config.ts";
 
 const nav = (path: string): DockbarButton => ({ action: "navigate", path });
@@ -29,4 +29,15 @@ test("hide_on covers a dashboard's views but not lookalike dashboards", () => {
   assert.equal(onAnyPath("/wall-panel-2/0", ["/wall-panel"]), false);
   assert.equal(onAnyPath("/home-dash/0?edit=1", ["/home-dash/0"]), true);
   assert.equal(onAnyPath("/anything", []), false);
+});
+
+test("badges default to what the button opens, and can be overridden", () => {
+  assert.equal(badgeSource({ id: "s", action: "navigate", path: "/config" }), "config");
+  assert.equal(badgeSource({ id: "s", action: "navigate", path: "/config/" }), "config");
+  assert.equal(badgeSource({ id: "u", action: "navigate", path: "/config/updates" }), "updates");
+  assert.equal(badgeSource({ id: "r", action: "navigate", path: "/config/repairs" }), "repairs");
+  assert.equal(badgeSource({ id: "n", action: "notifications" }), "notifications");
+  assert.equal(badgeSource({ id: "d", action: "navigate", path: "/config/devices" }), "none");
+  assert.equal(badgeSource({ id: "s", action: "navigate", path: "/config", badge: "none" }), "none");
+  assert.equal(badgeSource({ id: "x", action: "navigate", path: "/home", badge: "updates" }), "updates");
 });

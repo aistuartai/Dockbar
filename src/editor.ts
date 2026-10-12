@@ -1,11 +1,17 @@
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
-import { load } from "js-yaml";
+import { dump, load } from "js-yaml";
 import {
   ACTIONS,
+  BADGE_SOURCES,
+  type BadgeSource,
   FOOTER_TOOLS,
   POSITIONS,
   STYLE_KEYS,
   sanitiseLayer,
+  ACTIVE_INDICATORS,
+  HOVER_EFFECTS,
+  type ActiveIndicator,
+  type HoverEffect,
   uniqueId,
   type ButtonAction,
   type ButtonStyle,
@@ -14,7 +20,10 @@ import {
   type FooterTool,
   type Layer,
 } from "./config.ts";
-import { diffLayer } from "./merge.ts";
+import { diffLayer, merge } from "./merge.ts";
+import { PRESETS, applyPreset } from "./presets.ts";
+import { badgeSource } from "./match.ts";
+import { childrenOf, groupOrder, isSection, parentOf } from "./sections.ts";
 import { entityIds, entityText, hass, navTargets, type NavTarget } from "./ha.ts";
 import type { Scope } from "./storage.ts";
 
@@ -22,6 +31,8 @@ export interface EditorHost {
   isAdmin: boolean;
   /** Shared config is empty and config.yaml is being used as the base. */
   usingYaml: boolean;
+  /** Nothing saved yet: the buttons mirror the viewer's HA sidebar. */
+  usingSidebar: boolean;
   lowerFor(scope: Scope): DockbarConfig;
   workingFor(scope: Scope): DockbarConfig;
   preview(scope: Scope, layer: Layer | null): void;
@@ -41,7 +52,26 @@ const ACTION_LABELS: Record<ButtonAction, string> = {
   toggle_header: "Show/hide header",
   settings: "Open Dockbar settings",
   disable: "Turn off Dockbar",
+  notifications: "Open notifications",
+  section: "Only open its buttons (no page)",
 };
+
+const BADGE_LABELS: Record<BadgeSource, string> = {
+  none: "None",
+  notifications: "Notifications",
+  updates: "Updates",
+  repairs: "Repairs",
+  config: "Updates + repairs (like HA's Settings)",
+};
+
+/** One-click Home Assistant buttons for the Buttons tab. */
+const HA_BUTTONS: { label: string; button: Omit<DockbarButton, "id"> }[] = [
+  { label: "Settings", button: { name: "Settings", icon: "mdi:cog", action: "navigate", path: "/config" } },
+  { label: "Notifications", button: { name: "Notifications", icon: "mdi:bell", action: "notifications" } },
+  { label: "Updates", button: { name: "Updates", icon: "mdi:update", action: "navigate", path: "/config/updates" } },
+  { label: "Repairs", button: { name: "Repairs", icon: "mdi:tools", action: "navigate", path: "/config/repairs" } },
+  { label: "Profile", button: { name: "Profile", icon: "mdi:account-circle", action: "navigate", path: "/profile" } },
+];
 
 const FOOTER_LABELS: Record<FooterTool, string> = {
   settings: "Settings",
@@ -59,9 +89,33 @@ const STYLE_LABELS: Record<keyof ButtonStyle, string> = {
   icon_size: "Icon size",
   font_size: "Name size",
   state_color: "Live value colour",
+  badge_color: "Badge colour",
+  shadow: "Shadow",
 };
 
-const COLOUR_KEYS: ReadonlySet<string> = new Set(["background", "icon_color", "name_color", "state_color"]);
+const INDICATOR_LABELS: Record<ActiveIndicator, string> = {
+  fill: "Fill (current page's style below)",
+  line: "Line on the edge",
+  pill: "Pill behind the icon",
+  dot: "Dot",
+  glow: "Glow",
+};
+const HOVER_LABELS: Record<HoverEffect, string> = {
+  brighten: "Brighten",
+  lift: "Lift",
+  grow: "Grow",
+  glow: "Glow",
+  none: "None",
+};
+const SHADOW_CHOICES: [string, string][] = [
+  ["none", "None"],
+  ["soft", "Soft"],
+  ["raised", "Raised"],
+  ["glow", "Glow"],
+  ["3d", "3D"],
+];
+
+const COLOUR_KEYS: ReadonlySet<string> = new Set(["background", "icon_color", "name_color", "state_color", "badge_color"]);
 
 function clone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v));
@@ -94,13 +148,17 @@ export class DockbarEditor extends LitElement {
     targets: { state: true },
     importText: { state: true },
     importMsg: { state: true },
+    yamlText: { state: true },
+    yamlMsg: { state: true },
     dragId: { state: true },
     hideOnDraft: { state: true },
   };
 
   declare host_: EditorHost;
   declare scope: Scope;
-  declare tab: "general" | "buttons";
+  declare tab: "general" | "buttons" | "advanced";
+  declare yamlText: string;
+  declare yamlMsg: string;
   declare working: DockbarConfig;
   declare expanded: string | null;
   declare saving: boolean;
@@ -122,6 +180,8 @@ export class DockbarEditor extends LitElement {
     this.targets = [];
     this.importText = "";
     this.importMsg = "";
+    this.yamlText = "";
+    this.yamlMsg = "";
     this.dragId = null;
     this.hideOnDraft = "";
   }
@@ -137,6 +197,7 @@ export class DockbarEditor extends LitElement {
     this.scope = scope;
     this.lower = this.host_.lowerFor(scope);
     this.working = clone(this.host_.workingFor(scope));
+    this.working.buttons = groupOrder(this.working.buttons);
     this.pristine = JSON.stringify(this.working);
     this.expanded = null;
     this.error = "";
@@ -144,6 +205,11 @@ export class DockbarEditor extends LitElement {
 
   private get dirty() {
     return JSON.stringify(this.working) !== this.pristine;
+  }
+
+  /** A first-run list can be saved as it is, to keep it for everyone. */
+  private get canSave() {
+    return this.dirty || (this.scope === "shared" && this.host_.usingSidebar);
   }
 
   private layer(): Layer {
@@ -162,11 +228,18 @@ export class DockbarEditor extends LitElement {
     this.changed();
   }
 
+  private openAdvanced() {
+    this.tab = "advanced";
+    this.yamlText = this.yamlFromWorking();
+    this.yamlMsg = "";
+  }
+
   private switchScope(scope: Scope) {
     if (scope === this.scope) return;
     if (this.dirty && !confirm("Discard unsaved changes?")) return;
     this.host_.preview(this.scope, null);
     this.loadScope(scope);
+    if (this.tab === "advanced") this.openAdvanced();
   }
 
   private close() {
@@ -388,6 +461,7 @@ export class DockbarEditor extends LitElement {
     const positions: [string, string][] = POSITIONS.map((p) => [p, p[0].toUpperCase() + p.slice(1)]);
     const footer = this.working.footer;
     return html`
+      ${this.renderLook()}
       <section>
         <h3>Layout</h3>
         <div class="grid">
@@ -451,11 +525,120 @@ export class DockbarEditor extends LitElement {
       </section>
       <section>
         <h3>Every button</h3>
-        <div class="grid">${this.styleFields("defaults")}</div>
+        <div class="grid">${this.styleFields("defaults", STYLE_KEYS.filter((k) => k !== "shadow"))}</div>
       </section>
       <section>
         <h3>Current page's button</h3>
         <div class="grid">${this.styleFields("active", ["background", "border", "icon_color", "name_color"])}</div>
+      </section>
+      <section>
+        <h3>Button with a badge <span class="hint">while it shows a count, e.g. notifications or updates</span></h3>
+        <div class="grid">${this.styleFields("alert", ["icon_color", "background", "border", "name_color", "badge_color"])}</div>
+      </section>
+    `;
+  }
+
+  // ---------------------------------------------------------------- look
+
+  /** A plain select whose values are stored as they are (no "none" means inherit). */
+  private choice(label: string, path: string, options: [string, string][], hint?: string) {
+    const value = String(getPath(this.working, path) ?? "");
+    const known = options.some(([v]) => v === value);
+    return this.field(
+      label,
+      path,
+      html`<select @change=${(e: Event) => this.set(path, (e.target as HTMLSelectElement).value)}>
+        ${known ? nothing : html`<option value=${value} selected>Custom (set in YAML)</option>`}
+        ${options.map(([v, l]) => html`<option value=${v} ?selected=${v === value}>${l}</option>`)}
+      </select>`,
+      hint,
+    );
+  }
+
+  private applyLook(key: string) {
+    this.working = applyPreset(this.working, PRESETS[key]);
+    this.changed();
+  }
+
+  private renderLook() {
+    return html`<section>
+      <h3>Look</h3>
+      <div class="field">
+        <span class="label">Start from a preset</span>
+        <div class="chips">
+          ${Object.entries(PRESETS).map(
+            ([key, p]) => html`<button class="chip" title=${p.description} @click=${() => this.applyLook(key)}>${p.label}</button>`,
+          )}
+        </div>
+        <span class="hint">
+          Sets the bar and button styles below; your buttons and their own colours stay. Nothing is saved until you click Save.
+        </span>
+      </div>
+      <div class="grid">
+        ${this.choice(
+          "Current page shown as",
+          "active_indicator",
+          ACTIVE_INDICATORS.map((v) => [v, INDICATOR_LABELS[v]]),
+        )}
+        ${this.colour("Indicator colour", "indicator_color", "Line, pill, dot and glow")}
+        ${this.choice("Hover effect", "hover_effect", HOVER_EFFECTS.map((v) => [v, HOVER_LABELS[v]]))}
+        ${this.choice("Button shadow", "defaults.shadow", SHADOW_CHOICES)}
+      </div>
+    </section>`;
+  }
+
+  // ---------------------------------------------------------------- advanced
+
+  private yamlFromWorking() {
+    const layer = this.layer();
+    return Object.keys(layer).length ? dump(layer, { lineWidth: 120, noRefs: true }) : "";
+  }
+
+  /** Replaces this level with the YAML, previewed live. */
+  private applyYaml() {
+    const warnings: string[] = [];
+    let raw: unknown;
+    try {
+      raw = load(this.yamlText) ?? {};
+    } catch (err: any) {
+      this.yamlMsg = `Not valid YAML: ${err.message}`;
+      return;
+    }
+    const layer = sanitiseLayer(raw, (m) => warnings.push(m));
+    // The level below, with this level's YAML on top: the same way the bar builds it.
+    const working = merge([this.lower as unknown as Layer, layer]);
+    working.buttons = groupOrder(working.buttons);
+    this.working = working;
+    this.changed();
+    this.yamlMsg = warnings.length ? `Applied, but ignored: ${warnings.join("; ")}` : "Applied. Click Save to keep it.";
+  }
+
+  private renderAdvanced() {
+    const scopeLabel = SCOPES.find((s) => s.scope === this.scope)!.label;
+    return html`
+      <section>
+        <h3>YAML for "${scopeLabel}"</h3>
+        <p class="hint">
+          Everything this level changes, as YAML. Edit any setting, including ones the other tabs don't show (for example a
+          custom <code>shadow</code> like <code>0 0 20px #9C88FF</code>), then click Apply to preview.
+          ${this.scope === "shared"
+            ? "This level holds the full button list."
+            : "Buttons from the levels below appear under button_overrides."}
+        </p>
+        <textarea
+          class="yaml"
+          rows="18"
+          spellcheck="false"
+          .value=${this.yamlText}
+          @input=${(e: Event) => (this.yamlText = (e.target as HTMLTextAreaElement).value)}
+        ></textarea>
+        <div class="import-row">
+          <span class="hint">${this.yamlMsg}</span>
+          <span>
+            <button class="text" @click=${() => ((this.yamlText = this.yamlFromWorking()), (this.yamlMsg = ""))}>Reload</button>
+            <button class="text" @click=${() => this.applyYaml()}>Apply</button>
+          </span>
+        </div>
       </section>
       <section>
         <h3>Custom CSS</h3>
@@ -463,12 +646,13 @@ export class DockbarEditor extends LitElement {
           "Injected into the bar",
           "style",
           html`<textarea
-            rows="4"
+            rows="5"
             spellcheck="false"
             .value=${this.working.style}
             placeholder=".btn.active { box-shadow: 0 0 12px #9C88FF; }"
             @change=${(e: Event) => this.set("style", (e.target as HTMLTextAreaElement).value)}
           ></textarea>`,
+          "Parts you can target: bar, button, active, alert, badge, state, children, footer",
         )}
       </section>
     `;
@@ -506,7 +690,8 @@ export class DockbarEditor extends LitElement {
     if (from < 0 || to === from) return;
     const list = [...this.working.buttons];
     list.splice(to, 0, ...list.splice(from, 1));
-    this.working.buttons = list;
+    // Dragging a section takes its buttons along; a button dragged out of its section snaps back into it.
+    this.working.buttons = groupOrder(list);
     this.changed();
   }
 
@@ -526,8 +711,47 @@ export class DockbarEditor extends LitElement {
   }
 
   private removeButton(i: number) {
-    this.working.buttons = this.working.buttons.filter((_, n) => n !== i);
+    const gone = this.working.buttons[i];
+    // A deleted section's buttons move back to the top level rather than vanishing.
+    this.working.buttons = this.working.buttons
+      .filter((_, n) => n !== i)
+      .map((b) => (b.parent === gone.id ? this.withParent(b, "") : b));
     this.changed();
+  }
+
+  /** Clearing a parent writes "" only when a lower level set one, so it can override that. */
+  private withParent(b: DockbarButton, parent: string): DockbarButton {
+    const out = { ...b };
+    if (parent) out.parent = parent;
+    else if (this.lower.buttons.find((x) => x.id === b.id)?.parent) out.parent = "";
+    else delete out.parent;
+    return out;
+  }
+
+  private setParent(i: number, parent: string) {
+    const b = this.working.buttons[i];
+    this.working.buttons = groupOrder(this.working.buttons.map((x, n) => (n === i ? this.withParent(b, parent) : x)));
+    this.changed();
+  }
+
+  private sectionField(b: DockbarButton, i: number) {
+    const list = this.working.buttons;
+    if (isSection(list, b)) {
+      return html`<div class="field">
+        <span class="label">Inside section</span>
+        <span class="hint">This is a section (${childrenOf(list, b.id).length} buttons inside), so it stays on the top level.</span>
+      </div>`;
+    }
+    const current = parentOf(list, b) ?? "";
+    const options = list.filter((x) => x.id !== b.id && !parentOf(list, x));
+    return html`<label class="field">
+      <span class="label">Inside section</span>
+      <select @change=${(e: Event) => this.setParent(i, (e.target as HTMLSelectElement).value)}>
+        <option value="" ?selected=${!current}>None (top level)</option>
+        ${options.map((x) => html`<option value=${x.id} ?selected=${x.id === current}>${x.name || x.id}</option>`)}
+      </select>
+      <span class="hint">Pick any top-level button to turn it into a section.</span>
+    </label>`;
   }
 
   private addButton(b?: DockbarButton) {
@@ -536,6 +760,11 @@ export class DockbarEditor extends LitElement {
     this.working.buttons = [...this.working.buttons, button];
     this.expanded = b ? this.expanded : button.id;
     this.changed();
+  }
+
+  private addHaButton(button: Omit<DockbarButton, "id">) {
+    const taken = new Set([...this.working.buttons, ...this.lower.buttons].map((x) => x.id));
+    this.addButton({ ...clone(button), id: uniqueId(button.name ?? "button", taken) } as DockbarButton);
   }
 
   private setButton(i: number, key: keyof DockbarButton, value: string) {
@@ -559,7 +788,7 @@ export class DockbarEditor extends LitElement {
     </label>`;
   }
 
-  private buttonColour(i: number, label: string, key: keyof ButtonStyle) {
+  private buttonColour(i: number, label: string, key: keyof ButtonStyle | "alert_icon_color") {
     const value = this.working.buttons[i][key] ?? "";
     return html`<div class="field">
       <span class="label">${label}</span>
@@ -616,7 +845,27 @@ export class DockbarEditor extends LitElement {
             ? this.buttonText(i, "Page", "path", { list: "dockbar-paths", placeholder: "/lovelace/0" })
             : nothing}
           ${b.action === "url" ? this.buttonText(i, "Link", "url", { placeholder: "https://…" }) : nothing}
+          ${this.sectionField(b, i)}
         </div>
+        <h4>Count badge <span class="hint">a number in the corner when something needs attention</span></h4>
+        <div class="grid">
+          <label class="field">
+            <span class="label">Shows</span>
+            <select @change=${(e: Event) => this.setButton(i, "badge", (e.target as HTMLSelectElement).value)}>
+              <option value="" ?selected=${!b.badge}>Automatic (${BADGE_LABELS[badgeSource({ ...b, badge: undefined })]})</option>
+              ${BADGE_SOURCES.map((s) => html`<option value=${s} ?selected=${s === b.badge}>${BADGE_LABELS[s]}</option>`)}
+            </select>
+          </label>
+          ${badgeSource(b) !== "none" || isSection(this.working.buttons, b)
+            ? html`${this.buttonColour(i, "Badge colour", "badge_color")}
+              ${this.buttonColour(i, "Icon colour with a badge", "alert_icon_color")}`
+            : nothing}
+        </div>
+        ${isSection(this.working.buttons, b)
+          ? html`<span class="hint">
+              As a section, while closed it also shows the total of its buttons' badges, using these colours.
+            </span>`
+          : nothing}
         <h4>Live value <span class="hint">shows an entity's state on the button</span></h4>
         <div class="grid">
           ${this.buttonText(i, "Entity", "entity", { list: "dockbar-entities", placeholder: "sensor.pv_power" })}
@@ -675,7 +924,11 @@ export class DockbarEditor extends LitElement {
           const open = this.expanded === b.id;
           // Only the level a button was added at can delete it; levels above can hide it.
           const deletable = this.scope === "shared" || !base;
-          return html`<li class=${[open ? "open" : "", this.dragId === b.id ? "dragging" : "", b.hidden ? "is-hidden" : ""].join(" ")}>
+          const inside = Boolean(parentOf(this.working.buttons, b));
+          const kids = inside ? 0 : childrenOf(this.working.buttons, b.id).length;
+          return html`<li
+            class=${[open ? "open" : "", this.dragId === b.id ? "dragging" : "", b.hidden ? "is-hidden" : "", inside ? "child-row" : ""].join(" ")}
+          >
             <div class="row">
               <span
                 class="handle"
@@ -690,6 +943,7 @@ export class DockbarEditor extends LitElement {
                 <strong>${b.name || "(no name)"}</strong>
                 <span>${b.action === "navigate" ? b.path : b.action === "url" ? b.url : ACTION_LABELS[b.action]}</span>
               </button>
+              ${kids ? html`<span class="tag section-tag" title="A section with ${kids} buttons inside">section · ${kids}</span>` : nothing}
               ${b.hidden ? html`<span class="tag">hidden</span>` : nothing} ${tag ? html`<span class="tag">${tag}</span>` : nothing}
               <button class="icon" title="Move up" ?disabled=${i === 0} @click=${() => this.moveButton(i, -1)}>▲</button>
               <button class="icon" title="Move down" ?disabled=${i === n - 1} @click=${() => this.moveButton(i, 1)}>▼</button>
@@ -706,7 +960,15 @@ export class DockbarEditor extends LitElement {
           </li>`;
         })}
       </ul>
-      <button class="add" @click=${() => this.addButton()}>+ Add button</button>
+      <div class="add-row">
+        <button class="add" @click=${() => this.addButton()}>+ Add button</button>
+        <span class="hint">Home Assistant:</span>
+        ${HA_BUTTONS.map(
+          (h) => html`<button class="chip" title="Add a ${h.label} button" @click=${() => this.addHaButton(h.button)}>
+            + ${h.label}
+          </button>`,
+        )}
+      </div>
       <details class="import">
         <summary>Import buttons from YAML</summary>
         <textarea
@@ -772,6 +1034,12 @@ export class DockbarEditor extends LitElement {
         <p class="hint scope-hint">
           ${scopeInfo.hint} ${this.scope !== "shared" ? html`<strong>●</strong> marks a setting changed at this level.` : nothing}
         </p>
+        ${this.host_.usingSidebar
+          ? html`<p class="banner">
+              These buttons are copied from your Home Assistant sidebar, so everyone sees their own until an admin saves under
+              <strong>Everyone</strong>. Saving keeps this list for all users.
+            </p>`
+          : nothing}
         ${this.scope === "shared" && this.host_.usingYaml
           ? html`<p class="banner">
               Currently using <code>www/dockbar/config.yaml</code>. Saving here moves the config into Home Assistant, and the
@@ -783,8 +1051,11 @@ export class DockbarEditor extends LitElement {
           <button aria-selected=${this.tab === "buttons"} @click=${() => (this.tab = "buttons")}>
             Buttons (${this.working.buttons.length})
           </button>
+          <button aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>Advanced</button>
         </nav>
-        <main>${this.tab === "general" ? this.renderGeneral() : this.renderButtons()}</main>
+        <main>
+          ${this.tab === "general" ? this.renderGeneral() : this.tab === "buttons" ? this.renderButtons() : this.renderAdvanced()}
+        </main>
         <datalist id="dockbar-paths">
           ${this.targets.map((t) => html`<option value=${t.path}>${t.label}</option>`)}
         </datalist>
@@ -797,7 +1068,7 @@ export class DockbarEditor extends LitElement {
             : nothing}
           <span class="error">${this.error}</span>
           <button class="text" @click=${() => this.close()}>Cancel</button>
-          <button class="primary" ?disabled=${!this.dirty || this.saving} @click=${() => this.save()}>
+          <button class="primary" ?disabled=${!this.canSave || this.saving} @click=${() => this.save()}>
             ${this.saving ? "Saving…" : "Save"}
           </button>
         </footer>
@@ -1003,6 +1274,13 @@ export class DockbarEditor extends LitElement {
     .icon.spacer {
       width: 18px;
     }
+    .buttons li.child-row {
+      margin-inline-start: 22px;
+      border-inline-start: 3px solid color-mix(in srgb, var(--db-ed-accent) 45%, transparent);
+    }
+    .section-tag {
+      background: color-mix(in srgb, var(--db-ed-accent) 35%, transparent);
+    }
     .buttons li.is-hidden .row > ha-icon,
     .buttons li.is-hidden .title {
       opacity: 0.45;
@@ -1176,6 +1454,23 @@ export class DockbarEditor extends LitElement {
       padding: 8px 0;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
+    }
+    .add-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+    }
+    .add-row .add {
+      margin-right: 6px;
+    }
+    textarea.yaml {
+      width: 100%;
+      box-sizing: border-box;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      tab-size: 2;
     }
     .import {
       margin-top: 12px;

@@ -2,7 +2,8 @@ import { DockbarNav, type ButtonClickDetail } from "./bar.ts";
 import { ConfigError, loadYamlLayer, type DockbarButton, type DockbarConfig, type Layer, type Position } from "./config.ts";
 import { DockbarEditor, type EditorHost } from "./editor.ts";
 import * as ha from "./ha.ts";
-import { cleanPath, findActive, onAnyPath } from "./match.ts";
+import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
+import { isSection, sectionFor } from "./sections.ts";
 import { merge } from "./merge.ts";
 import { LayerStore, type Scope } from "./storage.ts";
 
@@ -35,6 +36,10 @@ class Dockbar implements EditorHost {
   /** The current page is in hide_on. */
   private routeHidden = false;
   private statesKey = "";
+  private badgesKey = "";
+  /** Live counts behind the badges. Subscriptions start the first time a button needs one. */
+  private counts = { notifications: 0, repairs: 0 };
+  private watching = new Set<string>();
   private position: Position | null = null;
   private mobileQuery: MediaQueryList | null = null;
   private onMobileChange = () => this.refresh();
@@ -44,6 +49,8 @@ class Dockbar implements EditorHost {
   constructor(
     private store: LayerStore,
     private yaml: Layer | null,
+    /** Mirrors HA's sidebar until someone saves a shared config. */
+    private firstRun: Layer,
   ) {
     this.bar = document.createElement(TAG) as unknown as DockbarNav;
     this.bar.addEventListener("dockbar-click", (e) =>
@@ -72,6 +79,10 @@ class Dockbar implements EditorHost {
     return Boolean(ha.hass()?.user?.is_admin);
   }
 
+  get usingSidebar() {
+    return !this.store.shared && !this.yaml;
+  }
+
   get usingYaml() {
     return !this.store.shared && Boolean(this.yaml);
   }
@@ -79,7 +90,7 @@ class Dockbar implements EditorHost {
   private layers(count: number, draft: { scope: Scope; layer: Layer } | null): (Layer | null)[] {
     return SCOPE_ORDER.slice(0, count).map((scope) => {
       if (draft?.scope === scope) return draft.layer;
-      if (scope === "shared") return this.store.shared ?? this.yaml;
+      if (scope === "shared") return this.store.shared ?? this.yaml ?? this.firstRun;
       return this.store.get(scope);
     });
   }
@@ -129,6 +140,10 @@ class Dockbar implements EditorHost {
   /** Re-merges every layer and re-applies everything. Called on any config change. */
   refresh() {
     const merged = merge(this.layers(SCOPE_ORDER.length, this.draft));
+    // Buttons for pages this user can't open (e.g. Settings for a non-admin) are left off their bar.
+    merged.buttons = merged.buttons.map((b) =>
+      b.action === "navigate" && b.path && !ha.canOpen(b.path) ? { ...b, hidden: true } : b,
+    );
     const query = `(max-width: ${merged.mobile_breakpoint - 1}px)`;
     if (this.mobileQuery?.media !== query) {
       this.mobileQuery?.removeEventListener("change", this.onMobileChange);
@@ -145,6 +160,7 @@ class Dockbar implements EditorHost {
     this.routeHidden = onAnyPath(location.pathname, this.config.hide_on);
     this.applyVisibility();
     this.statesKey = "";
+    this.badgesKey = "";
     this.layout();
     ha.setSidebarHidden(!this.chromeOff && this.config.hide_sidebar);
     this.onRoute();
@@ -185,9 +201,44 @@ class Dockbar implements EditorHost {
       if (text !== undefined) states[b.id] = text;
     }
     const key = JSON.stringify(states);
-    if (key === this.statesKey) return;
-    this.statesKey = key;
-    this.bar.states = states;
+    if (key !== this.statesKey) {
+      this.statesKey = key;
+      this.bar.states = states;
+    }
+    this.syncBadges();
+  }
+
+  private syncBadges() {
+    if (this.barGone) return;
+    const badges: Record<string, number> = {};
+    let updates: number | undefined;
+    for (const b of this.config.buttons) {
+      if (b.hidden) continue;
+      const source = badgeSource(b);
+      let n = 0;
+      if (source === "notifications") n = this.watch("notifications");
+      else if (source === "repairs") n = this.watch("repairs");
+      else if (source === "updates") n = updates ??= ha.updatesCount();
+      else if (source === "config") n = (updates ??= ha.updatesCount()) + this.watch("repairs");
+      if (n > 0) badges[b.id] = n;
+    }
+    const key = JSON.stringify(badges);
+    if (key === this.badgesKey) return;
+    this.badgesKey = key;
+    this.bar.badges = badges;
+  }
+
+  private watch(source: "notifications" | "repairs"): number {
+    if (!this.watching.has(source)) {
+      this.watching.add(source);
+      const onCount = (n: number) => {
+        this.counts[source] = n;
+        this.syncBadges();
+      };
+      if (source === "notifications") ha.watchNotifications(onCount);
+      else ha.watchRepairs(onCount);
+    }
+    return this.counts[source];
   }
 
   private onRoute() {
@@ -197,7 +248,12 @@ class Dockbar implements EditorHost {
       this.applyVisibility();
       this.layout();
     }
-    this.bar.activeIndex = findActive(this.config.buttons, location.pathname);
+    const active = findActive(this.config.buttons, location.pathname);
+    // Moving to another page opens the section it belongs to and closes the rest.
+    if (active !== this.bar.activeIndex || this.bar.openSection === undefined) {
+      this.bar.openSection = sectionFor(this.config.buttons, active);
+    }
+    this.bar.activeIndex = active;
     // Wait a frame for HA to render the new panel before touching its header.
     requestAnimationFrame(() => this.syncChrome());
   }
@@ -209,12 +265,26 @@ class Dockbar implements EditorHost {
     this.refresh();
   }
 
+  private isHere(b: DockbarButton) {
+    return b.action === "navigate" && Boolean(b.path) && cleanPath(b.path!) === cleanPath(location.pathname);
+  }
+
   openEditor() {
     if (document.querySelector(EDITOR_TAG)) return;
     (document.createElement(EDITOR_TAG) as unknown as DockbarEditor).open(this);
   }
 
   private onClick(b: DockbarButton) {
+    if (isSection(this.config.buttons, b)) {
+      const open = this.bar.openSection === b.id;
+      // A section without a page of its own just opens and closes. One with a page opens it,
+      // and tapping it again while you're there closes the list.
+      if (b.action === "section" || (open && this.isHere(b))) {
+        this.bar.openSection = open ? null : b.id;
+        return;
+      }
+      this.bar.openSection = b.id;
+    }
     switch (b.action) {
       case "navigate":
         if (b.path && cleanPath(b.path) !== cleanPath(location.pathname)) ha.navigate(b.path);
@@ -234,6 +304,9 @@ class Dockbar implements EditorHost {
         break;
       case "disable":
         this.setOff(true);
+        break;
+      case "notifications":
+        ha.showNotifications();
         break;
     }
   }
@@ -272,7 +345,8 @@ async function start() {
   let dockbar: Dockbar | undefined;
   const store = new LayerStore(el.hass!.connection, () => dockbar?.refresh());
   await store.start();
-  dockbar = new Dockbar(store, yaml);
+  const firstRun: Layer = { buttons: ha.sidebarDefaults(await ha.sidebarPrefs()) };
+  dockbar = new Dockbar(store, yaml, firstRun);
   window.__dockbar = dockbar;
 }
 

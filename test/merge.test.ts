@@ -127,3 +127,40 @@ test("phone settings: hidden position and a separate thickness", () => {
   assert.equal(sanitiseLayer({ mobile_size: null }).mobile_size, null);
   assert.equal(merge([{ mobile_size: 64 }, { mobile_size: null }]).mobile_size, null);
 });
+
+test("a user can move a shared button out of its section, or into one", () => {
+  const shared = { buttons: [b("energy"), b("solar", { parent: "energy" }), b("home")] };
+  const lower = merge([shared]);
+  const working = structuredClone(lower);
+  working.buttons = [b("energy"), b("solar", { parent: "" }), b("home", { parent: "energy" })];
+
+  const layer = diffLayer(lower, working, false);
+  assert.deepEqual(layer.button_overrides?.edits, { solar: { parent: "" }, home: { parent: "energy" } });
+  const stored = sanitiseLayer(JSON.parse(JSON.stringify(layer)));
+  assert.deepEqual(merge([shared, stored]).buttons.map((x) => [x.id, x.parent]), [
+    ["energy", undefined],
+    ["solar", ""],
+    ["home", "energy"],
+  ]);
+});
+
+test("alert style and per-button alert icon colour survive sanitising and merge", () => {
+  const layer = sanitiseLayer({ alert: { icon_color: "#ff5252" }, buttons: [{ path: "/x", alert_icon_color: "orange" }] });
+  assert.deepEqual(layer.alert, { icon_color: "#ff5252" });
+  assert.equal(layer.buttons?.[0].alert_icon_color, "orange");
+  assert.deepEqual(merge([layer, { alert: { border: "1px solid red" } }]).alert, { icon_color: "#ff5252", border: "1px solid red" });
+});
+
+test("look settings: indicator, hover and colour are validated", () => {
+  const layer = sanitiseLayer(
+    { active_indicator: "pill", hover_effect: "grow", indicator_color: "#9C88FF", defaults: { shadow: "soft" } },
+    () => {},
+  );
+  assert.equal(layer.active_indicator, "pill");
+  assert.equal(layer.hover_effect, "grow");
+  assert.equal(layer.indicator_color, "#9C88FF");
+  assert.equal(layer.defaults?.shadow, "soft");
+  const bad = sanitiseLayer({ active_indicator: "sparkle", hover_effect: "spin" }, () => {});
+  assert.equal(bad.active_indicator, undefined);
+  assert.equal(bad.hover_effect, undefined);
+});

@@ -1,4 +1,4 @@
-import type { DockbarButton } from "./config.ts";
+import type { BadgeSource, DockbarButton } from "./config.ts";
 
 function firstSegment(path: string): string {
   return path.split("/").filter(Boolean)[0] ?? "";
@@ -37,4 +37,17 @@ export function onAnyPath(pathname: string, paths: string[]): boolean {
     const target = cleanPath(p);
     return here === target || here.startsWith(target + "/");
   });
+}
+
+/** The badge a button shows: its own setting, or the one that fits what it opens. */
+export function badgeSource(b: DockbarButton): BadgeSource {
+  if (b.badge) return b.badge;
+  if (b.action === "notifications") return "notifications";
+  if (b.action === "navigate" && b.path) {
+    const p = cleanPath(b.path);
+    if (p === "/config") return "config";
+    if (p === "/config/updates") return "updates";
+    if (p === "/config/repairs") return "repairs";
+  }
+  return "none";
 }

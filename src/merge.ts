@@ -11,7 +11,7 @@ import {
   type Settings,
 } from "./config.ts";
 
-const NESTED: ReadonlySet<string> = new Set(["defaults", "active"]);
+const NESTED: ReadonlySet<string> = new Set(["defaults", "active", "alert"]);
 
 function clone<T>(v: T): T {
   return v === undefined ? v : JSON.parse(JSON.stringify(v));

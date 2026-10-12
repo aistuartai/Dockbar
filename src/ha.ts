@@ -1,11 +1,14 @@
 // Everything that touches Home Assistant's frontend lives here, so HA upgrades only break one file.
-import type { Position } from "./config.ts";
+import type { DockbarButton, Position } from "./config.ts";
+import { sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
 
 export interface HassPanel {
   component_name: string;
   url_path: string;
   title: string | null;
   icon?: string | null;
+  show_in_sidebar?: boolean;
+  default_visible?: boolean;
 }
 
 export interface HassLike {
@@ -13,12 +16,16 @@ export interface HassLike {
   user?: { is_admin: boolean; name: string };
   panels: Record<string, HassPanel>;
   states: Record<string, HassEntity>;
-  entities?: Record<string, { entity_id: string; platform: string }>;
+  entities?: Record<string, { entity_id: string; platform: string; hidden?: boolean }>;
   connection: {
     sendMessagePromise<T = unknown>(msg: Record<string, unknown>): Promise<T>;
     subscribeMessage<T = unknown>(cb: (msg: T) => void, msg: Record<string, unknown>): Promise<() => void>;
+    subscribeEvents(cb: (event: unknown) => void, eventType: string): Promise<() => void>;
   };
   localize?: (key: string) => string;
+  userData?: { default_panel?: string } | null;
+  systemData?: { default_panel?: string } | null;
+  locale?: { language?: string };
   formatEntityState?: (entity: HassEntity, state?: string) => string;
   formatEntityAttributeValue?: (entity: HassEntity, attribute: string, value?: unknown) => string;
 }
@@ -119,6 +126,67 @@ export async function navTargets(): Promise<NavTarget[]> {
   return out.sort((a, b) => a.label.localeCompare(b.label));
 }
 
+/** The user's sidebar order and hidden panels, where HA keeps them (user data, then this browser). */
+export async function sidebarPrefs(): Promise<SidebarPrefs> {
+  const h = hass();
+  let value: Partial<SidebarPrefs> | null = null;
+  try {
+    value = (await h?.connection.sendMessagePromise<{ value: Partial<SidebarPrefs> | null }>({
+      type: "frontend/get_user_data",
+      key: "sidebar",
+    }))?.value ?? null;
+  } catch {
+    // Older or restricted setups: fall back to what this browser remembers.
+  }
+  const local = (key: string): string[] => {
+    try {
+      return JSON.parse(localStorage.getItem(key) ?? "[]");
+    } catch {
+      return [];
+    }
+  };
+  return {
+    panelOrder: value?.panelOrder ?? local("sidebarPanelOrder"),
+    hiddenPanels: value?.hiddenPanels ?? local("sidebarHiddenPanels"),
+  };
+}
+
+/** The dashboard HA opens by default, worked out the way HA does. */
+function defaultPanel(h: HassLike): string {
+  let stored: string | null = null;
+  try {
+    stored = JSON.parse(localStorage.getItem("defaultPanel") ?? "null");
+  } catch {
+    // Ignore a damaged value.
+  }
+  const panel = h.userData?.default_panel || h.systemData?.default_panel || stored || "home";
+  return panel === "lovelace" && !h.panels.lovelace ? "home" : panel;
+}
+
+/** First-run buttons: this user's HA sidebar, then Notifications, Settings and Profile. */
+export function sidebarDefaults(prefs: SidebarPrefs): DockbarButton[] {
+  const h = hass();
+  if (!h || !Object.keys(h.panels ?? {}).length) return [];
+  return sidebarButtons({
+    panels: h.panels,
+    prefs,
+    defaultPanel: defaultPanel(h),
+    localize: (key) => h.localize?.(key) ?? "",
+    language: h.locale?.language,
+  });
+}
+
+/**
+ * Whether this user can open a path. HA only sends each user the panels they're allowed,
+ * so a button for an admin-only page (Settings, HACS) is left out for everyone else.
+ */
+export function canOpen(path: string): boolean {
+  const panels = hass()?.panels;
+  if (!panels || !Object.keys(panels).length) return true;
+  const first = path.split(/[?#]/)[0].split("/").filter(Boolean)[0];
+  return !first || first in panels;
+}
+
 const SIDES: Position[] = ["left", "right", "top", "bottom"];
 const PREV_DOCK_KEY = "dockbar:previous-dock";
 const DISABLE_KEY = "dockbar:disabled";
@@ -134,6 +202,12 @@ const HEADER_CSS = `
       var(--dockbar-header-space, var(--header-height)) + var(--safe-area-inset-top, 0px) +
         var(--view-container-padding-top, 0px)
     ) !important;
+  }
+  /* The page is padded clear of a left bar from outside hui-root, so stretch a scrolling view
+     background back under the bar; otherwise a see-through bar shows HA's plain base colour. */
+  hui-view-background:not([fixed-background]) {
+    left: calc(-1 * var(--dockbar-pad-left, 0px)) !important;
+    width: auto !important;
   }
 `;
 
@@ -231,7 +305,10 @@ export function syncLeftPad(leftBar: boolean) {
     style.textContent = MAIN_CSS;
     root.appendChild(style);
   }
-  main.toggleAttribute(PAD_ATTR, leftBar && main.hasAttribute("modal") && !main.narrow);
+  const pad = leftBar && main.hasAttribute("modal") && !main.narrow;
+  main.toggleAttribute(PAD_ATTR, pad);
+  // Read by the hui-root sheet, which stretches the view background under the bar.
+  document.documentElement.style.setProperty("--dockbar-pad-left", pad ? "var(--app-safe-area-inset-left, 0px)" : "0px");
 }
 
 /** Uses HA's own "always hidden" sidebar mode and puts the user's previous choice back when turned off. */
@@ -248,6 +325,58 @@ export function setSidebarHidden(hidden: boolean) {
     if (prev && current === "always_hidden") fire(ha, "hass-dock-sidebar", { dock: prev });
     store?.removeItem(PREV_DOCK_KEY);
   }
+}
+
+/** Opens HA's notifications drawer, the same as the bell in its sidebar. */
+export function showNotifications() {
+  const main = homeAssistant()?.shadowRoot?.querySelector("home-assistant-main");
+  if (main) fire(main, "hass-show-notifications");
+}
+
+/**
+ * Pending updates, counted the way HA's Settings badge counts them:
+ * update entities that are on, can be installed, and aren't hidden.
+ */
+export function updatesCount(): number {
+  const h = hass();
+  if (!h) return 0;
+  let n = 0;
+  for (const [id, s] of Object.entries(h.states)) {
+    if (!id.startsWith("update.") || s.state !== "on" || h.entities?.[id]?.hidden) continue;
+    if (Number(s.attributes.supported_features ?? 0) & 1) n++;
+  }
+  return n;
+}
+
+/** Live count of persistent notifications (HA's bell). */
+export function watchNotifications(onCount: (n: number) => void) {
+  const ids = new Set<string>();
+  hass()
+    ?.connection.subscribeMessage<{ type: string; notifications: Record<string, unknown> }>(
+      (msg) => {
+        if (msg.type === "current") ids.clear();
+        for (const id of Object.keys(msg.notifications ?? {})) {
+          if (msg.type === "removed") ids.delete(id);
+          else ids.add(id);
+        }
+        onCount(ids.size);
+      },
+      { type: "persistent_notification/subscribe" },
+    )
+    .catch(() => {});
+}
+
+/** Live count of repairs that aren't ignored. Admin only, the same as HA's Settings badge. */
+export function watchRepairs(onCount: (n: number) => void) {
+  const h = hass();
+  if (!h?.user?.is_admin) return;
+  const load = () =>
+    h.connection
+      .sendMessagePromise<{ issues: { ignored: boolean }[] }>({ type: "repairs/list_issues" })
+      .then((r) => onCount(r.issues.filter((i) => !i.ignored).length))
+      .catch(() => {});
+  load();
+  h.connection.subscribeEvents(() => load(), "repairs_issue_registry_updated").catch(() => {});
 }
 
 /** Opens HA's sidebar as an overlay, or docks/undocks it when it isn't hidden. */

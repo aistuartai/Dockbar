@@ -1,6 +1,6 @@
 {
   "name": "dockbar",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A persistent, fully styleable navigation bar for every Home Assistant dashboard.",
   "type": "module",
   "private": true,
