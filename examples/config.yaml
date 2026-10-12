@@ -1,27 +1,37 @@
 # Optional starting config. Save as /config/www/dockbar/config.yaml
-# Easier: use the Settings button on the bar. Once an admin saves under "Everyone",
-# the config lives in Home Assistant and this file is ignored.
+# Easier: use the Dockbar settings button on the bar (or paste this into its Advanced tab).
+# Once an admin saves under "Everyone", the config lives in Home Assistant and this file is ignored.
 # Note: files in /config/www are served at /local/ WITHOUT authentication. Don't put secrets here.
+#
+# Tip: quote any value that contains a #, e.g. border: '1px solid #9C88FF'.
+# Unquoted, YAML treats " #9C88FF" as a comment and the colour is lost.
 
+# --- Layout ---------------------------------------------------------------
 position: left            # left | right | top | bottom
 mobile_position: bottom   # used below mobile_breakpoint; none keeps `position`, hidden = no bar on phones
 mobile_size: 64           # bar thickness on phones; leave out to use `size`
 mobile_breakpoint: 600    # px
 hide_sidebar: true        # hide HA's sidebar (the pinned Menu button still opens it)
 hide_header: true         # hide the dashboard header (it comes back in edit mode)
+hide_on: []               # paths where the bar is hidden, e.g. [/wall-panel]
 
 size: 88                  # bar thickness, px
 padding: 8
 gap: 8
 # button_length: 72       # default: square buttons; they shrink to fit, down to button_min_length
 button_min_length: 52
-background: rgba(18, 12, 38, 0.92)
-background_opacity: 100      # 0-100, fades the background colour (100 = as written)
-backdrop_filter: blur(8px)
 show_names: true
 footer: [settings, menu, header, off]   # pinned at the end of the bar
 
-defaults:                 # applied to every button, each button can override any of these
+# --- Look -----------------------------------------------------------------
+background: rgba(18, 12, 38, 0.92)
+background_opacity: 100   # 0-100, fades the background colour (100 = as written)
+backdrop_filter: blur(8px)
+active_indicator: fill    # how the current page is marked: fill | line | pill | dot | glow
+indicator_color: '#9C88FF'
+hover_effect: lift        # brighten | lift | grow | glow | none
+
+defaults:                 # applied to every button; each button can override any of these
   background: rgba(30, 20, 60, 0.8)
   border: 1px solid transparent
   border_radius: 12px
@@ -29,19 +39,54 @@ defaults:                 # applied to every button, each button can override an
   name_color: '#9C88FF'
   icon_size: 28px
   font_size: 11px
+  shadow: soft            # none | soft | raised | glow | 3d | soft-ui | any CSS box-shadow
+  # text_transform: uppercase
+  # letter_spacing: 0.12em
 
 active:                   # applied on top of the button that matches the current page
   background: rgba(70, 50, 140, 0.9)
-  border: 1px solid #9C88FF
+  border: '1px solid #9C88FF'
 
+alert:                    # applied on top while a button shows a count badge
+  icon_color: '#FF8A65'
+
+# --- Buttons --------------------------------------------------------------
 buttons:
-  - name: Home
+  - id: home
+    name: Home
     icon: mdi:home
     path: /lovelace/0
-  - name: Energy
+
+  # A section with a page of its own: tapping it opens Energy and shows the buttons inside.
+  - id: energy
+    name: Energy
     icon: mdi:lightning-bolt
     path: /energy
     icon_color: '#FFD54F'
+    entity: sensor.solar_power        # live value under the name (use your own sensor)
+  - name: Battery
+    icon: mdi:battery-high
+    path: /lovelace/battery
+    parent: energy
+
+  # A section without a page: it only opens and closes.
+  - id: system
+    name: System
+    icon: mdi:cog-box
+    action: section
+  - name: Settings
+    icon: mdi:cog
+    path: /config                     # gets the updates + repairs badge automatically
+    parent: system
+  - name: Profile
+    icon: mdi:account-circle
+    path: /profile
+    parent: system
+
+  - name: Notifications
+    icon: mdi:bell
+    action: notifications             # opens HA's notifications; shows the unread count
+    alert_icon_color: '#FF5252'
   - name: Docs
     icon: mdi:open-in-new
     url: https://www.home-assistant.io

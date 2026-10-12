@@ -46,8 +46,12 @@ export interface ButtonStyle {
   state_color?: string;
   /** Colour of the count badge, and of the ring around a button that has one. */
   badge_color?: string;
-  /** none, soft, raised, glow, or any CSS box-shadow. */
+  /** none, soft, raised, glow, 3d, soft-ui, or any CSS box-shadow. */
   shadow?: string;
+  /** e.g. uppercase, for spaced-out labels. */
+  text_transform?: string;
+  /** e.g. 0.12em */
+  letter_spacing?: string;
 }
 export const STYLE_KEYS: (keyof ButtonStyle)[] = [
   "background",
@@ -60,6 +64,8 @@ export const STYLE_KEYS: (keyof ButtonStyle)[] = [
   "state_color",
   "badge_color",
   "shadow",
+  "text_transform",
+  "letter_spacing",
 ];
 
 /** How the current page's button is marked, on top of its "active" style. */

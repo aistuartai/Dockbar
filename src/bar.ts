@@ -22,6 +22,8 @@ const SHADOWS: Record<string, string> = {
   glow: "0 0 12px var(--db-indicator)",
   // A solid darker "side" under the button, a soft drop shadow and a light top edge.
   "3d": "0 4px 0 var(--db-edge), 0 6px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22)",
+  // Neumorphism: light from the top left, shade to the bottom right, both from the button's own colour.
+  "soft-ui": "-5px -5px 10px var(--db-nm-light), 5px 5px 10px var(--db-nm-dark)",
 };
 
 /** Fades the bar colour with color-mix, which works for hex, rgb(a), named colours and theme vars. */
@@ -81,6 +83,9 @@ export class DockbarNav extends LitElement {
       "--db-bar-bg": barBackground(c.background, c.background_opacity),
       "--db-bar-filter": c.backdrop_filter,
       "--db-indicator": c.indicator_color,
+      // Lines follow the button text colour, so they show on light and dark bars alike.
+      "--db-divider": `color-mix(in srgb, ${c.defaults.name_color ?? "#fff"} 14%, transparent)`,
+      "--db-section-line": `color-mix(in srgb, ${c.defaults.name_color ?? "#fff"} 30%, transparent)`,
     };
     for (const [k, v] of Object.entries(vars)) this.style.setProperty(k, v);
     this.setAttribute("indicator", c.active_indicator);
@@ -159,6 +164,8 @@ export class DockbarNav extends LitElement {
       "--db-state-color": s.state_color,
       "--db-badge-color": s.badge_color,
       "--db-shadow": s.shadow ? (SHADOWS[s.shadow] ?? s.shadow) : undefined,
+      "--db-text-transform": s.text_transform,
+      "--db-letter-spacing": s.letter_spacing,
     };
     const state = this.states[b.id];
     const flags = [
@@ -168,6 +175,7 @@ export class DockbarNav extends LitElement {
       child ? "child" : "",
       section ? "section" : "",
       s.shadow === "3d" ? "d3" : "",
+      s.shadow === "soft-ui" ? "nm" : "",
       section === "open" ? "open" : "",
     ].filter(Boolean);
     return html`
@@ -277,14 +285,14 @@ export class DockbarNav extends LitElement {
     :host([position="right"]) .footer {
       grid-template-columns: repeat(2, 1fr);
       padding-top: var(--db-gap);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid var(--db-divider);
     }
     :host([position="top"]) .footer,
     :host([position="bottom"]) .footer {
       grid-auto-flow: column;
       grid-template-rows: repeat(2, 1fr);
       padding-left: var(--db-gap);
-      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      border-left: 1px solid var(--db-divider);
     }
     .footer .btn {
       --db-icon-size: 18px;
@@ -388,14 +396,14 @@ export class DockbarNav extends LitElement {
       flex-direction: column;
       margin-inline: 6px;
       padding-inline-start: 6px;
-      border-inline-start: 2px solid var(--db-section-line, rgba(255, 255, 255, 0.18));
+      border-inline-start: 2px solid var(--db-section-line);
     }
     :host([position="top"]) .children,
     :host([position="bottom"]) .children {
       flex-direction: row;
       margin-block: 6px;
       padding-inline-start: 6px;
-      border-inline-start: 2px solid var(--db-section-line, rgba(255, 255, 255, 0.18));
+      border-inline-start: 2px solid var(--db-section-line);
     }
     /* Children may be smaller than top-level buttons, but never shorter than their icon, name and value. */
     :host([position="left"]) .children .btn,
@@ -477,6 +485,20 @@ export class DockbarNav extends LitElement {
         0 3px 6px rgba(0, 0, 0, 0.3);
     }
 
+    /* Soft UI (neumorphism): the button is shaped by light and shade made from its own colour,
+       and sinks into the surface while pressed and while it's the current page. */
+    .btn.nm {
+      --db-nm-light: color-mix(in srgb, var(--db-bg, #e6e9ee) 30%, #fff);
+      --db-nm-dark: color-mix(in srgb, var(--db-bg, #e6e9ee) 72%, #000);
+    }
+    .btn.nm:active,
+    .main .btn.nm.active {
+      transform: none;
+      box-shadow:
+        inset 4px 4px 8px var(--db-nm-dark),
+        inset -4px -4px 8px var(--db-nm-light);
+    }
+
     /* How the current page is marked. "fill" relies on the active style alone. */
     :host([indicator="line"]) .main .btn.active::before {
       content: "";
@@ -542,6 +564,8 @@ export class DockbarNav extends LitElement {
     .name {
       font-family: var(--ha-font-family-body, Roboto, sans-serif);
       font-size: var(--db-font-size);
+      text-transform: var(--db-text-transform, none);
+      letter-spacing: var(--db-letter-spacing, normal);
       line-height: 1.15;
       text-align: center;
       max-width: 100%;

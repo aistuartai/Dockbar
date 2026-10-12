@@ -24,11 +24,11 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 ## Features
 
 **Looks**
-- **Presets:** Glass, Flat, Neon, Material, 3D and Dock, one click each, then adjust anything
+- **Presets:** Glass, Flat, Neon, Material, Soft (neumorphism), 3D and Dock, one click each, then adjust anything
 - **Current page marker:** fill, a line on the edge, a pill behind the icon, a dot, or a glow
-- **Hover effects** (brighten, lift, grow, glow) and **button shadows** (soft, raised, glow, **3D keys that press in**, or your own CSS)
+- **Hover effects** (brighten, lift, grow, glow) and **button shadows** (soft, raised, glow, **3D keys that press in**, **soft UI** that sinks in, or your own CSS)
 - **Glass effect:** a background opacity slider plus backdrop blur, so your dashboard shows through the bar
-- Per-button colours, borders, corner radius and icon sizes, plus a style for every button and one for the current page's button
+- Per-button colours, borders, corner radius, icon sizes and label style (e.g. uppercase, spaced out), plus a style for every button, one for the current page's button and one for buttons with a badge
 - Follows your HA theme by default
 - An **Advanced** tab with a YAML editor for every setting, plus custom CSS for anything else
 
@@ -39,7 +39,7 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **Live entity values** on buttons, e.g. solar power or battery %, using HA's own formatting and units
 - **Count badges** like HA's sidebar: a Settings button shows pending updates and repairs, a Notifications button shows unread notifications, with a number in the corner and a ring around the button
 - Buttons can open a dashboard or view, open a link, open HA's notifications, open HA's sidebar, or toggle the header
-- Pinned **Settings**, **Menu**, **Header** and **Turn off** buttons at the end of the bar
+- Pinned **Dockbar settings**, **Menu**, **Header** and **Turn off** buttons at the end of the bar
 
 **Layout**
 - Left, right, top or bottom, with adjustable thickness, padding, gap and button size
@@ -62,13 +62,16 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - Disable or enable the integration from **Settings → Devices & services**, with no reload needed
 - A one-tap Turn off for a single device, and a corner button to bring it back
 
-> Tested on Home Assistant 2026.10.
+> Tested on Home Assistant 2026.10.0 and 2026.10.1.
 
 ## Install
 
 Dockbar is a small integration that loads the bar on every page. There's no YAML to edit.
 
 ### HACS (custom repository)
+
+Dockbar has been [submitted to the HACS default store](https://github.com/hacs/default/pull/11842). Until it's listed, add it as a custom repository:
+
 
 1. HACS → ⋮ → **Custom repositories** → add `https://github.com/aistuartai/Dockbar`, type **Integration**.
 2. Download **Dockbar** and restart Home Assistant.
@@ -93,7 +96,15 @@ Unzip `dockbar.zip` from the latest [release](https://github.com/aistuartai/Dock
   <img alt="Button list" src="docs/settings-buttons.png" width="49%">
 </p>
 
-Click the **⚙ Settings** button pinned at the end of the bar, or add `?dockbar=edit` to any URL. Changes preview live on the bar, and nothing is saved until you click **Save**.
+Click the **Dockbar settings** button (the sliders icon) pinned at the end of the bar, or add `?dockbar=edit` to any URL. Changes preview live on the bar, and nothing is saved until you click **Save**.
+
+The dialog has three tabs:
+
+| Tab | For |
+|---|---|
+| **General** | The look (presets, current-page marker, hover, shadow), layout, phones, HA's sidebar and header, hiding on dashboards, pinned buttons, and colours |
+| **Buttons** | Adding, ordering, hiding and deleting buttons, sections, badges, live values, and importing buttons from YAML |
+| **Advanced** | A YAML editor for everything the level you're editing changes, and custom CSS |
 
 ### Three levels
 
@@ -115,7 +126,7 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 
 | Button | Does |
 |---|---|
-| ⚙ Settings | Opens the settings dialog |
+| Dockbar settings (sliders) | Opens the settings dialog |
 | ☰ Menu | Opens Home Assistant's sidebar |
 | ▭ Header | Shows or hides the dashboard header for this session |
 | ⏻ Turn off | Turns Dockbar off **on this device**. HA's sidebar and header come back, and a small round button in the corner turns it back on. |
@@ -132,6 +143,28 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 | `toggle_header` | | Shows or hides the dashboard header |
 | `settings` | | Opens Dockbar settings |
 | `disable` | | Turns Dockbar off on this device |
+
+### Looks
+
+**General → Look** has one-click presets to start from. Each one sets the bar and the every-button styles; your buttons, and any colours set on a single button, stay as they are.
+
+| Preset | Look |
+|---|---|
+| **Glass** | See-through with blur and soft edges, lifts on hover |
+| **Flat** | Solid colours, no borders, current page filled with your theme colour |
+| **Neon** | Dark with a coloured glow |
+| **Material** | Clean, with a pill behind the current page's icon |
+| **Soft** | Neumorphism: light grey, shaped by soft light and shade, uppercase spaced labels, current page pressed into the surface |
+| **3D** | Raised keys with a solid side that press in; the current page stays pressed |
+| **Dock** | Icons only, growing on hover, a dot under the current page |
+
+Below the presets: how the current page is marked (fill, line, pill, dot or glow) and its colour, the hover effect, and the button shadow (none, soft, raised, glow, 3D or Soft UI). 3D and Soft UI work out their light and dark edges from each button's own colour, so they suit any colour scheme.
+
+### Advanced: YAML and CSS
+
+The **Advanced** tab shows everything the level you're editing changes, as YAML. Edit anything, including values the other tabs don't offer (for example a shadow of your own like `0 0 20px #9C88FF`), then click **Apply** to preview and **Save** to keep it. Anything invalid is listed and skipped rather than breaking the bar.
+
+Custom CSS goes in the same tab and is injected into the bar. You can target these parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer`.
 
 ### Starting from YAML (optional)
 
@@ -166,7 +199,9 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 | `hover_effect` | `brighten` | `brighten`, `lift`, `grow`, `glow`, `none` |
 | `style` | | Raw CSS inside the bar's shadow root. Parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer` |
 
-**Button style keys** (in `defaults`, `active`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, or any CSS box-shadow).
+**Button keys:** `id`, `name`, `icon`, `action`, `path`, `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `parent`, `hidden`, plus any style key.
+
+**Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
 
 **Sections:** open a button in the Buttons tab and pick **Inside section** to put it inside another top-level button. That button becomes a section: tapping it opens its page (if it has one) and shows its buttons underneath, and only one section is open at a time. Give a section the action **Only open its buttons** if it has no page of its own. In YAML, add `parent: <section id>` to a button.
 
@@ -216,7 +251,7 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 ```bash
 npm install
 npm test             # unit tests (Node 24, native TypeScript)
-npm run build        # dist/dockbar.js
+npm run build        # custom_components/dockbar/frontend/dockbar.js
 npm run brand        # re-render the icon and logo PNGs from brand/icon.svg
 npm run deploy       # build, then copy custom_components/dockbar into the HA config folder in .deploy-target or $DOCKBAR_DEPLOY_DIR
 ```

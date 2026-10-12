@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.1
+
+**Looks**
+- New **Soft** preset (neumorphism): light grey, shaped by soft light and shade, sage accents, uppercase spaced labels, and the current page pressed into the surface.
+- New **Soft UI** button shadow, which works on any colour (including dark), with presses and the current page sinking in.
+- New label style keys: `text_transform` (e.g. `uppercase`) and `letter_spacing`.
+
+**Fixes**
+- Divider lines (above the pinned buttons, and beside an open section) follow the button text colour, so they show on light bars.
+
+**Docs**
+- README: a tab overview, a Looks section with every preset, an Advanced (YAML and CSS) section, the full list of button keys, and the HACS submission.
+- `examples/config.yaml` covers every current option (looks, sections, badges, live values). It also fixes an unquoted `border: 1px solid #9C88FF`, which YAML read as a comment, dropping the colour.
+
 ## 0.5.0
 
 **Sections**

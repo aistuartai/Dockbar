@@ -7,3 +7,7 @@ __pycache__/
 
 # Local screenshots
 Screenshot*.png
+
+# Reference images dropped in the repo root
+/*.jpg
+/*.jpeg

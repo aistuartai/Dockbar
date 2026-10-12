@@ -91,6 +91,8 @@ const STYLE_LABELS: Record<keyof ButtonStyle, string> = {
   state_color: "Live value colour",
   badge_color: "Badge colour",
   shadow: "Shadow",
+  text_transform: "Name case",
+  letter_spacing: "Letter spacing",
 };
 
 const INDICATOR_LABELS: Record<ActiveIndicator, string> = {
@@ -113,6 +115,7 @@ const SHADOW_CHOICES: [string, string][] = [
   ["raised", "Raised"],
   ["glow", "Glow"],
   ["3d", "3D"],
+  ["soft-ui", "Soft UI"],
 ];
 
 const COLOUR_KEYS: ReadonlySet<string> = new Set(["background", "icon_color", "name_color", "state_color", "badge_color"]);
