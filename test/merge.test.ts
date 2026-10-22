@@ -164,3 +164,34 @@ test("look settings: indicator, hover and colour are validated", () => {
   assert.equal(bad.active_indicator, undefined);
   assert.equal(bad.hover_effect, undefined);
 });
+
+test("saved looks add up across levels and each level stores only its own", () => {
+  const shared = sanitiseLayer({ custom_presets: { Night: { hover_effect: "glow", bogus: 1 } } });
+  assert.deepEqual(shared.custom_presets, { Night: { hover_effect: "glow" } });
+  const lower = merge([shared]);
+  const working = structuredClone(lower);
+  working.custom_presets = { ...working.custom_presets, Day: { hover_effect: "lift" } };
+  const layer = diffLayer(lower, working, false);
+  assert.deepEqual(layer.custom_presets, { Day: { hover_effect: "lift" } });
+  assert.deepEqual(Object.keys(merge([shared, layer]).custom_presets), ["Night", "Day"]);
+});
+
+test("sizes must be above zero, spacing can be zero", () => {
+  const warnings: string[] = [];
+  const layer = sanitiseLayer({ size: 0, button_min_length: 0, padding: 0, gap: 0 }, (m) => warnings.push(m));
+  assert.equal(layer.size, undefined);
+  assert.equal(layer.button_min_length, undefined);
+  assert.equal(layer.padding, 0);
+  assert.equal(layer.gap, 0);
+  assert.equal(warnings.length, 2);
+});
+
+test("the example config loads without warnings", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { load } = await import("js-yaml");
+  const warnings: string[] = [];
+  const layer = sanitiseLayer(load(readFileSync("examples/config.yaml", "utf8")), (m) => warnings.push(m));
+  assert.deepEqual(warnings, []);
+  assert.ok(layer.custom_presets?.Night);
+  assert.equal(layer.buttons?.find((b) => b.name === "Repairs")?.hidden, true);
+});

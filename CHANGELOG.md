@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.6.0
+
+**Looks**
+- **Save current look:** keep your own looks as named presets beside the built-in ones. They follow the three levels (Everyone, Just me, This device), add up across levels, and appear in the Advanced YAML as `custom_presets`.
+- A saved look shared from a lower level can't be deleted, but if you've changed it, **↺** puts it back.
+- **Soft UI on dark colours:** the light and shade are now a fixed step in perceived lightness (OKLCH) from the button's colour, so dark buttons get a subtle rim and a deep shadow instead of a white halo. Browsers without relative colour support keep the previous look.
+- New **Soft Dark** preset: soft UI on dark grey with purple accents.
+
+**Fixes**
+- A saved look written in YAML without `defaults` or `active` no longer resets your every-button and current-page styles.
+- `size`, `mobile_size`, `button_length` and `button_min_length` of 0 are now rejected with a warning instead of drawing a bar or buttons with no size. `padding` and `gap` can still be 0.
+- The integration's setup text names the Dockbar settings button (sliders) rather than ⚙.
+
+**Docs**
+- The ☰ Menu button and `toggle_sidebar` are described as they behave: they open HA's sidebar when it's hidden, or collapse and expand it when it's docked.
+- `navigation_path` is documented as another name for `path`.
+- `examples/config.yaml` now has `custom_presets`, `badge`, `attribute`, `hidden`, `state_color` and `badge_color`, and a test checks that it loads without warnings.
+
+**Under the hood**
+- Every call into HA's frontend storage and page-change events now goes through `ha.ts`, so an HA upgrade only needs checking in one file.
+
 ## 0.5.1
 
 **Looks**

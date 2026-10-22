@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Dockbar",
-        "description": "Adds a navigation bar to every dashboard. Once it's added, use the ⚙ button on the bar to set it up. To turn the bar off everywhere, use the Dockbar switch or disable this integration."
+        "description": "Adds a navigation bar to every dashboard. Once it's added, use the Dockbar settings button (sliders) at the end of the bar to set it up. To turn the bar off everywhere, use the Dockbar switch or disable this integration."
       }
     },
     "abort": {

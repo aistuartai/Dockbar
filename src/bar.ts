@@ -23,7 +23,7 @@ const SHADOWS: Record<string, string> = {
   // A solid darker "side" under the button, a soft drop shadow and a light top edge.
   "3d": "0 4px 0 var(--db-edge), 0 6px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22)",
   // Neumorphism: light from the top left, shade to the bottom right, both from the button's own colour.
-  "soft-ui": "-5px -5px 10px var(--db-nm-light), 5px 5px 10px var(--db-nm-dark)",
+  "soft-ui": "-5px -5px 10px var(--db-nm-light), 5px 5px 12px var(--db-nm-dark)",
 };
 
 /** Fades the bar colour with color-mix, which works for hex, rgb(a), named colours and theme vars. */
@@ -490,6 +490,14 @@ export class DockbarNav extends LitElement {
     .btn.nm {
       --db-nm-light: color-mix(in srgb, var(--db-bg, #e6e9ee) 30%, #fff);
       --db-nm-dark: color-mix(in srgb, var(--db-bg, #e6e9ee) 72%, #000);
+    }
+    /* Where supported, step the button's own colour up and down by the same perceived lightness,
+       so dark colours get a subtle rim and a deep shade instead of a white halo. */
+    @supports (color: oklch(from red l c h)) {
+      .btn.nm {
+        --db-nm-light: oklch(from var(--db-bg, #e6e9ee) min(1, calc(l + 0.11)) c h);
+        --db-nm-dark: oklch(from var(--db-bg, #e6e9ee) max(0, calc(l - 0.17)) calc(c * 0.9) h);
+      }
     }
     .btn.nm:active,
     .main .btn.nm.active {

@@ -20,8 +20,8 @@ import {
   type FooterTool,
   type Layer,
 } from "./config.ts";
-import { diffLayer, merge } from "./merge.ts";
-import { PRESETS, applyPreset } from "./presets.ts";
+import { clone, diffLayer, merge } from "./merge.ts";
+import { PRESETS, applyPreset, captureLook, savedPreset } from "./presets.ts";
 import { badgeSource } from "./match.ts";
 import { childrenOf, groupOrder, isSection, parentOf } from "./sections.ts";
 import { entityIds, entityText, hass, navTargets, type NavTarget } from "./ha.ts";
@@ -119,10 +119,6 @@ const SHADOW_CHOICES: [string, string][] = [
 ];
 
 const COLOUR_KEYS: ReadonlySet<string> = new Set(["background", "icon_color", "name_color", "state_color", "badge_color"]);
-
-function clone<T>(v: T): T {
-  return JSON.parse(JSON.stringify(v));
-}
 
 function getPath(obj: any, path: string): any {
   return path.split(".").reduce((o, k) => (o == null ? o : o[k]), obj);
@@ -563,6 +559,45 @@ export class DockbarEditor extends LitElement {
     this.changed();
   }
 
+  private applySaved(name: string) {
+    this.working = applyPreset(this.working, savedPreset(name, this.working.custom_presets[name]));
+    this.changed();
+  }
+
+  private saveLook() {
+    const name = prompt("Name for this look", "My look")?.trim().slice(0, 40);
+    if (!name) return;
+    if (name in this.working.custom_presets && !confirm(`Replace the saved look "${name}"?`)) return;
+    this.working.custom_presets = { ...this.working.custom_presets, [name]: captureLook(this.working) };
+    this.changed();
+  }
+
+  private deleteLook(name: string) {
+    if (!confirm(`Delete the saved look "${name}"?`)) return;
+    const { [name]: _, ...rest } = this.working.custom_presets;
+    this.working.custom_presets = rest;
+    this.changed();
+  }
+
+  /** A look shared from a lower level can't be deleted here, but a change to it can be undone. */
+  private revertLook(name: string) {
+    this.working.custom_presets = { ...this.working.custom_presets, [name]: clone(this.lower.custom_presets[name]) };
+    this.changed();
+  }
+
+  private lookChip(name: string) {
+    const shared = this.lower.custom_presets[name];
+    const action = !shared
+      ? html`<button class="chip-x" title="Delete" @click=${() => this.deleteLook(name)}>✕</button>`
+      : JSON.stringify(shared) !== JSON.stringify(this.working.custom_presets[name])
+        ? html`<button class="chip-x" title="Undo your change to this look" @click=${() => this.revertLook(name)}>↺</button>`
+        : nothing;
+    return html`<span class="chip saved">
+      <button class="chip-label" title="Apply this saved look" @click=${() => this.applySaved(name)}>${name}</button>
+      ${action}
+    </span>`;
+  }
+
   private renderLook() {
     return html`<section>
       <h3>Look</h3>
@@ -573,8 +608,16 @@ export class DockbarEditor extends LitElement {
             ([key, p]) => html`<button class="chip" title=${p.description} @click=${() => this.applyLook(key)}>${p.label}</button>`,
           )}
         </div>
+        <span class="label">Your saved looks</span>
+        <div class="chips">
+          ${Object.keys(this.working.custom_presets).map((name) => this.lookChip(name))}
+          <button class="chip add-look" title="Save the current look under a name" @click=${() => this.saveLook()}>
+            + Save current look
+          </button>
+        </div>
         <span class="hint">
           Sets the bar and button styles below; your buttons and their own colours stay. Nothing is saved until you click Save.
+          Saved looks belong to the level you're editing: under Everyone they're offered to all users.
         </span>
       </div>
       <div class="grid">
@@ -1445,6 +1488,21 @@ export class DockbarEditor extends LitElement {
     }
     .chip code {
       font-size: 0.85rem;
+    }
+    .chip.saved {
+      padding: 0 6px 0 0;
+      border-color: color-mix(in srgb, var(--db-ed-accent) 60%, transparent);
+    }
+    .chip-label {
+      border: none;
+      background: none;
+      color: inherit;
+      font: inherit;
+      padding: 6px 4px 6px 12px;
+      cursor: pointer;
+    }
+    .add-look {
+      border-style: dashed;
     }
     .chip-x {
       border: none;

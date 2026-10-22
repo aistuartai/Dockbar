@@ -5,7 +5,7 @@ import * as ha from "./ha.ts";
 import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
 import { isSection, sectionFor } from "./sections.ts";
 import { merge } from "./merge.ts";
-import { LayerStore, type Scope } from "./storage.ts";
+import { KEY, LayerStore, type Scope } from "./storage.ts";
 
 declare const __DOCKBAR_VERSION__: string;
 declare global {
@@ -59,8 +59,7 @@ class Dockbar implements EditorHost {
     this.bar.addEventListener("dockbar-on", () => this.setOff(false));
     document.body.appendChild(this.bar);
 
-    window.addEventListener("location-changed", () => this.onRoute());
-    window.addEventListener("popstate", () => this.onRoute());
+    ha.onRouteChange(() => this.onRoute());
     // HA re-creates hui-root per dashboard and flips the drawer between modal and docked on resize.
     setInterval(() => this.syncChrome(), CHROME_POLL_MS);
 
@@ -332,7 +331,8 @@ async function start() {
     return;
   }
 
-  const el = await ha.waitForHass();
+  await ha.waitForHass();
+  // For development: `dockbar.js?config=<url>` reads the YAML from somewhere else.
   const configUrl = new URL(import.meta.url).searchParams.get("config") ?? DEFAULT_CONFIG_URL;
 
   let yaml: Layer | null = null;
@@ -343,7 +343,7 @@ async function start() {
   }
 
   let dockbar: Dockbar | undefined;
-  const store = new LayerStore(el.hass!.connection, () => dockbar?.refresh());
+  const store = new LayerStore(ha.frontendData(KEY), () => dockbar?.refresh());
   await store.start();
   const firstRun: Layer = { buttons: ha.sidebarDefaults(await ha.sidebarPrefs()) };
   dockbar = new Dockbar(store, yaml, firstRun);

@@ -1,6 +1,7 @@
 // Everything that touches Home Assistant's frontend lives here, so HA upgrades only break one file.
 import type { DockbarButton, Position } from "./config.ts";
 import { sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
+import { local } from "./storage.ts";
 
 export interface HassPanel {
   component_name: string;
@@ -38,6 +39,30 @@ type HomeAssistantEl = HTMLElement & { hass?: HassLike };
 
 export function hass(): HassLike | undefined {
   return homeAssistant()?.hass;
+}
+
+/** HA's frontend storage: "system" is shared by everyone (admins write), "user" follows the user. */
+export type FrontendDataScope = "system" | "user";
+export interface FrontendData {
+  /** Calls back with the stored value now and on every change. */
+  subscribe(scope: FrontendDataScope, onValue: (value: unknown) => void): Promise<unknown>;
+  set(scope: FrontendDataScope, value: unknown): Promise<unknown>;
+}
+
+/** One key in HA's frontend storage. Call after `waitForHass`. */
+export function frontendData(key: string): FrontendData {
+  const conn = hass()!.connection;
+  return {
+    subscribe: (scope, onValue) =>
+      conn.subscribeMessage<{ value: unknown }>((msg) => onValue(msg.value), { type: `frontend/subscribe_${scope}_data`, key }),
+    set: (scope, value) => conn.sendMessagePromise({ type: `frontend/set_${scope}_data`, key, value }),
+  };
+}
+
+/** Runs on every page change: HA's own navigation, and the browser's back and forward. */
+export function onRouteChange(cb: () => void) {
+  window.addEventListener("location-changed", cb);
+  window.addEventListener("popstate", cb);
 }
 
 /**
@@ -228,14 +253,6 @@ function fire(target: EventTarget, type: string, detail?: unknown) {
   target.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true }));
 }
 
-function storage(): Storage | null {
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
-}
-
 /** `?dockbar=off` disables Dockbar for this browser session, `?dockbar=on` re-enables it. */
 export function isDisabled(): boolean {
   const flag = new URLSearchParams(location.search).get("dockbar");
@@ -316,7 +333,7 @@ export function setSidebarHidden(hidden: boolean) {
   const ha = homeAssistant();
   const current = ha?.hass?.dockedSidebar;
   if (!ha || !current) return;
-  const store = storage();
+  const store = local();
   if (hidden && current !== "always_hidden") {
     store?.setItem(PREV_DOCK_KEY, current);
     fire(ha, "hass-dock-sidebar", { dock: "always_hidden" });
@@ -379,7 +396,7 @@ export function watchRepairs(onCount: (n: number) => void) {
   h.connection.subscribeEvents(() => load(), "repairs_issue_registry_updated").catch(() => {});
 }
 
-/** Opens HA's sidebar as an overlay, or docks/undocks it when it isn't hidden. */
+/** Opens HA's sidebar as an overlay when it's hidden, or collapses and expands it when it's docked. */
 export function toggleSidebar() {
   const main = homeAssistant()?.shadowRoot?.querySelector("home-assistant-main");
   if (main) fire(main, "hass-toggle-menu");

@@ -20,3 +20,23 @@ test("every preset only sets known look settings", () => {
     assert.ok(p.settings.active_indicator, key);
   }
 });
+
+test("a saved look captures the look and applies back to the same look", async () => {
+  const { captureLook, savedPreset } = await import("../src/presets.ts");
+  const mine = applyPreset(merge([{ buttons: [] }]), PRESETS["soft-dark"]);
+  const look = captureLook(mine);
+  assert.equal(look.defaults?.shadow, "soft-ui");
+  assert.equal("buttons" in look, false);
+  const elsewhere = applyPreset(merge([{ buttons: [] }]), PRESETS.neon);
+  const back = applyPreset(elsewhere, savedPreset("Mine", look));
+  for (const k of Object.keys(look)) assert.deepEqual((back as any)[k], (look as any)[k], k);
+});
+
+test("a saved look that leaves out the button styles keeps the current ones", async () => {
+  const { savedPreset } = await import("../src/presets.ts");
+  const mine = applyPreset(merge([{ buttons: [] }]), PRESETS.neon);
+  const after = applyPreset(mine, savedPreset("Night", { hover_effect: "glow" }));
+  assert.equal(after.hover_effect, "glow");
+  assert.deepEqual(after.defaults, mine.defaults);
+  assert.deepEqual(after.active, mine.active);
+});

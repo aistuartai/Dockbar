@@ -1,11 +1,12 @@
 // One-click looks for the bar. Applying one sets the bar and every-button styles;
 // the buttons themselves, and any colours set on a single button, are left alone.
-import { DEFAULT_SETTINGS, type DockbarConfig, type Settings } from "./config.ts";
+import { DEFAULT_SETTINGS, pickLook, type DockbarConfig, type SavedLook } from "./config.ts";
+import { clone } from "./merge.ts";
 
 export interface Preset {
   label: string;
   description: string;
-  settings: Partial<Settings>;
+  settings: SavedLook;
 }
 
 export const PRESETS: Record<string, Preset> = {
@@ -109,6 +110,33 @@ export const PRESETS: Record<string, Preset> = {
       active: { icon_color: "#3B5148", name_color: "#3B5148" },
     },
   },
+  "soft-dark": {
+    label: "Soft Dark",
+    description: "Soft UI on dark grey with purple accents, for dark dashboards",
+    settings: {
+      background: "#2B2E35",
+      background_opacity: null,
+      backdrop_filter: "none",
+      show_names: true,
+      active_indicator: "fill",
+      hover_effect: "none",
+      indicator_color: "#9C88FF",
+      defaults: {
+        background: "#2B2E35",
+        border: "none",
+        border_radius: "20px",
+        icon_color: "#B4A6FF",
+        name_color: "#C9CED6",
+        state_color: "#C9CED6",
+        badge_color: "#9C88FF",
+        font_size: "10px",
+        text_transform: "uppercase",
+        letter_spacing: "0.14em",
+        shadow: "soft-ui",
+      },
+      active: { icon_color: "#D6CCFF", name_color: "#FFFFFF" },
+    },
+  },
   "3d": {
     label: "3D",
     description: "Raised keys that press in, with the current page pushed down",
@@ -152,7 +180,18 @@ export function applyPreset(config: DockbarConfig, preset: Preset): DockbarConfi
     ...config,
     ...rest,
     // Every-button and current-page styles are replaced rather than mixed, so the preset looks as intended.
-    defaults: { ...DEFAULT_SETTINGS.defaults, ...defaults },
-    active: { ...active },
+    // A saved look written by hand may leave them out, and then they're kept.
+    defaults: defaults ? { ...DEFAULT_SETTINGS.defaults, ...defaults } : config.defaults,
+    active: active ? { ...active } : config.active,
   };
+}
+
+/** The current look, to save under a name. */
+export function captureLook(config: DockbarConfig): SavedLook {
+  return clone(pickLook(config));
+}
+
+/** A saved look as a preset, so it applies the same way as the built-in ones. */
+export function savedPreset(name: string, look: SavedLook): Preset {
+  return { label: name, description: "Your saved look", settings: look };
 }

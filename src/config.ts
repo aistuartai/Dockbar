@@ -126,6 +126,8 @@ export interface Settings {
   hover_effect: HoverEffect;
   /** Colour of the line, pill, dot or glow that marks the current page, and of hover glows. */
   indicator_color: string;
+  /** Looks saved from the editor, by name. Levels add to each other rather than replace. */
+  custom_presets: Record<string, SavedLook>;
   footer: FooterTool[];
   /** Pages where the bar is hidden: a dashboard ("/wall-panel") or one view ("/wall-panel/kiosk"). */
   hide_on: string[];
@@ -133,6 +135,27 @@ export interface Settings {
   style: string;
 }
 export type SettingKey = keyof Settings;
+
+/** The settings that make up a "look": what presets set and what Save current look captures. */
+export const LOOK_KEYS = [
+  "background",
+  "background_opacity",
+  "backdrop_filter",
+  "show_names",
+  "active_indicator",
+  "indicator_color",
+  "hover_effect",
+  "defaults",
+  "active",
+  "alert",
+] as const;
+export type LookKey = (typeof LOOK_KEYS)[number];
+export type SavedLook = Partial<Pick<Settings, LookKey>>;
+
+/** Only the look settings from a layer or config. */
+export function pickLook(src: SavedLook): SavedLook {
+  return Object.fromEntries(LOOK_KEYS.filter((k) => src[k] !== undefined).map((k) => [k, src[k]]));
+}
 export const SETTING_KEYS: SettingKey[] = [
   "position",
   "mobile_position",
@@ -155,6 +178,7 @@ export const SETTING_KEYS: SettingKey[] = [
   "active_indicator",
   "hover_effect",
   "indicator_color",
+  "custom_presets",
   "footer",
   "hide_on",
   "style",
@@ -213,6 +237,7 @@ export const DEFAULT_SETTINGS: Settings = {
   active_indicator: "fill",
   hover_effect: "brighten",
   indicator_color: "var(--primary-color)",
+  custom_presets: {},
   footer: [...FOOTER_TOOLS],
   hide_on: [],
   style: "",
@@ -322,10 +347,11 @@ function position(v: unknown, field: string, warn: Warn): Position | undefined {
   return undefined;
 }
 
-function num(v: unknown, field: string, warn: Warn): number | undefined {
+/** `min` is 0 for spacing (padding, gap) and 1 for sizes, which can't be zero. */
+function num(v: unknown, field: string, warn: Warn, min = 0): number | undefined {
   const n = Number(v);
-  if (Number.isFinite(n) && n >= 0) return n;
-  warn(`${field} must be a positive number (got "${v}")`);
+  if (Number.isFinite(n) && n >= min) return n;
+  warn(`${field} must be ${min > 0 ? "a positive number" : "zero or more"} (got "${v}")`);
   return undefined;
 }
 
@@ -349,13 +375,16 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
     );
   }
   if (raw.mobile_size !== undefined) {
-    set("mobile_size", raw.mobile_size === null ? null : num(raw.mobile_size, "mobile_size", warn));
+    set("mobile_size", raw.mobile_size === null ? null : num(raw.mobile_size, "mobile_size", warn, 1));
   }
-  for (const key of ["mobile_breakpoint", "size", "padding", "gap", "button_min_length"] as const) {
+  for (const key of ["mobile_breakpoint", "padding", "gap"] as const) {
     if (raw[key] !== undefined) set(key, num(raw[key], key, warn));
   }
+  for (const key of ["size", "button_min_length"] as const) {
+    if (raw[key] !== undefined) set(key, num(raw[key], key, warn, 1));
+  }
   if (raw.button_length !== undefined) {
-    set("button_length", raw.button_length === null ? null : num(raw.button_length, "button_length", warn));
+    set("button_length", raw.button_length === null ? null : num(raw.button_length, "button_length", warn, 1));
   }
   if (raw.background_opacity !== undefined) {
     const v = raw.background_opacity === null ? null : num(raw.background_opacity, "background_opacity", warn);
@@ -392,6 +421,17 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
           .map((p) => (p.trim().startsWith("/") ? p.trim() : "/" + p.trim())),
       );
     } else warn("hide_on must be a list of paths");
+  }
+  if (raw.custom_presets !== undefined) {
+    if (isObject(raw.custom_presets)) {
+      const looks: Record<string, SavedLook> = {};
+      for (const [name, look] of Object.entries(raw.custom_presets)) {
+        const clean = sanitiseLayer(look, (m) => warn(`custom_presets.${name}: ${m}`));
+        const picked = pickLook(clean);
+        if (name.trim() && Object.keys(picked).length) looks[name.trim()] = picked;
+      }
+      set("custom_presets", looks);
+    } else warn("custom_presets must be a mapping of names to looks");
   }
   if (raw.buttons !== undefined) out.buttons = sanitiseButtons(raw.buttons, "buttons", warn);
   const overrides = sanitiseOverrides(raw.button_overrides, warn);

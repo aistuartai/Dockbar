@@ -40,6 +40,8 @@ defaults:                 # applied to every button; each button can override an
   icon_size: 28px
   font_size: 11px
   shadow: soft            # none | soft | raised | glow | 3d | soft-ui | any CSS box-shadow
+  state_color: '#C9BEFF'  # colour of a button's live entity value
+  badge_color: '#FF5252'  # colour of count badges
   # text_transform: uppercase
   # letter_spacing: 0.12em
 
@@ -49,6 +51,12 @@ active:                   # applied on top of the button that matches the curren
 
 alert:                    # applied on top while a button shows a count badge
   icon_color: '#FF8A65'
+
+custom_presets:           # saved looks, shown as chips under General → Look
+  Night:                  # any look settings; one without defaults/active keeps the current ones
+    background: rgba(5, 5, 12, 0.95)
+    hover_effect: glow
+    active_indicator: dot
 
 # --- Buttons --------------------------------------------------------------
 buttons:
@@ -68,6 +76,8 @@ buttons:
     icon: mdi:battery-high
     path: /lovelace/battery
     parent: energy
+    entity: sensor.battery
+    attribute: level                  # show an attribute instead of the state
 
   # A section without a page: it only opens and closes.
   - id: system
@@ -78,6 +88,12 @@ buttons:
     icon: mdi:cog
     path: /config                     # gets the updates + repairs badge automatically
     parent: system
+  - name: Repairs
+    icon: mdi:wrench
+    path: /config/repairs
+    badge: repairs                    # none | notifications | updates | repairs | config
+    parent: system
+    hidden: true                      # kept in the list, not shown on the bar
   - name: Profile
     icon: mdi:account-circle
     path: /profile

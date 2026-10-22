@@ -3,23 +3,21 @@
 //   user   → HA user data     (per user, follows them across devices; synced live)
 //   device → localStorage     (this browser only)
 import { sanitiseLayer, type Layer } from "./config.ts";
+import type { FrontendData, FrontendDataScope } from "./ha.ts";
 
 export type Scope = "shared" | "user" | "device";
 
-const KEY = "dockbar";
+/** The key Dockbar's layers use in HA's frontend storage. */
+export const KEY = "dockbar";
 const DEVICE_KEY = "dockbar:device";
 const OFF_KEY = "dockbar:off";
-
-interface Connection {
-  sendMessagePromise<T = unknown>(msg: Record<string, unknown>): Promise<T>;
-  subscribeMessage<T = unknown>(cb: (msg: T) => void, msg: Record<string, unknown>): Promise<() => void>;
-}
 
 function warn(scope: string) {
   return (m: string) => console.warn(`Dockbar (${scope} config): ${m}`);
 }
 
-function local(): Storage | null {
+/** localStorage, or null where the browser blocks it. */
+export function local(): Storage | null {
   try {
     return window.localStorage;
   } catch {
@@ -33,7 +31,7 @@ export class LayerStore {
   device: Layer | null = null;
 
   constructor(
-    private conn: Connection,
+    private data: FrontendData,
     private onChange: () => void,
   ) {
     this.device = this.readDevice();
@@ -41,21 +39,18 @@ export class LayerStore {
 
   /** Subscribes to the shared and user layers; resolves once both have their first value. */
   async start(): Promise<void> {
-    const first = (type: string, assign: (l: Layer | null) => void) =>
+    const first = (type: FrontendDataScope, assign: (l: Layer | null) => void) =>
       new Promise<void>((resolve) => {
         let ready = false;
-        this.conn
-          .subscribeMessage<{ value: unknown }>(
-            (msg) => {
-              assign(msg.value == null ? null : sanitiseLayer(msg.value, warn(type)));
-              if (ready) this.onChange();
-              else {
-                ready = true;
-                resolve();
-              }
-            },
-            { type: `frontend/subscribe_${type}_data`, key: KEY },
-          )
+        this.data
+          .subscribe(type, (value) => {
+            assign(value == null ? null : sanitiseLayer(value, warn(type)));
+            if (ready) this.onChange();
+            else {
+              ready = true;
+              resolve();
+            }
+          })
           .catch((err) => {
             console.error(`Dockbar: couldn't read ${type} config`, err);
             resolve();
@@ -86,8 +81,7 @@ export class LayerStore {
       this.onChange();
       return;
     }
-    const type = scope === "shared" ? "system" : "user";
-    await this.conn.sendMessagePromise({ type: `frontend/set_${type}_data`, key: KEY, value });
+    await this.data.set(scope === "shared" ? "system" : "user", value);
     // The subscription delivers the new value and triggers onChange.
   }
 

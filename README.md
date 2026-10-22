@@ -24,7 +24,7 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 ## Features
 
 **Looks**
-- **Presets:** Glass, Flat, Neon, Material, Soft (neumorphism), 3D and Dock, one click each, then adjust anything
+- **Presets:** Glass, Flat, Neon, Material, Soft and Soft Dark (neumorphism), 3D and Dock, one click each, then adjust anything
 - **Current page marker:** fill, a line on the edge, a pill behind the icon, a dot, or a glow
 - **Hover effects** (brighten, lift, grow, glow) and **button shadows** (soft, raised, glow, **3D keys that press in**, **soft UI** that sinks in, or your own CSS)
 - **Glass effect:** a background opacity slider plus backdrop blur, so your dashboard shows through the bar
@@ -127,7 +127,7 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 | Button | Does |
 |---|---|
 | Dockbar settings (sliders) | Opens the settings dialog |
-| ☰ Menu | Opens Home Assistant's sidebar |
+| ☰ Menu | Opens Home Assistant's sidebar when it's hidden, or collapses and expands it when it's docked |
 | ▭ Header | Shows or hides the dashboard header for this session |
 | ⏻ Turn off | Turns Dockbar off **on this device**. HA's sidebar and header come back, and a small round button in the corner turns it back on. |
 
@@ -139,7 +139,7 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 | `url` | `url` | Opens a link in a new tab |
 | `notifications` | | Opens HA's notifications drawer |
 | `section` | | Only opens and closes the buttons inside it |
-| `toggle_sidebar` | | Opens HA's sidebar |
+| `toggle_sidebar` | | Opens HA's sidebar when it's hidden, or collapses and expands it when it's docked |
 | `toggle_header` | | Shows or hides the dashboard header |
 | `settings` | | Opens Dockbar settings |
 | `disable` | | Turns Dockbar off on this device |
@@ -155,10 +155,13 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 | **Neon** | Dark with a coloured glow |
 | **Material** | Clean, with a pill behind the current page's icon |
 | **Soft** | Neumorphism: light grey, shaped by soft light and shade, uppercase spaced labels, current page pressed into the surface |
+| **Soft Dark** | The same soft UI on dark grey with purple accents, for dark dashboards |
 | **3D** | Raised keys with a solid side that press in; the current page stays pressed |
 | **Dock** | Icons only, growing on hover, a dot under the current page |
 
-Below the presets: how the current page is marked (fill, line, pill, dot or glow) and its colour, the hover effect, and the button shadow (none, soft, raised, glow, 3D or Soft UI). 3D and Soft UI work out their light and dark edges from each button's own colour, so they suit any colour scheme.
+**+ Save current look** keeps your current look (bar colours and blur, current-page marker, hover, and the every-button, current-page and badge styles) under a name, as a chip next to the built-in presets. Saved looks belong to the level you're editing: under **Everyone** they're offered to all users, under **Just me** only to you. They appear in the Advanced YAML as `custom_presets`, so you can copy one to share it. A look shared from **Everyone** can't be deleted under **Just me**, but if you change it there, **↺** puts it back to the shared version.
+
+Below the presets: how the current page is marked (fill, line, pill, dot or glow) and its colour, the hover effect, and the button shadow (none, soft, raised, glow, 3D or Soft UI). 3D and Soft UI work out their light and dark edges from each button's own colour, so they suit any colour scheme. Soft UI looks best when the bar and buttons share one mid-to-light or dark-grey colour; on near-black there's no darker shade left for its shadow.
 
 ### Advanced: YAML and CSS
 
@@ -197,9 +200,10 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 | `active_indicator` | `fill` | How the current page is marked: `fill`, `line`, `pill`, `dot`, `glow` |
 | `indicator_color` | primary colour | Colour of the line, pill, dot or glow |
 | `hover_effect` | `brighten` | `brighten`, `lift`, `grow`, `glow`, `none` |
+| `custom_presets` | none | Saved looks by name. Each holds any of the look settings: `background`, `background_opacity`, `backdrop_filter`, `show_names`, `active_indicator`, `indicator_color`, `hover_effect`, `defaults`, `active`, `alert`. A look that leaves out `defaults` or `active` keeps your current ones. |
 | `style` | | Raw CSS inside the bar's shadow root. Parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer` |
 
-**Button keys:** `id`, `name`, `icon`, `action`, `path`, `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `parent`, `hidden`, plus any style key.
+**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `parent`, `hidden`, plus any style key.
 
 **Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
 
