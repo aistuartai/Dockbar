@@ -71,7 +71,7 @@ export class DockbarEditor extends LitElement {
   declare dragId: string | null;
   declare hideOnDraft: string;
   lower!: DockbarConfig;
-  pristine = "";
+  private pristine = "";
   /** What had focus when the dialog opened, so closing it puts focus back there. */
   private opener: HTMLElement | null = null;
 

@@ -37,6 +37,13 @@ test("a switch that was there and has lost its state means the integration was d
   assert.equal(dockbarSwitchState(), "off");
 });
 
+test("an unavailable or unknown switch (HA restarting) doesn't hide the bar", () => {
+  for (const state of ["unavailable", "unknown"]) {
+    withHass(base({ entities: { "switch.dockbar": switchEntity }, states: { "switch.dockbar": { state } } }));
+    assert.equal(dockbarSwitchState(), null);
+  }
+});
+
 test("update badges count update entities that are on, installable and not hidden", () => {
   const update = (state: string, features: number) => ({ state, attributes: { supported_features: features } });
   withHass(

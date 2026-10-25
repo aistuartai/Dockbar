@@ -1,6 +1,7 @@
 // Everything that touches Home Assistant's frontend lives here, so HA upgrades only break one file.
 import type { DockbarButton, Position } from "./config.ts";
-import { dashboardPanels, newDashboardButtons as buildNewDashboardButtons, sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
+import { firstSegment } from "./match.ts";
+import { buttonsForNewDashboards, dashboardPanels, sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
 import { local } from "./storage.ts";
 
 export interface HassPanel {
@@ -105,8 +106,9 @@ export function dockbarSwitchState(): "on" | "off" | null {
     switchSeen = true;
     return state;
   }
-  // The switch was there and its state has gone: the integration was disabled or removed.
-  return switchSeen && switchId ? "off" : null;
+  // The switch was there and its state is gone: the integration was disabled or removed.
+  // "unavailable" and "unknown" (HA restarting or reconnecting) are not that, so they change nothing.
+  return switchSeen && switchId && state === undefined ? "off" : null;
 }
 
 /**
@@ -224,7 +226,7 @@ export function dashboardPaths(): string[] {
 export function newDashboardButtons(buttons: DockbarButton[], seen: string[]): DockbarButton[] {
   const h = hass();
   if (!h || !Object.keys(h.panels ?? {}).length) return [];
-  return buildNewDashboardButtons({ panels: h.panels, localize: (key) => h.localize?.(key) ?? "" }, buttons, seen);
+  return buttonsForNewDashboards({ panels: h.panels, localize: (key) => h.localize?.(key) ?? "" }, buttons, seen);
 }
 
 /**
@@ -235,18 +237,17 @@ export function checkHooks(): string[] {
   const h = hass();
   if (!h) return ["the hass object"];
   const problems: string[] = [];
-  const missing = (what: string) => problems.push(what);
   if (typeof h.connection?.subscribeMessage !== "function" || typeof h.connection?.sendMessagePromise !== "function") {
-    missing("the websocket connection (hass.connection)");
+    problems.push("the websocket connection (hass.connection)");
   }
-  if (!h.panels || typeof h.panels !== "object") missing("the panel list (hass.panels)");
-  if (!h.entities) missing("the entity registry (hass.entities), so the Dockbar switch can't be found");
-  if (typeof h.formatEntityState !== "function") missing("hass.formatEntityState, so live values show raw states");
+  if (!h.panels || typeof h.panels !== "object") problems.push("the panel list (hass.panels)");
+  if (!h.entities) problems.push("the entity registry (hass.entities), so the Dockbar switch can't be found");
+  if (typeof h.formatEntityState !== "function") problems.push("hass.formatEntityState, so live values show raw states");
   const main = homeAssistant()?.shadowRoot?.querySelector("home-assistant-main");
-  if (!main) missing("<home-assistant-main>, so the sidebar and notification buttons won't work");
-  else if (main.shadowRoot && !main.shadowRoot.querySelector("ha-drawer")) missing("<ha-drawer>, so a left bar may overlap the page");
-  const onDashboard = h.panels?.[location.pathname.split("/")[1]]?.component_name === "lovelace";
-  if (onDashboard && !huiRoot()) missing("<hui-root>, so hiding the dashboard header won't work");
+  if (!main) problems.push("<home-assistant-main>, so the sidebar and notification buttons won't work");
+  else if (main.shadowRoot && !main.shadowRoot.querySelector("ha-drawer")) problems.push("<ha-drawer>, so a left bar may overlap the page");
+  const onDashboard = h.panels?.[firstSegment(location.pathname)]?.component_name === "lovelace";
+  if (onDashboard && !huiRoot()) problems.push("<hui-root>, so hiding the dashboard header won't work");
   return problems;
 }
 
@@ -257,7 +258,7 @@ export function checkHooks(): string[] {
 export function canOpen(path: string): boolean {
   const panels = hass()?.panels;
   if (!panels || !Object.keys(panels).length) return true;
-  const first = path.split(/[?#]/)[0].split("/").filter(Boolean)[0];
+  const first = firstSegment(path);
   return !first || first in panels;
 }
 

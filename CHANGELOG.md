@@ -9,13 +9,14 @@
 **Accessibility**
 - The settings dialog is now a proper modal: focus moves into it, Tab stays inside it, and focus goes back to the Settings button when it closes. Its tabs have the right roles.
 - Icon-only buttons in the editor (move, hide, delete, remove) have names a screen reader can read, and buttons show a focus ring when tabbed to.
-- Bar buttons are announced with their live value and badge count, for example "Solar, 1.2 kW, 2 alerts".
+- Bar buttons are announced with their live value and badge count, for example "Solar, 1.2 kW, 2 pending".
 - Animations and transitions are switched off for people who ask their device for reduced motion.
 
 **Robustness**
 - If a page was disabled with `?dockbar=off`, turning the Dockbar integration off and on again now brings the bar back. The README's install steps also mention `?dockbar=on` for a bar that doesn't show after installing.
 - Five seconds after load Dockbar checks the parts of Home Assistant it relies on, and says in the browser console which one is missing if an HA update has moved it.
-- If the Dockbar switch disappears (the integration was disabled or removed) the bar steps aside even when Home Assistant doesn't announce it.
+- If the Dockbar switch disappears (the integration was disabled or removed) the bar steps aside even when Home Assistant doesn't announce it. A switch that is only "unavailable" while HA restarts does not hide the bar.
+- Saved configs are now version 2. A 0.6.2 tab that is still open refuses to save over a version 2 config instead of dropping the new settings.
 
 **Under the hood**
 - The settings editor is split into a module per tab, with its styles, field helpers and labels in their own files.

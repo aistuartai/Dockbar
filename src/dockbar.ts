@@ -19,6 +19,7 @@ const EDITOR_TAG = "dockbar-editor";
 const DEFAULT_CONFIG_URL = "/local/dockbar/config.yaml";
 // How often to re-check the header, the left padding and live entity values.
 const CHROME_POLL_MS = 750;
+// Long enough for Home Assistant to have drawn its own UI, which the check looks inside.
 const HOOK_CHECK_DELAY_MS = 5000;
 const SCOPE_ORDER: Scope[] = ["shared", "user", "device"];
 
@@ -92,8 +93,9 @@ class Dockbar implements EditorHost {
 
   private layers(count: number, draft: { scope: Scope; layer: Layer } | null): (Layer | null)[] {
     return SCOPE_ORDER.slice(0, count).map((scope) => {
-      if (scope === "shared") return this.withNewDashboards(draft?.scope === scope ? draft.layer : (this.store.shared ?? this.yaml ?? this.firstRun));
+      // A draft is what the editor already holds, new dashboards included, and Save marks every dashboard seen.
       if (draft?.scope === scope) return draft.layer;
+      if (scope === "shared") return this.withNewDashboards(this.store.shared ?? this.yaml ?? this.firstRun);
       return this.store.get(scope);
     });
   }

@@ -2,6 +2,7 @@
 // Kept free of DOM and HA access so it can be tested; ha.ts supplies the inputs.
 import type { DockbarButton } from "./config.ts";
 import { slug, uniqueId } from "./config.ts";
+import { firstSegment } from "./match.ts";
 
 export interface SidebarPanel {
   component_name: string;
@@ -96,13 +97,13 @@ export function dashboardPanels(panels: Record<string, SidebarPanel>): SidebarPa
  * Buttons for dashboards that are new: not among the ones seen at the last save, and with no button yet.
  * Ids are made to avoid the ones already in use.
  */
-export function newDashboardButtons(
+export function buttonsForNewDashboards(
   input: Pick<SidebarInput, "panels" | "localize">,
   buttons: DockbarButton[],
   seen: string[],
 ): DockbarButton[] {
   const known = new Set(seen);
-  const covered = new Set(buttons.map((b) => (b.path ?? "").split(/[?#]/)[0].split("/").filter(Boolean)[0]));
+  const covered = new Set(buttons.map((b) => firstSegment(b.path ?? "")));
   const taken = new Set(buttons.map((b) => b.id));
   return dashboardPanels(input.panels)
     .filter((p) => !known.has(p.url_path) && !covered.has(p.url_path))

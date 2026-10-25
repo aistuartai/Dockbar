@@ -1,6 +1,6 @@
 import { html, nothing } from "lit";
 import { FOOTER_TOOLS, POSITIONS, STYLE_KEYS, ACTIVE_INDICATORS, HOVER_EFFECTS } from "../config.ts";
-import { clone } from "../merge.ts";
+import { clone, same } from "../merge.ts";
 import { PRESETS, applyPreset, captureLook, savedPreset } from "../presets.ts";
 import { FOOTER_LABELS, INDICATOR_LABELS, HOVER_LABELS, SHADOW_CHOICES } from "./constants.ts";
 import { text, number, toggle, select, range, colour, styleFields, choice } from "./fields.ts";
@@ -17,7 +17,7 @@ export function addHideOn(ed: DockbarEditor) {
 
 export function renderHideOn(ed: DockbarEditor) {
   const list = ed.working.hide_on;
-  const changed = JSON.stringify(list) !== JSON.stringify(ed.lower.hide_on);
+  const changed = !same(list, ed.lower.hide_on);
   return html`<section>
     <h3>Hide the bar on</h3>
     <div class="field">
@@ -93,7 +93,7 @@ export function renderGeneral(ed: DockbarEditor) {
       <div class="field">
         <span class="label">
           Shown at the end of the bar
-          ${JSON.stringify(footer) !== JSON.stringify(ed.lower.footer)
+          ${!same(footer, ed.lower.footer)
             ? html`<button class="reset" @click=${() => ed.set("footer", clone(ed.lower.footer))}>● reset</button>`
             : nothing}
         </span>
@@ -175,7 +175,7 @@ export function lookChip(ed: DockbarEditor, name: string) {
   const shared = ed.lower.custom_presets[name];
   const action = !shared
     ? html`<button class="chip-x" title="Delete" aria-label="Delete saved look ${name}" @click=${() => deleteLook(ed, name)}>✕</button>`
-    : JSON.stringify(shared) !== JSON.stringify(ed.working.custom_presets[name])
+    : !same(shared, ed.working.custom_presets[name])
       ? html`<button class="chip-x" title="Undo your change to this look" aria-label="Undo your change to ${name}" @click=${() => revertLook(ed, name)}>↺</button>`
       : nothing;
   return html`<span class="chip saved">
@@ -207,7 +207,8 @@ export function renderLook(ed: DockbarEditor) {
       </span>
     </div>
     <div class="grid">
-      ${choice(ed, 
+      ${choice(
+        ed,
         "Current page shown as",
         "active_indicator",
         ACTIVE_INDICATORS.map((v) => [v, INDICATOR_LABELS[v]]),

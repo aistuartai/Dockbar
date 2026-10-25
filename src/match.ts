@@ -1,7 +1,8 @@
 import type { BadgeSource, DockbarButton } from "./config.ts";
 
-function firstSegment(path: string): string {
-  return path.split("/").filter(Boolean)[0] ?? "";
+/** The first part of a path, without any query or hash: the dashboard in `/dashboard/view`. */
+export function firstSegment(path: string): string {
+  return path.split(/[?#]/)[0].split("/").filter(Boolean)[0] ?? "";
 }
 
 export function cleanPath(path: string): string {

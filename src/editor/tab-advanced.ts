@@ -60,7 +60,8 @@ export function renderAdvanced(ed: DockbarEditor) {
     </section>
     <section>
       <h3>Custom CSS</h3>
-      ${field(ed, 
+      ${field(
+        ed,
         "Injected into the bar",
         "style",
         html`<textarea

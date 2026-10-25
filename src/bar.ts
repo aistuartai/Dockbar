@@ -184,7 +184,7 @@ export class DockbarNav extends LitElement {
         part=${["button", ...flags].join(" ")}
         style=${styleMap(vars)}
         title=${[b.name, state, badge ? String(badge) : ""].filter(Boolean).join(": ")}
-        aria-label=${[b.name ?? b.icon, state, badge ? `${badge} ${badge === 1 ? "alert" : "alerts"}` : ""].filter(Boolean).join(", ")}
+        aria-label=${[b.name ?? b.icon, state, badge ? `${badge} pending` : ""].filter(Boolean).join(", ")}
         aria-current=${active ? "page" : "false"}
         aria-expanded=${section ? String(section === "open") : nothing}
         @click=${() => this.emit(b)}

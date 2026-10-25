@@ -131,7 +131,7 @@ export interface Settings {
   footer: FooterTool[];
   /** Pages where the bar is hidden: a dashboard ("/wall-panel") or one view ("/wall-panel/kiosk"). */
   hide_on: string[];
-  /** Everyone level only: add a button at the end of the bar for each dashboard created since the last save. */
+  /** Read from the Everyone level only (no effect at the others): add a button at the end of the bar for each dashboard created since the last save. */
   auto_add_dashboards: boolean;
   /** The dashboards that existed when the Everyone config was last saved; ones not listed count as new. */
   seen_panels: string[];
@@ -207,7 +207,7 @@ export interface ButtonOverrides {
  * `buttons` is the base list (YAML or shared layer); `button_overrides` is for user and device layers.
  */
 /** Bumped when a saved layer's shape changes, so an older bundle can tell it is looking at newer data. */
-export const LAYER_VERSION = 1;
+export const LAYER_VERSION = 2;
 
 export type Layer = Partial<Settings> & {
   version?: number;

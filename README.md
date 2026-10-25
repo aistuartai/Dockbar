@@ -173,7 +173,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 | `background_opacity` | as written | 0–100. Fades the background colour, on top of any alpha it already has. The editor shows it as a slider. |
 | `show_names` | `true` | Show labels under icons |
 | `hide_on` | none | Paths where the bar is hidden, e.g. `/wall-panel` (all its views) or `/wall-panel/kiosk`. HA's sidebar and header settings still apply there. |
-| `auto_add_dashboards` | `false` | Everyone level only. Adds a button at the end of the bar for each dashboard created since `seen_panels` was recorded. On for a fresh install. |
+| `auto_add_dashboards` | `false` | Read from the Everyone level only; set at Just me or This device it has no effect. Adds a button at the end of the bar for each dashboard created since `seen_panels` was recorded. On for a fresh install. |
 | `seen_panels` | none | The dashboards (url paths) that existed when the Everyone config was last saved. The editor fills it in on save; dashboards not listed count as new. |
 | `footer` | all four | Pinned buttons: any of `settings`, `menu`, `header`, `off` |
 | `defaults` | theme | Style for every button |

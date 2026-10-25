@@ -17,7 +17,7 @@ export function clone<T>(v: T): T {
   return v === undefined ? v : JSON.parse(JSON.stringify(v));
 }
 
-function same(a: unknown, b: unknown): boolean {
+export function same(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 

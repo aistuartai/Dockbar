@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 import { load } from "js-yaml";
 import { ACTIONS, BADGE_SOURCES, sanitiseLayer, uniqueId, type ButtonStyle, type DockbarButton } from "../config.ts";
-import { clone } from "../merge.ts";
+import { clone, same } from "../merge.ts";
 import { badgeSource } from "../match.ts";
 import { childrenOf, groupOrder, isSection, moveWithin, parentOf } from "../sections.ts";
 import { entityText, hass } from "../ha.ts";
@@ -266,7 +266,7 @@ export function renderButtons(ed: DockbarEditor) {
     <ul class=${ed.dragId ? "buttons sorting" : "buttons"}>
       ${ed.working.buttons.map((b, i) => {
         const base = lowerIds.get(b.id);
-        const tag = ed.scope === "shared" ? "" : !base ? "added" : JSON.stringify(base) !== JSON.stringify(b) ? "changed" : "";
+        const tag = ed.scope === "shared" ? "" : !base ? "added" : !same(base, b) ? "changed" : "";
         const open = ed.expanded === b.id;
         // Only the level a button was added at can delete it; levels above can hide it.
         const deletable = ed.scope === "shared" || !base;

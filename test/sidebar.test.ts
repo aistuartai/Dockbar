@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { dashboardPanels, newDashboardButtons, sidebarButtons, sidebarPanels, type SidebarPanel } from "../src/sidebar.ts";
+import { dashboardPanels, buttonsForNewDashboards, sidebarButtons, sidebarPanels, type SidebarPanel } from "../src/sidebar.ts";
 
 const panel = (url_path: string, extra: Partial<SidebarPanel> = {}): SidebarPanel => ({
   component_name: "custom",
@@ -71,14 +71,14 @@ test("dashboards are the titled Lovelace panels, not built-ins or add-ons", () =
 test("new dashboards are the ones not seen at the last save and without a button", () => {
   const input = { panels, localize };
   const buttons = [btn("overview", "/lovelace/0"), btn("house", "/house/main")];
-  const added = newDashboardButtons(input, buttons, ["lovelace", "house"]);
+  const added = buttonsForNewDashboards(input, buttons, ["lovelace", "house"]);
   assert.deepEqual(added.map((b) => b.path), ["/garden"]);
   assert.deepEqual(added[0], { id: "garden", name: "Garden", icon: "mdi:star", action: "navigate", path: "/garden" });
-  assert.deepEqual(newDashboardButtons(input, buttons, ["lovelace", "house", "garden"]), [], "seen ones stay off the bar");
-  assert.deepEqual(newDashboardButtons(input, [...buttons, btn("g", "/garden")], ["lovelace", "house"]), [], "a button already covers it");
+  assert.deepEqual(buttonsForNewDashboards(input, buttons, ["lovelace", "house", "garden"]), [], "seen ones stay off the bar");
+  assert.deepEqual(buttonsForNewDashboards(input, [...buttons, btn("g", "/garden")], ["lovelace", "house"]), [], "a button already covers it");
 });
 
 test("a new dashboard's id avoids ids already used", () => {
-  const added = newDashboardButtons({ panels, localize }, [btn("garden", "/elsewhere")], ["lovelace", "house"]);
+  const added = buttonsForNewDashboards({ panels, localize }, [btn("garden", "/elsewhere")], ["lovelace", "house"]);
   assert.equal(added[0].id, "garden-2");
 });

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { badgeSource, findActive, onAnyPath } from "../src/match.ts";
+import { badgeSource, findActive, firstSegment, onAnyPath } from "../src/match.ts";
 import type { DockbarButton } from "../src/config.ts";
 
 const nav = (path: string): DockbarButton => ({ id: path, action: "navigate", path });
@@ -40,4 +40,11 @@ test("badges default to what the button opens, and can be overridden", () => {
   assert.equal(badgeSource({ id: "d", action: "navigate", path: "/config/devices" }), "none");
   assert.equal(badgeSource({ id: "s", action: "navigate", path: "/config", badge: "none" }), "none");
   assert.equal(badgeSource({ id: "x", action: "navigate", path: "/home", badge: "updates" }), "updates");
+});
+
+test("the first segment of a path ignores query, hash and slashes", () => {
+  assert.equal(firstSegment("/dashboard-main/0?edit=1#x"), "dashboard-main");
+  assert.equal(firstSegment("energy"), "energy");
+  assert.equal(firstSegment("/"), "");
+  assert.equal(firstSegment(""), "");
 });

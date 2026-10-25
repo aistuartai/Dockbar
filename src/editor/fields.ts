@@ -1,11 +1,11 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { STYLE_KEYS, type ButtonStyle } from "../config.ts";
-import { clone } from "../merge.ts";
+import { clone, same } from "../merge.ts";
 import { STYLE_LABELS, COLOUR_KEYS, getPath, asHex } from "./constants.ts";
 import type { DockbarEditor } from "./editor.ts";
 
 export function field(ed: DockbarEditor, label: string, path: string, control: TemplateResult, hint?: string) {
-  const overridden = JSON.stringify(getPath(ed.working, path)) !== JSON.stringify(getPath(ed.lower, path));
+  const overridden = !same(getPath(ed.working, path), getPath(ed.lower, path));
   return html`
     <div class="field">
       <span class="label">
@@ -29,7 +29,8 @@ export function field(ed: DockbarEditor, label: string, path: string, control: T
 }
 
 export function text(ed: DockbarEditor, label: string, path: string, hint?: string, placeholder = "") {
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<input
@@ -43,7 +44,8 @@ export function text(ed: DockbarEditor, label: string, path: string, hint?: stri
 }
 
 export function number(ed: DockbarEditor, label: string, path: string, hint?: string) {
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<input
@@ -60,7 +62,8 @@ export function number(ed: DockbarEditor, label: string, path: string, hint?: st
 }
 
 export function toggle(ed: DockbarEditor, label: string, path: string, hint?: string) {
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<input
@@ -75,7 +78,8 @@ export function toggle(ed: DockbarEditor, label: string, path: string, hint?: st
 
 export function select(ed: DockbarEditor, label: string, path: string, options: [string, string][]) {
   const value = getPath(ed.working, path) ?? "none";
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<select
@@ -92,7 +96,8 @@ export function select(ed: DockbarEditor, label: string, path: string, options: 
 export function range(ed: DockbarEditor, label: string, path: string, hint?: string) {
   const value = getPath(ed.working, path) as number | null | undefined;
   const shown = value ?? 100;
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<span class="range">
@@ -112,7 +117,8 @@ export function range(ed: DockbarEditor, label: string, path: string, hint?: str
 
 export function colour(ed: DockbarEditor, label: string, path: string, hint?: string) {
   const value = getPath(ed.working, path) ?? "";
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<span class="colour">
@@ -142,7 +148,8 @@ export function styleFields(ed: DockbarEditor, prefix: string, keys: (keyof Butt
 export function choice(ed: DockbarEditor, label: string, path: string, options: [string, string][], hint?: string) {
   const value = String(getPath(ed.working, path) ?? "");
   const known = options.some(([v]) => v === value);
-  return field(ed, 
+  return field(
+    ed,
     label,
     path,
     html`<select @change=${(e: Event) => ed.set(path, (e.target as HTMLSelectElement).value)}>
