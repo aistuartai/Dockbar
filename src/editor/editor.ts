@@ -22,6 +22,23 @@ export interface EditorHost {
   save(scope: Scope, layer: Layer): Promise<void>;
 }
 
+/** The focused element, looking through shadow roots (the bar's Settings button lives in one). */
+function deepActiveElement(): HTMLElement | null {
+  let el = document.activeElement as HTMLElement | null;
+  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement as HTMLElement;
+  return el;
+}
+
+const FOCUSABLE = [
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "summary",
+  "a[href]",
+  "ha-icon-picker",
+].join(",");
+
 export class DockbarEditor extends LitElement {
   static properties = {
     scope: { state: true },
@@ -55,6 +72,8 @@ export class DockbarEditor extends LitElement {
   declare hideOnDraft: string;
   lower!: DockbarConfig;
   pristine = "";
+  /** What had focus when the dialog opened, so closing it puts focus back there. */
+  private opener: HTMLElement | null = null;
 
   constructor() {
     super();
@@ -75,7 +94,34 @@ export class DockbarEditor extends LitElement {
     this.host_ = host;
     this.loadScope(host.isAdmin ? "shared" : "user");
     navTargets().then((t) => (this.targets = t));
+    this.opener = deepActiveElement();
     document.body.appendChild(this);
+  }
+
+  firstUpdated() {
+    this.renderRoot.querySelector<HTMLElement>(".dialog")?.focus();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    const opener = this.opener;
+    this.opener = null;
+    if (opener?.isConnected) opener.focus();
+  }
+
+  /** Keeps Tab inside the dialog, wrapping from the last control to the first and back. */
+  private trapTab(e: KeyboardEvent) {
+    const dialog = this.renderRoot.querySelector<HTMLElement>(".dialog");
+    const items = [...this.renderRoot.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+    if (!dialog || !items.length) return;
+    const active = (this.renderRoot as ShadowRoot).activeElement;
+    if (e.shiftKey && (active === items[0] || active === dialog)) {
+      e.preventDefault();
+      items[items.length - 1].focus();
+    } else if (!e.shiftKey && active === items[items.length - 1]) {
+      e.preventDefault();
+      items[0].focus();
+    }
   }
 
   private loadScope(scope: Scope) {
@@ -176,15 +222,18 @@ export class DockbarEditor extends LitElement {
       <div
         class="dialog"
         role="dialog"
+        aria-modal="true"
         aria-label="Dockbar settings"
+        tabindex="-1"
         @keydown=${(e: KeyboardEvent) => {
           e.stopPropagation();
           if (e.key === "Escape") this.close();
+          else if (e.key === "Tab") this.trapTab(e);
         }}
       >
         <header>
           <h2>Dockbar settings</h2>
-          <button class="icon" title="Close" @click=${() => this.close()}>✕</button>
+          <button class="icon" title="Close" aria-label="Close settings" @click=${() => this.close()}>✕</button>
         </header>
         <div class="scopes" role="tablist">
           ${SCOPES.map(
@@ -214,14 +263,14 @@ export class DockbarEditor extends LitElement {
               YAML file is ignored from then on.
             </p>`
           : nothing}
-        <nav class="tabs">
-          <button aria-selected=${this.tab === "general"} @click=${() => (this.tab = "general")}>General</button>
-          <button aria-selected=${this.tab === "buttons"} @click=${() => (this.tab = "buttons")}>
+        <div class="tabs" role="tablist" aria-label="Settings sections">
+          <button role="tab" aria-selected=${this.tab === "general"} @click=${() => (this.tab = "general")}>General</button>
+          <button role="tab" aria-selected=${this.tab === "buttons"} @click=${() => (this.tab = "buttons")}>
             Buttons (${this.working.buttons.length})
           </button>
-          <button aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>Advanced</button>
-        </nav>
-        <main>
+          <button role="tab" aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>Advanced</button>
+        </div>
+        <main role="tabpanel">
           ${this.tab === "general" ? renderGeneral(this) : this.tab === "buttons" ? renderButtons(this) : renderAdvanced(this)}
         </main>
         <datalist id="dockbar-paths">

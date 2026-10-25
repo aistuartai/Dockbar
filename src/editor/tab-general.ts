@@ -32,7 +32,7 @@ export function renderHideOn(ed: DockbarEditor) {
             ${list.map(
               (p) => html`<span class="chip">
                 <code>${p}</code>
-                <button class="chip-x" title="Remove" @click=${() => ed.set("hide_on", list.filter((x) => x !== p))}>✕</button>
+                <button class="chip-x" title="Remove" aria-label="Remove ${p}" @click=${() => ed.set("hide_on", list.filter((x) => x !== p))}>✕</button>
               </span>`,
             )}
           </div>`
@@ -171,9 +171,9 @@ export function revertLook(ed: DockbarEditor, name: string) {
 export function lookChip(ed: DockbarEditor, name: string) {
   const shared = ed.lower.custom_presets[name];
   const action = !shared
-    ? html`<button class="chip-x" title="Delete" @click=${() => deleteLook(ed, name)}>✕</button>`
+    ? html`<button class="chip-x" title="Delete" aria-label="Delete saved look ${name}" @click=${() => deleteLook(ed, name)}>✕</button>`
     : JSON.stringify(shared) !== JSON.stringify(ed.working.custom_presets[name])
-      ? html`<button class="chip-x" title="Undo your change to this look" @click=${() => revertLook(ed, name)}>↺</button>`
+      ? html`<button class="chip-x" title="Undo your change to this look" aria-label="Undo your change to ${name}" @click=${() => revertLook(ed, name)}>↺</button>`
       : nothing;
   return html`<span class="chip saved">
     <button class="chip-label" title="Apply this saved look" @click=${() => applySaved(ed, name)}>${name}</button>

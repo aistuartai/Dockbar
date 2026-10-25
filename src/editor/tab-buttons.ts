@@ -279,25 +279,27 @@ export function renderButtons(ed: DockbarEditor) {
             <span
               class="handle"
               title="Drag to reorder"
+              aria-hidden="true"
+              aria-hidden="true"
               @pointerdown=${(e: PointerEvent) => dragStart(ed, e, b.id)}
               @pointermove=${(e: PointerEvent) => dragMove(ed, e)}
               @pointerup=${() => dragEnd(ed)}
               @pointercancel=${() => dragEnd(ed)}
             >⠿</span>
             <ha-icon .icon=${b.icon ?? ""} style="color:${b.icon_color ?? "inherit"}"></ha-icon>
-            <button class="title" @click=${() => (ed.expanded = open ? null : b.id)}>
+            <button class="title" aria-expanded=${open} @click=${() => (ed.expanded = open ? null : b.id)}>
               <strong>${b.name || "(no name)"}</strong>
               <span>${b.action === "navigate" ? b.path : b.action === "url" ? b.url : ACTION_LABELS[b.action]}</span>
             </button>
             ${kids ? html`<span class="tag section-tag" title="A section with ${kids} buttons inside">section · ${kids}</span>` : nothing}
             ${b.hidden ? html`<span class="tag">hidden</span>` : nothing} ${tag ? html`<span class="tag">${tag}</span>` : nothing}
-            <button class="icon" title="Move up" ?disabled=${i === 0} @click=${() => moveButton(ed, i, -1)}>▲</button>
-            <button class="icon" title="Move down" ?disabled=${i === n - 1} @click=${() => moveButton(ed, i, 1)}>▼</button>
-            <button class="icon" title=${b.hidden ? "Show on the bar" : "Hide from the bar"} @click=${() => toggleHidden(ed, i)}>
+            <button class="icon" title="Move up" aria-label="Move ${b.name || b.id} up" ?disabled=${i === 0} @click=${() => moveButton(ed, i, -1)}>▲</button>
+            <button class="icon" title="Move down" aria-label="Move ${b.name || b.id} down" ?disabled=${i === n - 1} @click=${() => moveButton(ed, i, 1)}>▼</button>
+            <button class="icon" title=${b.hidden ? "Show on the bar" : "Hide from the bar"} aria-label=${`${b.hidden ? "Show" : "Hide"} ${b.name || b.id}`} @click=${() => toggleHidden(ed, i)}>
               <ha-icon .icon=${b.hidden ? "mdi:eye-off" : "mdi:eye"}></ha-icon>
             </button>
             ${deletable
-              ? html`<button class="icon danger" title="Delete" @click=${() => removeButton(ed, i)}>
+              ? html`<button class="icon danger" title="Delete" aria-label="Delete ${b.name || b.id}" @click=${() => removeButton(ed, i)}>
                   <ha-icon icon="mdi:delete"></ha-icon>
                 </button>`
               : html`<span class="icon spacer"></span>`}

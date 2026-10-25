@@ -144,6 +144,15 @@ export const editorStyles = css`
     outline: 2px solid var(--db-ed-accent);
     outline-offset: -1px;
   }
+  button:focus-visible,
+  summary:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--db-ed-accent);
+    outline-offset: 2px;
+  }
+  .dialog:focus {
+    outline: none;
+  }
   input[type="color"] {
     flex: 0 0 36px;
     height: 36px;
