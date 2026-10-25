@@ -1,6 +1,6 @@
 import { DockbarNav, type ButtonClickDetail } from "./bar.ts";
 import { ConfigError, loadYamlLayer, safeUrl, type DockbarButton, type DockbarConfig, type Layer, type Position } from "./config.ts";
-import { DockbarEditor, type EditorHost } from "./editor.ts";
+import { DockbarEditor, type EditorHost } from "./editor/editor.ts";
 import * as ha from "./ha.ts";
 import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
 import { isSection, sectionFor } from "./sections.ts";
