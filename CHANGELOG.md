@@ -6,6 +6,9 @@
 - **Add new dashboards automatically.** A switch under General → Home Assistant (Everyone level) adds a button at the end of the bar for each dashboard you create from then on. A dashboard you remove stays removed, because saving records the dashboards that already exist (`seen_panels`).
 - It is on for a fresh install and off for an existing one, so updating changes nothing on a bar you've already set up.
 
+**Reset**
+- A **Reset to defaults** button at the Everyone level takes the bar back to what a fresh install shows (your HA sidebar, with new dashboards added automatically) and removes the Everyone settings and saved looks. It previews first and only applies when you click Save. Just me and This device changes stay; those levels already had their own Reset buttons.
+
 **Accessibility**
 - The settings dialog is now a proper modal: focus moves into it, Tab stays inside it, and focus goes back to the Settings button when it closes. Its tabs have the right roles.
 - Icon-only buttons in the editor (move, hide, delete, remove) have names a screen reader can read, and buttons show a focus ring when tabbed to.

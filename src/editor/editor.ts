@@ -1,6 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { type DockbarConfig, type Layer } from "../config.ts";
-import { clone, diffLayer } from "../merge.ts";
+import { clone, diffLayer, merge } from "../merge.ts";
 import { groupOrder } from "../sections.ts";
 import { entityIds, navTargets, type NavTarget } from "../ha.ts";
 import { type Scope } from "../storage.ts";
@@ -16,6 +16,8 @@ export interface EditorHost {
   usingYaml: boolean;
   /** Nothing saved yet: the buttons mirror the viewer's HA sidebar. */
   usingSidebar: boolean;
+  /** The Everyone layer as it is when nothing has been saved: config.yaml if there is one, else the sidebar copy. */
+  defaultLayer(): Layer;
   lowerFor(scope: Scope): DockbarConfig;
   workingFor(scope: Scope): DockbarConfig;
   preview(scope: Scope, layer: Layer | null): void;
@@ -74,6 +76,8 @@ export class DockbarEditor extends LitElement {
   private pristine = "";
   /** What had focus when the dialog opened, so closing it puts focus back there. */
   private opener: HTMLElement | null = null;
+  /** "Reset to defaults" was clicked and not yet saved: Save clears the Everyone level rather than writing a layer. */
+  private resetPending = false;
 
   constructor() {
     super();
@@ -140,22 +144,24 @@ export class DockbarEditor extends LitElement {
 
   /** A first-run list can be saved as it is, to keep it for everyone. */
   private get canSave() {
-    return this.dirty || (this.scope === "shared" && this.host_.usingSidebar);
+    return this.dirty || this.resetPending || (this.scope === "shared" && this.host_.usingSidebar);
   }
 
   layer(): Layer {
+    if (this.resetPending) return {};
     return diffLayer(this.lower, this.working, this.scope === "shared");
   }
 
   private previewFrame = 0;
 
   changed() {
+    this.resetPending = false;
     this.working = { ...this.working };
     // Sliders and colour pickers fire many times a frame; preview once per frame.
     if (this.previewFrame) return;
     this.previewFrame = requestAnimationFrame(() => {
       this.previewFrame = 0;
-      this.host_.preview(this.scope, this.layer());
+      this.host_.preview(this.scope, this.resetPending ? this.host_.defaultLayer() : this.layer());
     });
   }
 
@@ -205,6 +211,20 @@ export class DockbarEditor extends LitElement {
     } finally {
       this.saving = false;
     }
+  }
+
+  /** Everyone level: back to what a fresh install shows. Applied when Save is clicked, like any other change. */
+  private resetToDefaults() {
+    if (
+      !confirm(
+        "Reset Everyone to defaults?\n\nThe bar goes back to what a fresh install shows, and the Everyone settings and saved looks are removed. Just me and This device changes stay. Nothing changes until you click Save.",
+      )
+    )
+      return;
+    this.working = merge([this.host_.defaultLayer()]);
+    this.working.buttons = groupOrder(this.working.buttons);
+    this.changed();
+    this.resetPending = true;
   }
 
   private resetScope() {
@@ -282,7 +302,9 @@ export class DockbarEditor extends LitElement {
         <footer>
           ${this.scope !== "shared"
             ? html`<button class="text danger" @click=${() => this.resetScope()}>Reset "${scopeInfo.label}"</button>`
-            : nothing}
+            : this.host_.usingSidebar
+              ? nothing
+              : html`<button class="text danger" @click=${() => this.resetToDefaults()}>Reset to defaults</button>`}
           <span class="error">${this.error}</span>
           <button class="text" @click=${() => this.close()}>Cancel</button>
           <button class="primary" ?disabled=${!this.canSave || this.saving} @click=${() => this.save()}>

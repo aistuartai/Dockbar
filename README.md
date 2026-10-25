@@ -107,6 +107,8 @@ The dialog has three tabs:
 
 Each level stores only what it changes, and the levels stack in that order. A ● next to a setting means it's changed at the level you're editing; click it to reset.
 
+The dialog's footer has a **Reset** button for the level you're on. At **Just me** and **This device** it removes that level's changes. At **Everyone** it is **Reset to defaults**: the bar goes back to what a fresh install shows (your HA sidebar, with new dashboards added automatically) and the Everyone settings and saved looks are removed. Either way you see the result first, and nothing changes until you click **Save**. Reinstalling Dockbar keeps your settings, since they live in Home Assistant, so this is also how to start clean.
+
 On the **Buttons** tab, drag ⠿ to reorder, 👁 to hide a button from the bar (it stays in the list to show again later), and 🗑 to delete it. Deleting is only offered at the level the button was added; levels above hide it instead, so a user can hide a shared button for themselves without removing it for everyone. A button can also be hidden in YAML with `hidden: true`.
 
 When an admin adds a button for everyone, it still appears for users who've reordered or hidden their own buttons. Changes saved in HA sync live to every open screen.

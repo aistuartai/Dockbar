@@ -108,6 +108,11 @@ class Dockbar implements EditorHost {
     return added.length ? { ...layer, buttons: [...(layer.buttons ?? []), ...added] } : layer;
   }
 
+  /** What the Everyone level shows when nothing is saved there. */
+  defaultLayer(): Layer {
+    return this.yaml ?? this.firstRun;
+  }
+
   lowerFor(scope: Scope) {
     return merge(this.layers(SCOPE_ORDER.indexOf(scope), null));
   }
