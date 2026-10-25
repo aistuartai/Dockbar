@@ -13,6 +13,7 @@
 - Animations and transitions are switched off for people who ask their device for reduced motion.
 
 **Robustness**
+- If a page was disabled with `?dockbar=off`, turning the Dockbar integration off and on again now brings the bar back. The README's install steps also mention `?dockbar=on` for a bar that doesn't show after installing.
 - Five seconds after load Dockbar checks the parts of Home Assistant it relies on, and says in the browser console which one is missing if an HA update has moved it.
 - If the Dockbar switch disappears (the integration was disabled or removed) the bar steps aside even when Home Assistant doesn't announce it.
 

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canOpen, checkHooks, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
+import { canOpen, checkHooks, clearDisabled, isDisabled, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
 
 type Fake = Record<string, any>;
 
@@ -95,4 +95,23 @@ test("the hook check names what Home Assistant no longer provides", () => {
 
   withHass(undefined);
   assert.deepEqual(checkHooks(), ["the hass object"]);
+});
+
+test("a ?dockbar=off from earlier in the session can be forgotten", () => {
+  const items = new Map<string, string>();
+  (globalThis as any).sessionStorage = {
+    getItem: (k: string) => items.get(k) ?? null,
+    setItem: (k: string, v: string) => void items.set(k, v),
+    removeItem: (k: string) => void items.delete(k),
+  };
+  (globalThis as any).location = { search: "?dockbar=off" };
+  assert.equal(isDisabled(), true);
+  (globalThis as any).location = { search: "" };
+  assert.equal(isDisabled(), true, "stays off on later pages");
+  clearDisabled();
+  assert.equal(isDisabled(), false);
+  (globalThis as any).location = { search: "?dockbar=off" };
+  assert.equal(isDisabled(), true);
+  (globalThis as any).location = { search: "?dockbar=on" };
+  assert.equal(isDisabled(), false, "?dockbar=on still turns it back on");
 });

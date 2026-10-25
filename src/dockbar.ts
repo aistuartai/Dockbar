@@ -347,9 +347,24 @@ async function start() {
 
   if (ha.isDisabled()) {
     console.info("Dockbar: disabled for this session. Add ?dockbar=on to the URL to re-enable.");
+    await ha.waitForHass();
+    // Turning the integration off and on again counts as asking for the bar back.
+    let removed = false;
+    ha.watchOwnModule((loaded) => {
+      if (!loaded) removed = true;
+      else if (removed) {
+        removed = false;
+        ha.clearDisabled();
+        launch().catch((err) => console.error("Dockbar: failed to start", err));
+      }
+    });
     return;
   }
 
+  await launch();
+}
+
+async function launch() {
   await ha.waitForHass();
   // For development: `dockbar.js?config=<url>` reads the YAML from somewhere else.
   const configUrl = new URL(import.meta.url).searchParams.get("config") ?? DEFAULT_CONFIG_URL;

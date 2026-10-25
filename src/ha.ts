@@ -314,6 +314,15 @@ export function isDisabled(): boolean {
   }
 }
 
+/** Forgets a `?dockbar=off` from earlier in this browser session. */
+export function clearDisabled() {
+  try {
+    sessionStorage.removeItem(DISABLE_KEY);
+  } catch {
+    // No session storage: there is nothing to forget.
+  }
+}
+
 export function navigate(path: string) {
   history.pushState(null, "", path);
   fire(window, "location-changed", { replace: false });

@@ -69,6 +69,8 @@ Dockbar is in the HACS default store.
 1. In HACS, search for **Dockbar**, download it and restart Home Assistant.
 2. **Settings → Devices & services → Add integration → Dockbar.** The bar appears straight away, already filled with your sidebar: every dashboard and panel in your order, then Notifications, Settings and Profile.
 
+> **Bar not showing?** Add `?dockbar=on` to any Home Assistant address (for example `http://homeassistant.local:8123/?dockbar=on`) and reload. It clears the "off" settings this browser may have kept from an earlier install or from the Turn off button. See [Escape hatches](#escape-hatches).
+
 Already installed it as a custom repository? It keeps updating as before.
 
 ### Manual
@@ -236,7 +238,7 @@ Everything above is available in the settings dialog. Every setting also lives i
 
 ## Escape hatches
 
-- `?dockbar=off` in any URL disables Dockbar for that browser session. `?dockbar=on` brings it back, and also undoes the Turn off button on this device.
+- `?dockbar=off` in any URL disables Dockbar for that browser session. `?dockbar=on` brings it back, and also undoes the Turn off button on this device. Turning the Dockbar integration off and on again in **Settings → Devices & services** also brings it back on a page that was disabled this way.
 - `?dockbar=edit` opens the settings dialog, even if the Settings button is hidden.
 
 ## Development
