@@ -19,13 +19,18 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 
 ## Features
 
-- **Works out of the box.** On first install the bar mirrors your HA sidebar, in your order. Everything is configured in the UI with a live preview.
+- **Works out of the box.** On first install the bar mirrors your HA sidebar, in your order.
+- **Full GUI and YAML configuration.** Set everything in the settings dialog with a live preview, or edit it as YAML.
 - **Styleable.** Presets, current-page markers, hover effects, shadows, glass blur, per-button colours and your own CSS.
 - **Sections.** Group buttons under a top-level button that opens in place, like folders.
 - **Live values and badges.** Show an entity's state on a button, or HA-style count badges for updates, repairs and notifications.
 - **Three levels.** Set it for **everyone**, **just me** or **this device**, so a wall tablet can have its own layout.
-- **Any edge, any screen.** Left, right, top or bottom, with a different layout on phones, and the bar scrolls when buttons don't fit.
+- **Mobile friendly.** Left, right, top or bottom, with its own edge and size on phones (or hidden there), and the bar scrolls when buttons don't fit.
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with `switch.dockbar`.
+
+<p align="center">
+  <img alt="Dockbar as a top bar on a phone" src="docs/phone-home.png" width="260">
+</p>
 
 ## Looks
 
@@ -216,6 +221,15 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
   entity: sensor.pv_power
   state_color: "#FFD54F"
 ```
+
+## Settings screens
+
+Everything above is available in the settings dialog. Every setting also lives in the **Advanced** tab as YAML, so you can copy a whole setup between levels or instances.
+
+<p align="center">
+  <img alt="General settings with the Look section" src="docs/settings-look.png" width="49%">
+  <img alt="Button list" src="docs/settings-buttons.png" width="49%">
+</p>
 
 ## Escape hatches
 
