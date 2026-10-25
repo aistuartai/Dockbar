@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.6.2
 
 **Security**
 - A button's link must start with `http:`, `https:`, `mailto:` or `tel:`. Links like `javascript:` are dropped with a warning, and checked again when the button is clicked.
