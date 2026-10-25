@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { badgeSource, findActive, onAnyPath } from "../src/match.ts";
 import type { DockbarButton } from "../src/config.ts";
 
-const nav = (path: string): DockbarButton => ({ action: "navigate", path });
+const nav = (path: string): DockbarButton => ({ id: path, action: "navigate", path });
 const buttons = [
   nav("/home-dash/weather-station"),
   nav("/solar/main"),

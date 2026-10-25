@@ -19,6 +19,7 @@ const EDITOR_TAG = "dockbar-editor";
 const DEFAULT_CONFIG_URL = "/local/dockbar/config.yaml";
 // How often to re-check the header, the left padding and live entity values.
 const CHROME_POLL_MS = 750;
+const HOOK_CHECK_DELAY_MS = 5000;
 const SCOPE_ORDER: Scope[] = ["shared", "user", "device"];
 
 class Dockbar implements EditorHost {
@@ -91,10 +92,18 @@ class Dockbar implements EditorHost {
 
   private layers(count: number, draft: { scope: Scope; layer: Layer } | null): (Layer | null)[] {
     return SCOPE_ORDER.slice(0, count).map((scope) => {
+      if (scope === "shared") return this.withNewDashboards(draft?.scope === scope ? draft.layer : (this.store.shared ?? this.yaml ?? this.firstRun));
       if (draft?.scope === scope) return draft.layer;
-      if (scope === "shared") return this.store.shared ?? this.yaml ?? this.firstRun;
       return this.store.get(scope);
     });
+  }
+
+  /** With "Add new dashboards automatically" on, dashboards created since the last save join the end of the bar. */
+  private withNewDashboards(layer: Layer): Layer {
+    if (!layer.auto_add_dashboards) return layer;
+    // A config that has never recorded the dashboards it knew about adds nothing until it does.
+    const added = ha.newDashboardButtons(layer.buttons ?? [], layer.seen_panels ?? ha.dashboardPaths());
+    return added.length ? { ...layer, buttons: [...(layer.buttons ?? []), ...added] } : layer;
   }
 
   lowerFor(scope: Scope) {
@@ -111,6 +120,8 @@ class Dockbar implements EditorHost {
   }
 
   async save(scope: Scope, layer: Layer) {
+    // Saving the Everyone config is the admin seeing the bar as it is, so every dashboard now counts as seen.
+    if (scope === "shared" && layer.auto_add_dashboards) layer = { ...layer, seen_panels: ha.dashboardPaths() };
     await this.store.save(scope, layer);
   }
 
@@ -355,12 +366,25 @@ async function start() {
   await store.start();
   let firstRun: Layer = {};
   try {
-    firstRun = { buttons: ha.sidebarDefaults(await ha.sidebarPrefs()) };
+    // A fresh install starts with new dashboards being added, from the ones that exist now.
+    firstRun = {
+      buttons: ha.sidebarDefaults(await ha.sidebarPrefs()),
+      auto_add_dashboards: true,
+      seen_panels: ha.dashboardPaths(),
+    };
   } catch (err) {
     console.error("Dockbar: couldn't read the sidebar to build the first-run bar", err);
   }
   dockbar = new Dockbar(store, yaml, firstRun);
   window.__dockbar = dockbar;
+
+  // Turn a silent break after a Home Assistant update into something that can be reported.
+  setTimeout(() => {
+    const problems = ha.checkHooks();
+    if (problems.length) {
+      console.warn(`Dockbar: Home Assistant doesn't look as expected, so some features may not work. Missing: ${problems.join("; ")}.`);
+    }
+  }, HOOK_CHECK_DELAY_MS);
 }
 
 start().catch((err) => console.error("Dockbar: failed to start", err));

@@ -131,6 +131,10 @@ export interface Settings {
   footer: FooterTool[];
   /** Pages where the bar is hidden: a dashboard ("/wall-panel") or one view ("/wall-panel/kiosk"). */
   hide_on: string[];
+  /** Everyone level only: add a button at the end of the bar for each dashboard created since the last save. */
+  auto_add_dashboards: boolean;
+  /** The dashboards that existed when the Everyone config was last saved; ones not listed count as new. */
+  seen_panels: string[];
   /** Raw CSS injected into the bar's shadow root. */
   style: string;
 }
@@ -181,6 +185,8 @@ export const SETTING_KEYS: SettingKey[] = [
   "custom_presets",
   "footer",
   "hide_on",
+  "auto_add_dashboards",
+  "seen_panels",
   "style",
 ];
 
@@ -244,6 +250,8 @@ export const DEFAULT_SETTINGS: Settings = {
   custom_presets: {},
   footer: [...FOOTER_TOOLS],
   hide_on: [],
+  auto_add_dashboards: false,
+  seen_panels: [],
   style: "",
 };
 
@@ -432,7 +440,7 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
     const v = raw.background_opacity === null ? null : num(raw.background_opacity, "background_opacity", warn);
     set("background_opacity", v === null || v === undefined ? v : Math.min(100, v));
   }
-  for (const key of ["hide_sidebar", "hide_header", "show_names"] as const) {
+  for (const key of ["hide_sidebar", "hide_header", "show_names", "auto_add_dashboards"] as const) {
     if (raw[key] === undefined) continue;
     if (typeof raw[key] === "boolean") set(key, raw[key]);
     else if (raw[key] === "true" || raw[key] === "false") set(key, raw[key] === "true");
@@ -466,6 +474,11 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
           .map((p) => (p.trim().startsWith("/") ? p.trim() : "/" + p.trim())),
       );
     } else warn("hide_on must be a list of paths");
+  }
+  if (raw.seen_panels !== undefined) {
+    if (Array.isArray(raw.seen_panels)) {
+      set("seen_panels", raw.seen_panels.filter((p): p is string => typeof p === "string" && p !== ""));
+    } else warn("seen_panels must be a list of dashboard paths");
   }
   if (raw.custom_presets !== undefined) {
     if (isObject(raw.custom_presets)) {

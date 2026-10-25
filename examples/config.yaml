@@ -14,6 +14,8 @@ mobile_breakpoint: 600    # px
 hide_sidebar: true        # hide HA's sidebar (the pinned Menu button still opens it)
 hide_header: true         # hide the dashboard header (it comes back in edit mode)
 hide_on: []               # paths where the bar is hidden, e.g. [/wall-panel]
+auto_add_dashboards: false  # add a button for each dashboard created after seen_panels was recorded
+seen_panels: []           # dashboards that already exist (url paths); the editor fills this in when you save
 
 size: 88                  # bar thickness, px
 padding: 8

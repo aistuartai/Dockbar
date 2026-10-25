@@ -31,10 +31,13 @@ export class LayerStore {
   user: Layer | null = null;
   device: Layer | null = null;
 
-  constructor(
-    private data: FrontendData,
-    private onChange: () => void,
-  ) {
+  // Fields are declared rather than made constructor parameter properties, so Node can run this file in the tests.
+  private data: FrontendData;
+  private onChange: () => void;
+
+  constructor(data: FrontendData, onChange: () => void) {
+    this.data = data;
+    this.onChange = onChange;
     this.device = this.readDevice();
   }
 

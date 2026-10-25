@@ -246,3 +246,15 @@ test("typos and out-of-range values are warned about, not silently dropped", () 
   assert.ok(warnings.some((w) => w.includes('unknown setting "postion"')));
   assert.ok(warnings.some((w) => w.includes("size must be between 1 and 600")));
 });
+
+test("auto-add settings are read, validated and off by default", () => {
+  assert.equal(merge([]).auto_add_dashboards, false);
+  assert.deepEqual(merge([]).seen_panels, []);
+  const warnings: string[] = [];
+  const layer = sanitiseLayer({ auto_add_dashboards: true, seen_panels: ["a", 3, "", "b"] }, (m) => warnings.push(m));
+  assert.equal(layer.auto_add_dashboards, true);
+  assert.deepEqual(layer.seen_panels, ["a", "b"]);
+  assert.equal(warnings.length, 0);
+  assert.equal(sanitiseLayer({ seen_panels: "a" }, (m) => warnings.push(m)).seen_panels, undefined);
+  assert.equal(warnings.length, 1);
+});

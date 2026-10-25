@@ -1,6 +1,6 @@
 // Everything that touches Home Assistant's frontend lives here, so HA upgrades only break one file.
 import type { DockbarButton, Position } from "./config.ts";
-import { sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
+import { dashboardPanels, newDashboardButtons as buildNewDashboardButtons, sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
 import { local } from "./storage.ts";
 
 export interface HassPanel {
@@ -89,6 +89,7 @@ export function entityIds(): string[] {
 }
 
 let switchId: string | undefined;
+let switchSeen = false;
 
 /** The integration's on/off switch, found by platform so a renamed entity still works. */
 export function dockbarSwitchState(): "on" | "off" | null {
@@ -100,7 +101,12 @@ export function dockbarSwitchState(): "on" | "off" | null {
     )?.entity_id;
   }
   const state = switchId ? h?.states[switchId]?.state : undefined;
-  return state === "on" || state === "off" ? state : null;
+  if (state === "on" || state === "off") {
+    switchSeen = true;
+    return state;
+  }
+  // The switch was there and its state has gone: the integration was disabled or removed.
+  return switchSeen && switchId ? "off" : null;
 }
 
 /**
@@ -206,6 +212,42 @@ export function sidebarDefaults(prefs: SidebarPrefs): DockbarButton[] {
     localize: (key) => h.localize?.(key) ?? "",
     language: h.locale?.language,
   });
+}
+
+/** Url paths of the dashboards this user has, sorted. */
+export function dashboardPaths(): string[] {
+  const h = hass();
+  return h ? dashboardPanels(h.panels ?? {}).map((p) => p.url_path).sort() : [];
+}
+
+/** Buttons for dashboards created since `seen` was recorded, that `buttons` doesn't already cover. */
+export function newDashboardButtons(buttons: DockbarButton[], seen: string[]): DockbarButton[] {
+  const h = hass();
+  if (!h || !Object.keys(h.panels ?? {}).length) return [];
+  return buildNewDashboardButtons({ panels: h.panels, localize: (key) => h.localize?.(key) ?? "" }, buttons, seen);
+}
+
+/**
+ * Things Dockbar reaches into Home Assistant for that a HA update could move or rename.
+ * Empty when everything is where it was expected. Call a few seconds after load so HA has rendered.
+ */
+export function checkHooks(): string[] {
+  const h = hass();
+  if (!h) return ["the hass object"];
+  const problems: string[] = [];
+  const missing = (what: string) => problems.push(what);
+  if (typeof h.connection?.subscribeMessage !== "function" || typeof h.connection?.sendMessagePromise !== "function") {
+    missing("the websocket connection (hass.connection)");
+  }
+  if (!h.panels || typeof h.panels !== "object") missing("the panel list (hass.panels)");
+  if (!h.entities) missing("the entity registry (hass.entities), so the Dockbar switch can't be found");
+  if (typeof h.formatEntityState !== "function") missing("hass.formatEntityState, so live values show raw states");
+  const main = homeAssistant()?.shadowRoot?.querySelector("home-assistant-main");
+  if (!main) missing("<home-assistant-main>, so the sidebar and notification buttons won't work");
+  else if (main.shadowRoot && !main.shadowRoot.querySelector("ha-drawer")) missing("<ha-drawer>, so a left bar may overlap the page");
+  const onDashboard = h.panels?.[location.pathname.split("/")[1]]?.component_name === "lovelace";
+  if (onDashboard && !huiRoot()) missing("<hui-root>, so hiding the dashboard header won't work");
+  return problems;
 }
 
 /**

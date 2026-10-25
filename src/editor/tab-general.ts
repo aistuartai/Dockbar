@@ -82,6 +82,9 @@ export function renderGeneral(ed: DockbarEditor) {
         ${toggle(ed, "Hide HA sidebar", "hide_sidebar", "The Menu button still opens it")}
         ${toggle(ed, "Hide dashboard header", "hide_header", "Comes back when editing a dashboard")}
         ${toggle(ed, "Show button names", "show_names")}
+        ${ed.scope === "shared"
+          ? toggle(ed, "Add new dashboards automatically", "auto_add_dashboards", "A button for each dashboard you create from now on appears at the end of the bar")
+          : nothing}
       </div>
     </section>
     ${renderHideOn(ed)}

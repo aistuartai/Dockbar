@@ -22,6 +22,7 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **Works out of the box.** On first install the bar mirrors your HA sidebar, in your order.
 - **Full GUI and YAML configuration.** Set everything in the settings dialog with a live preview, or edit it as YAML.
 - **Styleable.** Presets, current-page markers, hover effects, shadows, glass blur, per-button colours and your own CSS.
+- **New dashboards appear by themselves.** Turn on one setting and a button for each dashboard you create from then on is added to the end of the bar.
 - **Sections.** Group buttons under a top-level button that opens in place, like folders.
 - **Live values and badges.** Show an entity's state on a button, or HA-style count badges for updates, repairs and notifications.
 - **Three levels.** Set it for **everyone**, **just me** or **this device**, so a wall tablet can have its own layout.
@@ -170,6 +171,8 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 | `background_opacity` | as written | 0–100. Fades the background colour, on top of any alpha it already has. The editor shows it as a slider. |
 | `show_names` | `true` | Show labels under icons |
 | `hide_on` | none | Paths where the bar is hidden, e.g. `/wall-panel` (all its views) or `/wall-panel/kiosk`. HA's sidebar and header settings still apply there. |
+| `auto_add_dashboards` | `false` | Everyone level only. Adds a button at the end of the bar for each dashboard created since `seen_panels` was recorded. On for a fresh install. |
+| `seen_panels` | none | The dashboards (url paths) that existed when the Everyone config was last saved. The editor fills it in on save; dashboards not listed count as new. |
 | `footer` | all four | Pinned buttons: any of `settings`, `menu`, `header`, `off` |
 | `defaults` | theme | Style for every button |
 | `active` | primary border | Style applied on top of the current page's button |

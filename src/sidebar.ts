@@ -1,7 +1,7 @@
 // Builds a first-run button list that mirrors Home Assistant's own sidebar.
 // Kept free of DOM and HA access so it can be tested; ha.ts supplies the inputs.
 import type { DockbarButton } from "./config.ts";
-import { slug } from "./config.ts";
+import { slug, uniqueId } from "./config.ts";
 
 export interface SidebarPanel {
   component_name: string;
@@ -83,6 +83,37 @@ export function sidebarPanels(input: SidebarInput): SidebarPanel[] {
 
 export function panelTitle(input: Pick<SidebarInput, "localize">, p: SidebarPanel): string {
   return (p.title && input.localize(`panel.${p.title}`)) || p.title || p.url_path;
+}
+
+/** The dashboards HA could list in its sidebar, whatever this user has ordered or hidden there. */
+export function dashboardPanels(panels: Record<string, SidebarPanel>): SidebarPanel[] {
+  return Object.values(panels).filter(
+    (p) => p.component_name === "lovelace" && Boolean(p.title) && p.show_in_sidebar !== false && !BOTTOM.includes(p.url_path),
+  );
+}
+
+/**
+ * Buttons for dashboards that are new: not among the ones seen at the last save, and with no button yet.
+ * Ids are made to avoid the ones already in use.
+ */
+export function newDashboardButtons(
+  input: Pick<SidebarInput, "panels" | "localize">,
+  buttons: DockbarButton[],
+  seen: string[],
+): DockbarButton[] {
+  const known = new Set(seen);
+  const covered = new Set(buttons.map((b) => (b.path ?? "").split(/[?#]/)[0].split("/").filter(Boolean)[0]));
+  const taken = new Set(buttons.map((b) => b.id));
+  return dashboardPanels(input.panels)
+    .filter((p) => !known.has(p.url_path) && !covered.has(p.url_path))
+    .sort((a, b) => a.url_path.localeCompare(b.url_path))
+    .map((p) => ({
+      id: uniqueId(p.url_path, taken),
+      name: panelTitle(input, p),
+      icon: p.icon || BUILT_IN_ICONS[p.url_path] || "mdi:view-dashboard",
+      action: "navigate" as const,
+      path: `/${p.url_path}`,
+    }));
 }
 
 /** HA's sidebar as Dockbar buttons: its panels, then Notifications, Settings and Profile. */
