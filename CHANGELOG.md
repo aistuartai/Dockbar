@@ -15,6 +15,16 @@
 - Saved configs carry a version, so an older Dockbar tab won't overwrite settings written by a newer one.
 - The Dockbar switch no longer polls every 30 seconds.
 
+**Checks and warnings**
+- Typos now say so in the browser console instead of being ignored: an unknown setting (`postion`), a button `action`, `badge` or `entity` that isn't valid.
+- Sizes, spacing and breakpoints have generous upper limits (for example a bar thickness over 600), so an extra zero gives a warning instead of a bar wider than the screen.
+- If the built `dockbar.js` is missing, the integration fails to load with a clear message.
+- If Dockbar can't watch for the integration being disabled, it says so in the console.
+
+**Performance**
+- Dragging a slider or colour picker in the editor updates the live preview once per frame, not on every input event.
+- The bar stops polling while the tab is hidden and catches up when it's shown, finds the Dockbar switch once instead of scanning every entity each time, and skips recomputing live values and badges when no entity has changed.
+
 **Releases**
 - The release build stops if the tag, `package.json` and `manifest.json` disagree, checks that the zip contains the built JavaScript, and marks tags like `v0.7.0-beta` as pre-releases.
 

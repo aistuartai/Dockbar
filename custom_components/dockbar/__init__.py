@@ -14,6 +14,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryError
 from homeassistant.loader import async_get_integration
 
 from .const import DOMAIN, JS_FILE, URL_BASE
@@ -25,6 +26,11 @@ FRONTEND_DIR = Path(__file__).parent / "frontend"
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Serve the frontend module and tell the frontend to load it."""
     data = hass.data.setdefault(DOMAIN, {})
+
+    if not (FRONTEND_DIR / JS_FILE).is_file():
+        raise ConfigEntryError(
+            f"{JS_FILE} is missing from {FRONTEND_DIR}. Reinstall Dockbar, or run `npm run build` in a development checkout."
+        )
 
     # Static paths can't be unregistered, so this happens once per HA run even if the
     # entry is disabled and re-enabled.

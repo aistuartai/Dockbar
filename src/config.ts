@@ -310,10 +310,13 @@ function sanitiseButtonFields(raw: Record<string, unknown>, warn?: Warn): Partia
     else if (raw.url.trim()) warn?.(`url must start with http:, https:, mailto: or tel:`);
   }
   if (ACTIONS.includes(raw.action as ButtonAction)) out.action = raw.action as ButtonAction;
+  else if (raw.action != null) warn?.(`action must be one of ${ACTIONS.join(", ")}`);
   if (typeof raw.hidden === "boolean") out.hidden = raw.hidden;
   if (typeof raw.entity === "string" && raw.entity.includes(".")) out.entity = raw.entity.trim();
+  else if (raw.entity != null && raw.entity !== "") warn?.(`entity must look like sensor.name`);
   if (typeof raw.attribute === "string" && raw.attribute) out.attribute = raw.attribute.trim();
   if (BADGE_SOURCES.includes(raw.badge as BadgeSource)) out.badge = raw.badge as BadgeSource;
+  else if (raw.badge != null) warn?.(`badge must be one of ${BADGE_SOURCES.join(", ")}`);
   if (typeof raw.parent === "string") out.parent = raw.parent;
   if (typeof raw.alert_icon_color === "string" && raw.alert_icon_color) out.alert_icon_color = raw.alert_icon_color;
   return out;
@@ -371,12 +374,27 @@ function position(v: unknown, field: string, warn: Warn): Position | undefined {
 }
 
 /** `min` is 0 for spacing (padding, gap) and 1 for sizes, which can't be zero. */
+/** Generous upper bounds, so a stray extra zero doesn't draw a bar wider than the screen. */
+const LIMITS: Record<string, number> = {
+  mobile_breakpoint: 5000,
+  padding: 200,
+  gap: 200,
+  size: 600,
+  mobile_size: 600,
+  button_length: 600,
+  button_min_length: 600,
+};
+
 function num(v: unknown, field: string, warn: Warn, min = 0): number | undefined {
   const n = Number(v);
-  if (Number.isFinite(n) && n >= min) return n;
-  warn(`${field} must be ${min > 0 ? "a positive number" : "zero or more"} (got "${v}")`);
+  const max = LIMITS[field] ?? Infinity;
+  if (Number.isFinite(n) && n >= min && n <= max) return n;
+  const range = max === Infinity ? (min > 0 ? "a positive number" : "zero or more") : `between ${min} and ${max}`;
+  warn(`${field} must be ${range} (got "${v}")`);
   return undefined;
 }
+
+const TOP_LEVEL_KEYS = new Set<string>([...SETTING_KEYS, "buttons", "button_overrides", "version"]);
 
 /** Turns untrusted input into a Layer containing only valid fields. */
 export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
@@ -386,6 +404,7 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
     return {};
   }
   const out: Layer = {};
+  for (const key of Object.keys(raw)) if (!TOP_LEVEL_KEYS.has(key)) warn(`unknown setting "${key}"`);
   const set = <K extends SettingKey>(key: K, value: Settings[K] | undefined) => {
     if (value !== undefined) out[key] = value;
   };

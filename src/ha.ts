@@ -88,13 +88,18 @@ export function entityIds(): string[] {
   return Object.keys(hass()?.states ?? {}).sort();
 }
 
+let switchId: string | undefined;
+
 /** The integration's on/off switch, found by platform so a renamed entity still works. */
 export function dockbarSwitchState(): "on" | "off" | null {
   const h = hass();
-  const entry = Object.values(h?.entities ?? {}).find(
-    (e) => e.platform === "dockbar" && e.entity_id.startsWith("switch."),
-  );
-  const state = entry ? h?.states[entry.entity_id]?.state : undefined;
+  // Remember the entity once found; scanning every entity on each poll is wasted work.
+  if (!switchId || !h?.entities?.[switchId]) {
+    switchId = Object.values(h?.entities ?? {}).find(
+      (e) => e.platform === "dockbar" && e.entity_id.startsWith("switch."),
+    )?.entity_id;
+  }
+  const state = switchId ? h?.states[switchId]?.state : undefined;
   return state === "on" || state === "off" ? state : null;
 }
 
@@ -111,7 +116,9 @@ export function watchOwnModule(onChange: (loaded: boolean) => void) {
       },
       { type: "frontend/subscribe_extra_js" },
     )
-    .catch(() => {});
+    .catch((err) =>
+      console.warn("Dockbar: can't watch for the integration being disabled, so disabling it needs a page reload", err),
+    );
 }
 
 /** `?dockbar=edit` opens the settings dialog, even if the settings button is hidden. */

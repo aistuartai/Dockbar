@@ -40,6 +40,7 @@ class Dockbar implements EditorHost {
   /** Live counts behind the badges. Subscriptions start the first time a button needs one. */
   private counts = { notifications: 0, repairs: 0 };
   private watching = new Set<string>();
+  private statesRef: unknown;
   private position: Position | null = null;
   private mobileQuery: MediaQueryList | null = null;
   private onMobileChange = () => this.refresh();
@@ -61,7 +62,9 @@ class Dockbar implements EditorHost {
 
     ha.onRouteChange(() => this.onRoute());
     // HA re-creates hui-root per dashboard and flips the drawer between modal and docked on resize.
-    setInterval(() => this.syncChrome(), CHROME_POLL_MS);
+    // Nothing to keep in step while the tab is hidden; catch up as soon as it's shown.
+    setInterval(() => document.hidden || this.syncChrome(), CHROME_POLL_MS);
+    document.addEventListener("visibilitychange", () => document.hidden || this.syncChrome());
 
     ha.watchOwnModule((loaded) => {
       this.moduleLoaded = loaded;
@@ -160,6 +163,7 @@ class Dockbar implements EditorHost {
     this.applyVisibility();
     this.statesKey = "";
     this.badgesKey = "";
+    this.statesRef = undefined;
     this.layout();
     ha.setSidebarHidden(!this.chromeOff && this.config.hide_sidebar);
     this.onRoute();
@@ -193,6 +197,10 @@ class Dockbar implements EditorHost {
   /** Live entity values on buttons. Only re-renders the bar when a shown value changes. */
   private syncStates() {
     if (this.barGone) return;
+    // HA swaps in a new states object whenever any entity changes, so the same one means nothing to recompute.
+    const ref = ha.hass()?.states;
+    if (ref && ref === this.statesRef) return;
+    this.statesRef = ref;
     const states: Record<string, string> = {};
     for (const b of this.config.buttons) {
       if (b.hidden || !b.entity) continue;
@@ -249,7 +257,7 @@ class Dockbar implements EditorHost {
     }
     const active = findActive(this.config.buttons, location.pathname);
     // Moving to another page opens the section it belongs to and closes the rest.
-    if (active !== this.bar.activeIndex || this.bar.openSection === undefined) {
+    if (active !== this.bar.activeIndex) {
       this.bar.openSection = sectionFor(this.config.buttons, active);
     }
     this.bar.activeIndex = active;

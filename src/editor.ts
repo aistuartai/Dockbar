@@ -215,9 +215,23 @@ export class DockbarEditor extends LitElement {
     return diffLayer(this.lower, this.working, this.scope === "shared");
   }
 
+  private previewFrame = 0;
+
   private changed() {
     this.working = { ...this.working };
-    this.host_.preview(this.scope, this.layer());
+    // Sliders and colour pickers fire many times a frame; preview once per frame.
+    if (this.previewFrame) return;
+    this.previewFrame = requestAnimationFrame(() => {
+      this.previewFrame = 0;
+      this.host_.preview(this.scope, this.layer());
+    });
+  }
+
+  /** Drops the live preview, including one still waiting for its frame. */
+  private clearPreview() {
+    cancelAnimationFrame(this.previewFrame);
+    this.previewFrame = 0;
+    this.host_.preview(this.scope, null);
   }
 
   private set(path: string, value: unknown) {
@@ -236,14 +250,14 @@ export class DockbarEditor extends LitElement {
   private switchScope(scope: Scope) {
     if (scope === this.scope) return;
     if (this.dirty && !confirm("Discard unsaved changes?")) return;
-    this.host_.preview(this.scope, null);
+    this.clearPreview();
     this.loadScope(scope);
     if (this.tab === "advanced") this.openAdvanced();
   }
 
   private close() {
     if (this.dirty && !confirm("Discard unsaved changes?")) return;
-    this.host_.preview(this.scope, null);
+    this.clearPreview();
     this.remove();
   }
 
@@ -252,7 +266,7 @@ export class DockbarEditor extends LitElement {
     this.error = "";
     try {
       await this.host_.save(this.scope, this.layer());
-      this.host_.preview(this.scope, null);
+      this.clearPreview();
       this.remove();
     } catch (err: any) {
       this.error = err?.message ?? String(err);

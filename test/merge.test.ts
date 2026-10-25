@@ -228,3 +228,21 @@ test("quoted booleans are read as written, and anything else is rejected", () =>
   assert.equal(layer.show_names, true);
   assert.equal(warnings.length, 1);
 });
+
+test("typos and out-of-range values are warned about, not silently dropped", () => {
+  const warnings: string[] = [];
+  const layer = sanitiseLayer(
+    {
+      postion: "left",
+      size: 5000,
+      padding: 20,
+      buttons: [{ name: "A", path: "/a", action: "navigat", entity: "nodot", badge: "lots" }],
+    },
+    (m) => warnings.push(m),
+  );
+  assert.equal(layer.size, undefined);
+  assert.equal(layer.padding, 20);
+  assert.equal(warnings.length, 5);
+  assert.ok(warnings.some((w) => w.includes('unknown setting "postion"')));
+  assert.ok(warnings.some((w) => w.includes("size must be between 1 and 600")));
+});
