@@ -68,14 +68,16 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 
 Dockbar is a small integration that loads the bar on every page. There's no YAML to edit.
 
-### HACS (custom repository)
+### HACS (recommended)
 
-Dockbar has been [submitted to the HACS default store](https://github.com/hacs/default/pull/11842). Until it's listed, add it as a custom repository:
+Dockbar is in the HACS default store.
 
+[![Open your Home Assistant instance and open Dockbar inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=aistuartai&repository=Dockbar&category=integration)
 
-1. HACS → ⋮ → **Custom repositories** → add `https://github.com/aistuartai/Dockbar`, type **Integration**.
-2. Download **Dockbar** and restart Home Assistant.
-3. **Settings → Devices & services → Add integration → Dockbar.** The bar appears straight away, already filled with your sidebar: every dashboard and panel in your order, then Notifications, Settings and Profile.
+1. In HACS, search for **Dockbar**, download it and restart Home Assistant.
+2. **Settings → Devices & services → Add integration → Dockbar.** The bar appears straight away, already filled with your sidebar: every dashboard and panel in your order, then Notifications, Settings and Profile.
+
+Already installed it as a custom repository? It keeps updating as before.
 
 ### Manual
 
