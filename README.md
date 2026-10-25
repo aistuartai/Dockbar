@@ -7,60 +7,46 @@
 
 A persistent, fully styleable navigation bar for **every** Home Assistant dashboard, on the left, right, top or bottom of the screen.
 
-![Dockbar on the left of a Home Assistant energy dashboard](docs/hero.png)
+[![Latest release](https://img.shields.io/github/v/release/aistuartai/Dockbar)](https://github.com/aistuartai/Dockbar/releases)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5)](#install)
+[![License: MIT](https://img.shields.io/github/license/aistuartai/Dockbar)](LICENSE)
 
-<p>
-  <img alt="A section open in place, showing its pages" src="docs/sections-open.png" width="32%">
-  <img alt="Badges on Notifications and Settings" src="docs/teal-badges.png" width="32%">
-  <img alt="A section with a Settings badge" src="docs/sections-badges.png" width="32%">
-</p>
-<p>
-  <img alt="Dockbar as a top bar on a phone" src="docs/phone-home.png" width="40%">
-  <img alt="Badges on a phone" src="docs/phone-badges.png" width="40%">
+<p align="center">
+  <img alt="Dockbar on the left of a Home Assistant dashboard" src="docs/hero.png" width="560">
 </p>
 
-Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header, each on its own setting.
+Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header.
 
 ## Features
 
-**Looks**
-- **Presets:** Glass, Flat, Neon, Material, Soft and Soft Dark (neumorphism), 3D and Dock, one click each, then adjust anything
-- **Current page marker:** fill, a line on the edge, a pill behind the icon, a dot, or a glow
-- **Hover effects** (brighten, lift, grow, glow) and **button shadows** (soft, raised, glow, **3D keys that press in**, **soft UI** that sinks in, or your own CSS)
-- **Glass effect:** a background opacity slider plus backdrop blur, so your dashboard shows through the bar
-- Per-button colours, borders, corner radius, icon sizes and label style (e.g. uppercase, spaced out), plus a style for every button, one for the current page's button and one for buttons with a badge
-- Follows your HA theme by default
-- An **Advanced** tab with a YAML editor for every setting, plus custom CSS for anything else
+- **Works out of the box.** On first install the bar mirrors your HA sidebar, in your order. Everything is configured in the UI with a live preview.
+- **Styleable.** Presets, current-page markers, hover effects, shadows, glass blur, per-button colours and your own CSS.
+- **Sections.** Group buttons under a top-level button that opens in place, like folders.
+- **Live values and badges.** Show an entity's state on a button, or HA-style count badges for updates, repairs and notifications.
+- **Three levels.** Set it for **everyone**, **just me** or **this device**, so a wall tablet can have its own layout.
+- **Any edge, any screen.** Left, right, top or bottom, with a different layout on phones, and the bar scrolls when buttons don't fit.
+- **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with `switch.dockbar`.
 
-**Navigation**
-- **Scrollable:** buttons shrink to fit, down to a minimum size you choose, then the bar scrolls (swipe or mouse wheel) so any number of buttons fit
-- Highlights the button for the page you're on
-- **Sections:** group buttons under a top-level button that opens in place to show them, like folders. The section you're in opens by itself, and a closed section adds up its buttons' badges.
-- **Live entity values** on buttons, e.g. solar power or battery %, using HA's own formatting and units
-- **Count badges** like HA's sidebar: a Settings button shows pending updates and repairs, a Notifications button shows unread notifications, with a number in the corner and a ring around the button
-- Buttons can open a dashboard or view, open a link, open HA's notifications, open HA's sidebar, or toggle the header
-- Pinned **Dockbar settings**, **Menu**, **Header** and **Turn off** buttons at the end of the bar
+## Looks
 
-**Layout**
-- Left, right, top or bottom, with adjustable thickness, padding, gap and button size
-- **On phones:** a different edge, its own thickness, or hidden altogether
-- Hide HA's sidebar and the dashboard header, each on its own setting. The header stays hidden when you switch dashboards (no flash), and it comes back when you edit a dashboard.
-- Reserves its space through HA's own safe-area insets, so pages lay themselves out around the bar instead of being covered. It also works with phone notches.
-- **Hide on chosen dashboards,** e.g. a wall tablet's kiosk view
+<p align="center">
+  <img alt="Dockbar cycling through its looks" src="docs/presets.gif" width="480">
+</p>
 
-**Setup**
-- **Works out of the box:** on first install the bar mirrors your HA sidebar, in your order, including Notifications, Settings and Profile. Save it under Everyone to keep it, or start changing it.
-- Buttons for pages someone can't open, such as Settings or HACS for a non-admin, are left off their bar automatically
-- Everything is configured in the UI, with a live preview and nothing saved until you click Save
-- Three levels: **everyone**, **just me** and **this device**, so a wall tablet can have its own layout
-- Drag to reorder; hide a button or delete it; import buttons from YAML
-- A dashboard and view picker, plus HA's icon picker
-- Changes sync live to every open screen
+One click on a preset sets the bar and every button's style. Your buttons, and any colours set on a single button, stay as they are.
 
-**Control**
-- `switch.dockbar` turns the bar on or off everywhere, from automations, scripts or a dashboard
-- Disable or enable the integration from **Settings → Devices & services**, with no reload needed
-- A one-tap Turn off for a single device, and a corner button to bring it back
+| Preset | Look |
+|---|---|
+| **Glass** | See-through with blur and soft edges, lifts on hover |
+| **Flat** | Solid colours, no borders, current page filled with your theme colour |
+| **Neon** | Dark with a coloured glow |
+| **Material** | Clean, with a pill behind the current page's icon |
+| **Soft** | Neumorphism: light grey, soft light and shade, current page pressed in |
+| **Soft Dark** | Soft UI on dark grey with purple accents |
+| **3D** | Raised keys that press in; the current page stays pressed |
+| **Dock** | Icons only, growing on hover, a dot under the current page |
+
+Then adjust anything: how the current page is marked (fill, line, pill, dot or glow), the hover effect, the button shadow, colours, corners and labels. Save your own as a named look. See [Looks](#looks-in-detail) for details.
 
 > Tested on Home Assistant 2026.10.0 and 2026.10.1.
 
@@ -92,11 +78,6 @@ Unzip `dockbar.zip` from the latest [release](https://github.com/aistuartai/Dock
 | **⏻ Turn off** pinned button | This device only. A round button in the bottom-right corner turns it back on. |
 
 ## Configure
-
-<p>
-  <img alt="General settings with the Look section" src="docs/settings-look.png" width="49%">
-  <img alt="Button list" src="docs/settings-buttons.png" width="49%">
-</p>
 
 Click the **Dockbar settings** button (the sliders icon) pinned at the end of the bar, or add `?dockbar=edit` to any URL. Changes preview live on the bar, and nothing is saved until you click **Save**.
 
@@ -146,20 +127,9 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 | `settings` | | Opens Dockbar settings |
 | `disable` | | Turns Dockbar off on this device |
 
-### Looks
+### Looks in detail
 
-**General → Look** has one-click presets to start from. Each one sets the bar and the every-button styles; your buttons, and any colours set on a single button, stay as they are.
-
-| Preset | Look |
-|---|---|
-| **Glass** | See-through with blur and soft edges, lifts on hover |
-| **Flat** | Solid colours, no borders, current page filled with your theme colour |
-| **Neon** | Dark with a coloured glow |
-| **Material** | Clean, with a pill behind the current page's icon |
-| **Soft** | Neumorphism: light grey, shaped by soft light and shade, uppercase spaced labels, current page pressed into the surface |
-| **Soft Dark** | The same soft UI on dark grey with purple accents, for dark dashboards |
-| **3D** | Raised keys with a solid side that press in; the current page stays pressed |
-| **Dock** | Icons only, growing on hover, a dot under the current page |
+**General → Look** has the presets above to start from.
 
 **+ Save current look** keeps your current look (bar colours and blur, current-page marker, hover, and the every-button, current-page and badge styles) under a name, as a chip next to the built-in presets. Saved looks belong to the level you're editing: under **Everyone** they're offered to all users, under **Just me** only to you. They appear in the Advanced YAML as `custom_presets`, so you can copy one to share it. A look shared from **Everyone** can't be deleted under **Just me**, but if you change it there, **↺** puts it back to the shared version.
 
