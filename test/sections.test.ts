@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { childrenOf, groupOrder, isSection, parentOf, sectionFor } from "../src/sections.ts";
+import { childrenOf, groupOrder, isSection, moveWithin, parentOf, sectionFor } from "../src/sections.ts";
 import type { DockbarButton } from "../src/config.ts";
 
 const b = (id: string, parent?: string): DockbarButton => ({ id, action: "navigate", path: `/${id}`, ...(parent ? { parent } : {}) });
@@ -27,4 +27,19 @@ test("the open section follows the current page", () => {
   assert.equal(sectionFor(list, 0), "energy");
   assert.equal(sectionFor(list, 2), null);
   assert.equal(sectionFor(list, -1), null);
+});
+
+const ids = (l: DockbarButton[] | null) => l?.map((x) => x.id);
+
+test("moving a top-level button steps over a whole section", () => {
+  const list = [b("s"), b("c1", "s"), b("c2", "s"), b("x")];
+  assert.deepEqual(ids(moveWithin(list, 3, -1)), ["x", "s", "c1", "c2"]);
+  assert.deepEqual(ids(moveWithin(list, 0, 1)), ["x", "s", "c1", "c2"]);
+});
+
+test("a button inside a section moves only among its siblings", () => {
+  const list = [b("s"), b("c1", "s"), b("c2", "s"), b("x")];
+  assert.deepEqual(ids(moveWithin(list, 2, -1)), ["s", "c2", "c1", "x"]);
+  assert.equal(moveWithin(list, 1, -1), null, "stays inside its section");
+  assert.equal(moveWithin(list, 3, 1), null);
 });

@@ -28,6 +28,7 @@ class DockbarSwitch(SwitchEntity, RestoreEntity):
     """On means the bar is shown. The frontend watches this entity's state."""
 
     _attr_has_entity_name = True
+    _attr_should_poll = False
     _attr_name = None
     _attr_icon = "mdi:dock-left"
 

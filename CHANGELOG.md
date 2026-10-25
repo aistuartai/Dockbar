@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+**Security**
+- A button's link must start with `http:`, `https:`, `mailto:` or `tel:`. Links like `javascript:` are dropped with a warning, and checked again when the button is clicked.
+
+**Fixes**
+- Moving a button up or down in the editor keeps sections together: a section moves with its buttons, and a button stays inside its section.
+- A button added by one level no longer clashes with a button of the same name added later at a lower level. The lower level's button wins.
+- Clearing a field on a shared button (such as its entity or badge) at the Just me or This device level now sticks instead of coming back on reload.
+- `hide_sidebar`, `hide_header` and `show_names` written as `"false"` in YAML are read as false, and values that aren't true or false give a warning.
+- Dockbar no longer waits forever if Home Assistant doesn't answer at startup, and a failure while building the first-run bar no longer stops it loading.
+- Saving to This device reports an error when the browser's storage is full or blocked.
+- Saved configs carry a version, so an older Dockbar tab won't overwrite settings written by a newer one.
+- The Dockbar switch no longer polls every 30 seconds.
+
+**Releases**
+- The release build stops if the tag, `package.json` and `manifest.json` disagree, checks that the zip contains the built JavaScript, and marks tags like `v0.7.0-beta` as pre-releases.
+
 ## 0.6.1
 
 **Docs**

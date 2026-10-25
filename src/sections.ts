@@ -31,6 +31,23 @@ export function groupOrder(buttons: DockbarButton[]): DockbarButton[] {
   return out;
 }
 
+/**
+ * The list with the button at `i` moved one place among its siblings, or null if it can't move that way.
+ * A section moves as a block with its buttons, and a button never leaves its section.
+ */
+export function moveWithin(buttons: DockbarButton[], i: number, delta: number): DockbarButton[] | null {
+  const b = buttons[i];
+  if (!b) return null;
+  const parent = parentOf(buttons, b);
+  const siblings = buttons.filter((x) => parentOf(buttons, x) === parent);
+  const from = siblings.indexOf(b);
+  const to = from + delta;
+  if (to < 0 || to >= siblings.length) return null;
+  siblings.splice(to, 0, ...siblings.splice(from, 1));
+  const others = buttons.filter((x) => parentOf(buttons, x) !== parent);
+  return groupOrder(parent ? [...others, ...siblings] : [...siblings, ...others]);
+}
+
 /** The section to show open for the current page: the active button's section, or the active section itself. */
 export function sectionFor(buttons: DockbarButton[], activeIndex: number): string | null {
   const active = buttons[activeIndex];

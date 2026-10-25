@@ -1,5 +1,6 @@
 import {
   BUTTON_KEYS,
+  CLEARABLE_KEYS,
   DEFAULT_SETTINGS,
   SETTING_KEYS,
   STYLE_KEYS,
@@ -50,10 +51,23 @@ const looks: KeyRule = {
 const RULES: Partial<Record<SettingKey, KeyRule>> = { defaults: style, active: style, alert: style, custom_presets: looks };
 const rule = (key: SettingKey) => RULES[key] ?? replace;
 
+/** An edit's fields replace the button's; a null field clears what a lower level set. */
+function applyEdit(b: DockbarButton, edit: NonNullable<ButtonOverrides["edits"]>[string]): DockbarButton {
+  const out: Record<string, unknown> = { ...b };
+  for (const [k, v] of Object.entries(edit)) {
+    if (v === null) delete out[k];
+    else if (v !== undefined) out[k] = v;
+  }
+  return { ...out, id: b.id } as DockbarButton;
+}
+
 export function applyOverrides(base: DockbarButton[], o: ButtonOverrides | undefined): DockbarButton[] {
   if (!o) return base;
-  let list = [...base, ...(o.added ?? [])];
-  if (o.edits) list = list.map((b) => (o.edits![b.id] ? { ...b, ...o.edits![b.id], id: b.id } : b));
+  // A button added at this level loses to one that a lower level has since added under the same id.
+  const taken = new Set(base.map((b) => b.id));
+  const added = (o.added ?? []).filter((b) => !taken.has(b.id));
+  let list = [...base, ...added];
+  if (o.edits) list = list.map((b) => (o.edits![b.id] ? applyEdit(b, o.edits![b.id]) : b));
   if (o.hidden) list = list.filter((b) => !o.hidden!.includes(b.id));
   if (o.order) {
     // Buttons the override doesn't know about (e.g. newly added to the shared list) go at the end.
@@ -105,7 +119,11 @@ export function diffButtons(lower: DockbarButton[], working: DockbarButton[]): B
     const base = lowerById.get(b.id);
     if (!base) continue;
     const e: Record<string, unknown> = {};
-    for (const k of BUTTON_KEYS) if (b[k] !== base[k] && b[k] !== undefined) e[k] = b[k];
+    for (const k of BUTTON_KEYS) {
+      if (b[k] === base[k]) continue;
+      if (b[k] !== undefined) e[k] = b[k];
+      else if ((CLEARABLE_KEYS as readonly string[]).includes(k)) e[k] = null;
+    }
     if (Object.keys(e).length) edits[b.id] = e;
   }
   if (Object.keys(edits).length) o.edits = edits;

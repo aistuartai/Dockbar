@@ -2,7 +2,7 @@
 //   shared → HA system data   (admins write, everyone reads; synced live)
 //   user   → HA user data     (per user, follows them across devices; synced live)
 //   device → localStorage     (this browser only)
-import { sanitiseLayer, type Layer } from "./config.ts";
+import { LAYER_VERSION, sanitiseLayer, type Layer } from "./config.ts";
 import type { FrontendData, FrontendDataScope } from "./ha.ts";
 
 export type Scope = "shared" | "user" | "device";
@@ -11,6 +11,7 @@ export type Scope = "shared" | "user" | "device";
 export const KEY = "dockbar";
 const DEVICE_KEY = "dockbar:device";
 const OFF_KEY = "dockbar:off";
+const START_TIMEOUT_MS = 5000;
 
 function warn(scope: string) {
   return (m: string) => console.warn(`Dockbar (${scope} config): ${m}`);
@@ -55,6 +56,13 @@ export class LayerStore {
             console.error(`Dockbar: couldn't read ${type} config`, err);
             resolve();
           });
+        // Carry on with what we have if HA never answers; a late answer still arrives through onChange.
+        setTimeout(() => {
+          if (ready) return;
+          console.warn(`Dockbar: no ${type} config after ${START_TIMEOUT_MS / 1000}s, starting without it`);
+          ready = true;
+          resolve();
+        }, START_TIMEOUT_MS);
       });
     await Promise.all([
       first("system", (l) => (this.shared = l)),
@@ -73,10 +81,18 @@ export class LayerStore {
   }
 
   async save(scope: Scope, layer: Layer | null): Promise<void> {
-    const value = layer && Object.keys(layer).length ? layer : null;
+    const stored = this.get(scope)?.version ?? 0;
+    // A newer Dockbar wrote this; saving from an older one would drop the settings it doesn't know.
+    if (stored > LAYER_VERSION) throw new Error("This config was saved by a newer Dockbar. Reload the page to update.");
+    const value = layer && Object.keys(layer).length ? { ...layer, version: LAYER_VERSION } : null;
     if (scope === "device") {
-      if (value) local()?.setItem(DEVICE_KEY, JSON.stringify(value));
-      else local()?.removeItem(DEVICE_KEY);
+      const ls = local();
+      try {
+        if (value) ls?.setItem(DEVICE_KEY, JSON.stringify(value));
+        else ls?.removeItem(DEVICE_KEY);
+      } catch (err) {
+        throw new Error(`Couldn't save to this device: ${err instanceof Error ? err.message : err}`);
+      }
       this.device = value;
       this.onChange();
       return;

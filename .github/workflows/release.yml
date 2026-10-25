@@ -18,18 +18,25 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Stamp version from tag
+      - name: Check the tag matches the committed version
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          npm version --no-git-tag-version --allow-same-version "$VERSION"
-          jq --arg v "$VERSION" '.version = $v' custom_components/dockbar/manifest.json > manifest.tmp
-          mv manifest.tmp custom_components/dockbar/manifest.json
+          PKG=$(jq -r .version package.json)
+          MANIFEST=$(jq -r .version custom_components/dockbar/manifest.json)
+          if [ "$PKG" != "$VERSION" ] || [ "$MANIFEST" != "$VERSION" ]; then
+            echo "::error::Tag is $VERSION but package.json is $PKG and manifest.json is $MANIFEST. Bump both, commit, then tag."
+            exit 1
+          fi
       - run: npm test
       - run: npm run build
       # HACS unpacks this zip into custom_components/dockbar, so the files go at the zip root.
       - name: Package integration
-        run: cd custom_components/dockbar && zip -r ../../dockbar.zip . -x "__pycache__/*"
-      - uses: softprops/action-gh-release@v2
+        run: |
+          test -f custom_components/dockbar/frontend/dockbar.js
+          cd custom_components/dockbar && zip -r ../../dockbar.zip . -x "__pycache__/*"
+          unzip -l ../../dockbar.zip | grep -q "frontend/dockbar.js"
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: dockbar.zip
           generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

@@ -23,7 +23,7 @@ import {
 import { clone, diffLayer, merge } from "./merge.ts";
 import { PRESETS, applyPreset, captureLook, savedPreset } from "./presets.ts";
 import { badgeSource } from "./match.ts";
-import { childrenOf, groupOrder, isSection, parentOf } from "./sections.ts";
+import { childrenOf, groupOrder, isSection, moveWithin, parentOf } from "./sections.ts";
 import { entityIds, entityText, hass, navTargets, type NavTarget } from "./ha.ts";
 import type { Scope } from "./storage.ts";
 
@@ -707,10 +707,8 @@ export class DockbarEditor extends LitElement {
   // ---------------------------------------------------------------- buttons tab
 
   private moveButton(i: number, delta: number) {
-    const list = [...this.working.buttons];
-    const j = i + delta;
-    if (j < 0 || j >= list.length) return;
-    [list[i], list[j]] = [list[j], list[i]];
+    const list = moveWithin(this.working.buttons, i, delta);
+    if (!list) return;
     this.working.buttons = list;
     this.changed();
   }

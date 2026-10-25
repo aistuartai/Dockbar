@@ -193,14 +193,18 @@ export interface ButtonOverrides {
   order?: string[];
   hidden?: string[];
   added?: DockbarButton[];
-  edits?: Record<string, Partial<Omit<DockbarButton, "id">>>;
+  edits?: Record<string, { [K in keyof Omit<DockbarButton, "id">]?: DockbarButton[K] | null }>;
 }
 
 /**
  * One layer of config. Only the fields it changes are present.
  * `buttons` is the base list (YAML or shared layer); `button_overrides` is for user and device layers.
  */
+/** Bumped when a saved layer's shape changes, so an older bundle can tell it is looking at newer data. */
+export const LAYER_VERSION = 1;
+
 export type Layer = Partial<Settings> & {
+  version?: number;
   buttons?: DockbarButton[];
   button_overrides?: ButtonOverrides;
 };
@@ -280,13 +284,31 @@ export function uniqueId(base: string, taken: Set<string>): string {
   return id;
 }
 
-function sanitiseButtonFields(raw: Record<string, unknown>): Partial<Omit<DockbarButton, "id">> {
+const URL_SCHEMES = ["http:", "https:", "mailto:", "tel:"];
+
+/** The link as written if it opens a web page, mail or phone link; null for anything else, such as `javascript:`. */
+export function safeUrl(url: string): string | null {
+  try {
+    return URL_SCHEMES.includes(new URL(url, "https://example.invalid/").protocol) ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Fields an override may set to null to clear what a lower level gave the button. */
+export const CLEARABLE_KEYS = BUTTON_KEYS.filter((k) => k !== "name" && k !== "action");
+
+function sanitiseButtonFields(raw: Record<string, unknown>, warn?: Warn): Partial<Omit<DockbarButton, "id">> {
   const out: Partial<Omit<DockbarButton, "id">> = { ...sanitiseStyle(raw) };
   if (typeof raw.name === "string") out.name = raw.name;
   if (typeof raw.icon === "string") out.icon = raw.icon;
   const path = raw.path ?? raw.navigation_path;
   if (typeof path === "string") out.path = path;
-  if (typeof raw.url === "string") out.url = raw.url;
+  if (typeof raw.url === "string") {
+    const url = safeUrl(raw.url.trim());
+    if (url) out.url = url;
+    else if (raw.url.trim()) warn?.(`url must start with http:, https:, mailto: or tel:`);
+  }
   if (ACTIONS.includes(raw.action as ButtonAction)) out.action = raw.action as ButtonAction;
   if (typeof raw.hidden === "boolean") out.hidden = raw.hidden;
   if (typeof raw.entity === "string" && raw.entity.includes(".")) out.entity = raw.entity.trim();
@@ -305,7 +327,7 @@ function sanitiseButtons(raw: unknown, field: string, warn: Warn, taken = new Se
   const out: DockbarButton[] = [];
   raw.forEach((item, i) => {
     if (!isObject(item)) return warn(`${field}[${i}] must be a mapping`);
-    const fields = sanitiseButtonFields(item);
+    const fields = sanitiseButtonFields(item, (m) => warn(`${field}[${i}]: ${m}`));
     const action = fields.action ?? (fields.url ? "url" : "navigate");
     if (action === "navigate" && !fields.path) return warn(`${field}[${i}] needs a path`);
     if (action === "url" && !fields.url) return warn(`${field}[${i}] needs a url`);
@@ -333,7 +355,8 @@ function sanitiseOverrides(raw: unknown, warn: Warn): ButtonOverrides | undefine
     const edits: ButtonOverrides["edits"] = {};
     for (const [id, e] of Object.entries(raw.edits)) {
       if (!isObject(e)) continue;
-      const fields = sanitiseButtonFields(e);
+      const fields: Record<string, unknown> = sanitiseButtonFields(e, (m) => warn(`button_overrides.edits.${id}: ${m}`));
+      for (const k of CLEARABLE_KEYS) if (e[k] === null) fields[k] = null;
       if (Object.keys(fields).length) edits[id] = fields;
     }
     if (Object.keys(edits).length) out.edits = edits;
@@ -391,7 +414,10 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
     set("background_opacity", v === null || v === undefined ? v : Math.min(100, v));
   }
   for (const key of ["hide_sidebar", "hide_header", "show_names"] as const) {
-    if (raw[key] !== undefined) set(key, Boolean(raw[key]));
+    if (raw[key] === undefined) continue;
+    if (typeof raw[key] === "boolean") set(key, raw[key]);
+    else if (raw[key] === "true" || raw[key] === "false") set(key, raw[key] === "true");
+    else warn(`${key} must be true or false`);
   }
   if (raw.active_indicator !== undefined) {
     if (ACTIVE_INDICATORS.includes(raw.active_indicator as ActiveIndicator)) set("active_indicator", raw.active_indicator as ActiveIndicator);
@@ -433,6 +459,7 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
       set("custom_presets", looks);
     } else warn("custom_presets must be a mapping of names to looks");
   }
+  if (typeof raw.version === "number" && Number.isFinite(raw.version)) out.version = raw.version;
   if (raw.buttons !== undefined) out.buttons = sanitiseButtons(raw.buttons, "buttons", warn);
   const overrides = sanitiseOverrides(raw.button_overrides, warn);
   if (overrides) out.button_overrides = overrides;

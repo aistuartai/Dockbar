@@ -195,3 +195,36 @@ test("the example config loads without warnings", async () => {
   assert.ok(layer.custom_presets?.Night);
   assert.equal(layer.buttons?.find((b) => b.name === "Repairs")?.hidden, true);
 });
+
+test("javascript: and other non-web links are dropped from url buttons", () => {
+  const warnings: string[] = [];
+  const layer = sanitiseLayer(
+    { buttons: [{ name: "Bad", action: "url", url: "javascript:alert(1)" }, { name: "Ok", url: "https://example.com" }, { name: "Mail", url: "mailto:a@b.c" }] },
+    (m) => warnings.push(m),
+  );
+  assert.deepEqual(layer.buttons?.map((x) => x.name), ["Ok", "Mail"]);
+  assert.equal(warnings.length, 2, "a warning for the dropped link, and one for the button left with no url");
+});
+
+test("a button added below wins over a same-id button added above", () => {
+  const out = applyOverrides([b("weather", { name: "Shared" })], { added: [b("weather", { name: "Mine" }), b("mine")] });
+  assert.deepEqual(out.map((x) => x.name), ["Shared", "mine"]);
+});
+
+test("a level can clear a field that a lower level set", () => {
+  const lower = [b("solar", { entity: "sensor.solar", badge: "updates" })];
+  const working = [b("solar")];
+  const overrides = diffLayer({ ...merge([]), buttons: lower }, { ...merge([]), buttons: working }, false).button_overrides;
+  assert.deepEqual(overrides?.edits?.solar, { entity: null, badge: null });
+  const saved = sanitiseLayer({ button_overrides: JSON.parse(JSON.stringify(overrides)) }).button_overrides;
+  assert.deepEqual(applyOverrides(lower, saved), working);
+});
+
+test("quoted booleans are read as written, and anything else is rejected", () => {
+  const warnings: string[] = [];
+  const layer = sanitiseLayer({ hide_sidebar: "false", hide_header: "yes", show_names: true }, (m) => warnings.push(m));
+  assert.equal(layer.hide_sidebar, false);
+  assert.equal(layer.hide_header, undefined);
+  assert.equal(layer.show_names, true);
+  assert.equal(warnings.length, 1);
+});

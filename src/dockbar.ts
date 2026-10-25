@@ -1,5 +1,5 @@
 import { DockbarNav, type ButtonClickDetail } from "./bar.ts";
-import { ConfigError, loadYamlLayer, type DockbarButton, type DockbarConfig, type Layer, type Position } from "./config.ts";
+import { ConfigError, loadYamlLayer, safeUrl, type DockbarButton, type DockbarConfig, type Layer, type Position } from "./config.ts";
 import { DockbarEditor, type EditorHost } from "./editor.ts";
 import * as ha from "./ha.ts";
 import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
@@ -289,7 +289,7 @@ class Dockbar implements EditorHost {
         if (b.path && cleanPath(b.path) !== cleanPath(location.pathname)) ha.navigate(b.path);
         break;
       case "url":
-        if (b.url) window.open(b.url, "_blank", "noopener");
+        if (b.url && safeUrl(b.url)) window.open(b.url, "_blank", "noopener");
         break;
       case "toggle_sidebar":
         ha.toggleSidebar();
@@ -345,9 +345,14 @@ async function start() {
   let dockbar: Dockbar | undefined;
   const store = new LayerStore(ha.frontendData(KEY), () => dockbar?.refresh());
   await store.start();
-  const firstRun: Layer = { buttons: ha.sidebarDefaults(await ha.sidebarPrefs()) };
+  let firstRun: Layer = {};
+  try {
+    firstRun = { buttons: ha.sidebarDefaults(await ha.sidebarPrefs()) };
+  } catch (err) {
+    console.error("Dockbar: couldn't read the sidebar to build the first-run bar", err);
+  }
   dockbar = new Dockbar(store, yaml, firstRun);
   window.__dockbar = dockbar;
 }
 
-start();
+start().catch((err) => console.error("Dockbar: failed to start", err));
