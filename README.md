@@ -54,7 +54,7 @@ One click on a preset sets the bar and every button's style. Your buttons, and a
 
 Then adjust anything: how the current page is marked (fill, line, pill, dot or glow), the hover effect, the button shadow, colours, corners and labels. Save your own as a named look. See [Looks](#looks-in-detail) for details.
 
-> Tested on Home Assistant 2026.10.0 and 2026.10.1.
+> Tested on Home Assistant 2026.10.0, 2026.10.1 and 2026.10.4.
 
 ## Install
 

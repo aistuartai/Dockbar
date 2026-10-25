@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.7.0
 
 **New dashboards**
 - **Add new dashboards automatically.** A switch under General → Home Assistant (Everyone level) adds a button at the end of the bar for each dashboard you create from then on. A dashboard you remove stays removed, because saving records the dashboards that already exist (`seen_panels`).
