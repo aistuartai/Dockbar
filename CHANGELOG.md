@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1
+
+**Docs**
+- Dockbar is now in the HACS default store. The README leads the install section with searching for Dockbar in HACS, plus a one-click button, instead of the custom repository steps.
+
 ## 0.6.0
 
 **Looks**
