@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="custom_components/dockbar/brand/dark_logo.png">
-  <img alt="Dockbar" src="custom_components/dockbar/brand/logo.png" height="96">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/aistuartai/Dockbar/main/custom_components/dockbar/brand/dark_logo.png">
+  <img alt="Dockbar" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/custom_components/dockbar/brand/logo.png" height="96">
 </picture>
 
 # Dockbar
@@ -9,10 +9,10 @@ A persistent, fully styleable navigation bar for **every** Home Assistant dashbo
 
 [![Latest release](https://img.shields.io/github/v/release/aistuartai/Dockbar)](https://github.com/aistuartai/Dockbar/releases)
 [![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5)](#install)
-[![License: MIT](https://img.shields.io/github/license/aistuartai/Dockbar)](LICENSE)
+[![License: MIT](https://img.shields.io/github/license/aistuartai/Dockbar)](https://github.com/aistuartai/Dockbar/blob/main/LICENSE)
 
 <p align="center">
-  <img alt="Dockbar on the left of a Home Assistant dashboard" src="docs/hero.png" width="560">
+  <img alt="Dockbar on the left of a Home Assistant dashboard" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/hero.png" width="560">
 </p>
 
 Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header.
@@ -29,13 +29,13 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with `switch.dockbar`.
 
 <p align="center">
-  <img alt="Dockbar as a top bar on a phone" src="docs/phone-home.png" width="260">
+  <img alt="Dockbar as a top bar on a phone" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phone-home.png" width="260">
 </p>
 
 ## Looks
 
 <p align="center">
-  <img alt="Dockbar cycling through its looks" src="docs/presets.gif" width="480">
+  <img alt="Dockbar cycling through its looks" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/presets.gif" width="480">
 </p>
 
 One click on a preset sets the bar and every button's style. Your buttons, and any colours set on a single button, stay as they are.
@@ -150,7 +150,7 @@ Custom CSS goes in the same tab and is injected into the bar. You can target the
 
 If `/config/www/dockbar/config.yaml` exists and nothing has been saved under **Everyone** yet, Dockbar uses the file as the shared config. The first time an admin saves under **Everyone**, the file's contents move into HA and the file is ignored from then on.
 
-See [`examples/config.yaml`](examples/config.yaml) for every option.
+See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/examples/config.yaml) for every option.
 
 > ⚠️ Everything in `/config/www` is served at `/local/` **without authentication**. Don't put secrets in the YAML.
 
@@ -227,8 +227,8 @@ See [`examples/config.yaml`](examples/config.yaml) for every option.
 Everything above is available in the settings dialog. Every setting also lives in the **Advanced** tab as YAML, so you can copy a whole setup between levels or instances.
 
 <p align="center">
-  <img alt="General settings with the Look section" src="docs/settings-look.png" width="49%">
-  <img alt="Button list" src="docs/settings-buttons.png" width="49%">
+  <img alt="General settings with the Look section" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-look.png" width="49%">
+  <img alt="Button list" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-buttons.png" width="49%">
 </p>
 
 ## Escape hatches
