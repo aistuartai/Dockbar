@@ -37,6 +37,13 @@ export function serviceCall(b: DockbarButton): ServiceCall | null {
   return { domain, service, data: b.data ?? {}, ...(b.target ? { target: { entity_id: b.target } } : {}) };
 }
 
+const ACTIVE_STATES = new Set(["on", "open", "opening", "unlocked", "playing", "home", "heat", "cool", "heat_cool", "active"]);
+
+/** Whether an entity's state counts as "on", the way Home Assistant colours its own icons. */
+export function isActiveState(state: string | undefined): boolean {
+  return state !== undefined && ACTIVE_STATES.has(state);
+}
+
 /** What a button still needs before its action can run, or null if nothing. */
 export function actionProblem(b: DockbarButton): string | null {
   if (b.action === "perform_action" && !serviceCall(b)) return "Choose the action to run, for example light.turn_on.";

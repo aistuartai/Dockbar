@@ -8,6 +8,7 @@
 - **Ask before running** adds a confirmation, for buttons you could press by accident, like a garage door.
 - The editor warns when a button is missing its action or entity.
 - Entity, action, page and attribute fields are now searchable pickers: type any words (for example "kitchen light") to narrow the list, with friendly names shown, arrow keys and Enter to choose, and Escape to close just the list. You can still type something that isn't in the list. Target entities are added one at a time as chips.
+- **Icon colour when on.** A button with an entity can change its icon colour while the entity is on, open, unlocked, playing or otherwise active, so a toggle button shows at a glance whether the light is on. Set it under Live value in the editor, or with `on_icon_color` in YAML.
 - Toggle picks the right action for each kind of entity: locks lock or unlock, covers open or close, scenes and scripts run, buttons are pressed, everything else toggles.
 
 **Dependencies and tooling**

@@ -4,7 +4,7 @@ import { DockbarEditor, type EditorHost } from "./editor/editor.ts";
 import { DockbarPicker } from "./editor/picker.ts";
 import * as ha from "./ha.ts";
 import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
-import { serviceCall, toggleCall } from "./actions.ts";
+import { isActiveState, serviceCall, toggleCall } from "./actions.ts";
 import { isSection, sectionFor } from "./sections.ts";
 import { merge } from "./merge.ts";
 import { KEY, LayerStore, type Scope } from "./storage.ts";
@@ -222,15 +222,18 @@ class Dockbar implements EditorHost {
     if (ref && ref === this.statesRef) return;
     this.statesRef = ref;
     const states: Record<string, string> = {};
+    const on: Record<string, boolean> = {};
     for (const b of this.config.buttons) {
       if (b.hidden || !b.entity) continue;
       const text = ha.entityText(b.entity, b.attribute);
       if (text !== undefined) states[b.id] = text;
+      if (b.on_icon_color) on[b.id] = isActiveState(ha.entityState(b.entity));
     }
-    const key = JSON.stringify(states);
+    const key = JSON.stringify([states, on]);
     if (key !== this.statesKey) {
       this.statesKey = key;
       this.bar.states = states;
+      this.bar.on = on;
     }
     this.syncBadges();
   }

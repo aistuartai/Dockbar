@@ -106,6 +106,8 @@ export interface DockbarButton extends ButtonStyle {
   data?: Record<string, unknown>;
   /** Ask before running a "perform_action", "toggle" or "more_info" button. */
   confirm?: boolean;
+  /** Icon colour while this button's entity is on (or open, unlocked, playing and so on). */
+  on_icon_color?: string;
 }
 export const BUTTON_KEYS = [
   "name",
@@ -123,6 +125,7 @@ export const BUTTON_KEYS = [
   "target",
   "data",
   "confirm",
+  "on_icon_color",
   ...STYLE_KEYS,
 ] as const;
 
@@ -370,6 +373,7 @@ function sanitiseButtonFields(raw: Record<string, unknown>, warn?: Warn): Partia
   if (typeof raw.confirm === "boolean") out.confirm = raw.confirm;
   if (typeof raw.parent === "string") out.parent = raw.parent;
   if (typeof raw.alert_icon_color === "string" && raw.alert_icon_color) out.alert_icon_color = raw.alert_icon_color;
+  if (typeof raw.on_icon_color === "string" && raw.on_icon_color) out.on_icon_color = raw.on_icon_color;
   return out;
 }
 

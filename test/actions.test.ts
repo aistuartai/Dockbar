@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { actionProblem, serviceCall, toggleCall } from "../src/actions.ts";
+import { actionProblem, isActiveState, serviceCall, toggleCall } from "../src/actions.ts";
 import type { DockbarButton } from "../src/config.ts";
 
 const button = (extra: Partial<DockbarButton>): DockbarButton => ({ id: "b", action: "perform_action", ...extra });
@@ -40,4 +40,13 @@ test("a button says what it still needs", () => {
   assert.match(actionProblem(button({ action: "toggle" }))!, /Choose an entity/);
   assert.equal(actionProblem(button({ action: "more_info", entity: "light.a" })), null);
   assert.equal(actionProblem(button({ action: "navigate" })), null);
+});
+
+test("states that mean on, open or playing count as active", () => {
+  for (const state of ["on", "open", "opening", "unlocked", "playing", "home", "heat", "cool", "active"]) {
+    assert.equal(isActiveState(state), true, state);
+  }
+  for (const state of ["off", "closed", "locked", "idle", "paused", "unavailable", "unknown", "not_home", undefined]) {
+    assert.equal(isActiveState(state), false, String(state));
+  }
 });

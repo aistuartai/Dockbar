@@ -114,6 +114,7 @@ buttons:
     icon: mdi:garage
     action: toggle                    # lights and switches toggle, locks lock/unlock, covers open/close, scenes run
     entity: cover.garage              # also shows its state on the button
+    on_icon_color: '#FF5252'          # icon colour while it's open (or on, unlocked, playing...)
     confirm: true                     # ask before running
   - name: Movie night
     icon: mdi:movie-open

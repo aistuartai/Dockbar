@@ -39,6 +39,7 @@ export class DockbarNav extends LitElement {
     off: { type: Boolean, reflect: true },
     activeIndex: { attribute: false },
     states: { attribute: false },
+    on: { attribute: false },
     badges: { attribute: false },
     openSection: { attribute: false },
   };
@@ -49,6 +50,8 @@ export class DockbarNav extends LitElement {
   declare activeIndex: number;
   /** Formatted live values, by button id. */
   declare states: Record<string, string>;
+  /** Buttons whose entity is on right now, by button id. Only buttons with an "on" colour are listed. */
+  declare on: Record<string, boolean>;
   /** Count badges, by button id. Only buttons with a count above zero are listed. */
   declare badges: Record<string, number>;
   /** The section whose buttons are showing. One at a time. */
@@ -60,6 +63,7 @@ export class DockbarNav extends LitElement {
     this.off = false;
     this.activeIndex = -1;
     this.states = {};
+    this.on = {};
     this.badges = {};
     this.openSection = null;
   }
@@ -151,6 +155,7 @@ export class DockbarNav extends LitElement {
       ...b,
       ...(active ? c.active : {}),
       ...(badge ? c.alert : {}),
+      ...(this.on[b.id] && b.on_icon_color ? { icon_color: b.on_icon_color } : {}),
       ...(badge && b.alert_icon_color ? { icon_color: b.alert_icon_color } : {}),
     };
     const vars = {

@@ -191,7 +191,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 | `custom_presets` | none | Saved looks by name. Each holds any of the look settings: `background`, `background_opacity`, `backdrop_filter`, `show_names`, `active_indicator`, `indicator_color`, `hover_effect`, `defaults`, `active`, `alert`. A look that leaves out `defaults` or `active` keeps your current ones. |
 | `style` | | Raw CSS inside the bar's shadow root. Parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer` |
 
-**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `parent`, `hidden`, `service`, `target`, `data`, `confirm`, plus any style key.
+**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `on_icon_color`, `parent`, `hidden`, `service`, `target`, `data`, `confirm`, plus any style key.
 
 **Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
 
@@ -235,6 +235,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
   icon: mdi:lightbulb
   action: toggle
   entity: light.lounge
+  on_icon_color: '#FFD54F'          # the icon turns yellow while the light is on
 - name: Movie night
   icon: mdi:movie-open
   service: scene.turn_on            # no action needed when there's a service
@@ -247,7 +248,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
     brightness_pct: 40
 ```
 
-**Live values:** give a button `entity: sensor.pv_power` to show its state under the name, formatted the way HA shows it (units, translations). Add `attribute: <name>` to show an attribute instead. `state_color` colours the value.
+**Live values:** give a button `entity: sensor.pv_power` to show its state under the name, formatted the way HA shows it (units, translations). Add `attribute: <name>` to show an attribute instead. `state_color` colours the value. `on_icon_color` changes the icon's colour while the entity is on, open, unlocked, playing or otherwise active, so a toggle button can show at a glance whether the light is on.
 
 ```yaml
 - name: Solar

@@ -237,7 +237,7 @@ export function buttonPicker(
   </div>`;
 }
 
-export function buttonColour(ed: DockbarEditor, i: number, label: string, key: keyof ButtonStyle | "alert_icon_color") {
+export function buttonColour(ed: DockbarEditor, i: number, label: string, key: keyof ButtonStyle | "alert_icon_color" | "on_icon_color") {
   const value = ed.working.buttons[i][key] ?? "";
   return html`<div class="field">
     <span class="label">${label}</span>
@@ -332,6 +332,7 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
             </div>`
           : nothing}
         ${b.entity ? buttonColour(ed, i, "Value colour", "state_color") : nothing}
+        ${b.entity ? buttonColour(ed, i, "Icon colour when on", "on_icon_color") : nothing}
       </div>
       <h4>Style for this button <span class="hint">blank = use "Every button"</span></h4>
       <div class="grid">
