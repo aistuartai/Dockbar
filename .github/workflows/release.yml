@@ -12,8 +12,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
@@ -35,7 +35,7 @@ jobs:
           test -f custom_components/dockbar/frontend/dockbar.js
           cd custom_components/dockbar && zip -r ../../dockbar.zip . -x "__pycache__/*"
           unzip -l ../../dockbar.zip | grep -q "frontend/dockbar.js"
-      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+      - uses: softprops/action-gh-release@5113cdc90fd4d541c801c55356214017bf5ae34b # v3
         with:
           files: dockbar.zip
           generate_release_notes: true
