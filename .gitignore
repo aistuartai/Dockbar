@@ -11,3 +11,8 @@ Screenshot*.png
 # Reference images dropped in the repo root
 /*.jpg
 /*.jpeg
+
+# Working files for the README images
+docs/looks/
+docs/looks-lineup.png
+docs/hero-options/

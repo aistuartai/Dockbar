@@ -12,10 +12,14 @@ A persistent, fully styleable navigation bar for **every** Home Assistant dashbo
 [![License: MIT](https://img.shields.io/github/license/aistuartai/Dockbar)](https://github.com/aistuartai/Dockbar/blob/main/LICENSE)
 
 <p align="center">
-  <img alt="Dockbar on the left of a Home Assistant dashboard" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/hero.png" width="560">
+  <img alt="Dockbar in six looks: Soft, Soft Dark, Neon, Glass, Dock and 3D" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/hero.png" width="800">
 </p>
 
 Dockbar isn't a card. It loads once for the whole frontend, so it stays put when you switch dashboards and needs no per-view setup. It can also hide Home Assistant's own sidebar and dashboard header.
+
+<p align="center">
+  <img alt="The Soft look on a light Home Assistant dashboard" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/hero-page.png" width="800">
+</p>
 
 ## Features
 
