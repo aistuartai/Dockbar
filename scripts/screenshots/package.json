@@ -1,0 +1,19 @@
+{
+  "name": "dockbar-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "Renders the README's screenshots from the built Dockbar, in headless Chrome, with demo data.",
+  "scripts": {
+    "render": "node render.mjs",
+    "docs": "node render.mjs --copy",
+    "hacs-check": "node hacs-check.mjs ../../README.md"
+  },
+  "dependencies": {
+    "@mdi/js": "^7.4.47",
+    "puppeteer-core": "^25.16.0"
+  },
+  "devDependencies": {
+    "marked": "^18.1.2",
+    "xss": "^1.0.17"
+  }
+}

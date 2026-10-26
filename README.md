@@ -404,7 +404,7 @@ npm run brand        # re-render the icon and logo PNGs from brand/icon.svg
 npm run deploy       # build, then copy custom_components/dockbar into the HA config folder in .deploy-target or $DOCKBAR_DEPLOY_DIR
 ```
 
-Releases are built by GitHub Actions when a `v*` tag is pushed. Bug reports and ideas are welcome as [issues](https://github.com/aistuartai/Dockbar/issues/new/choose).
+Releases are built by GitHub Actions when a `v*` tag is pushed. The interface images in this README are rendered from the real build by the scripts in [`scripts/screenshots`](https://github.com/aistuartai/Dockbar/tree/main/scripts/screenshots), so they can be regenerated when the interface changes. Bug reports and ideas are welcome as [issues](https://github.com/aistuartai/Dockbar/issues/new/choose).
 
 ## License
 

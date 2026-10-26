@@ -1,0 +1,220 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Dockbar demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --primary-color: #03a9f4;
+    --text-primary-color: #fff;
+    --primary-text-color: #e1e1e1;
+    --secondary-text-color: #9b9b9b;
+    --card-background-color: #1c1c1c;
+    --secondary-background-color: #2b2b2b;
+    --primary-background-color: #111111;
+    --divider-color: rgba(225, 225, 225, 0.12);
+    --ha-font-family-body: Roboto, "Segoe UI", sans-serif;
+  }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: Roboto, "Segoe UI", sans-serif;
+    color: var(--primary-text-color);
+    background: var(--primary-background-color);
+  }
+</style>
+</head>
+<body>
+<home-assistant></home-assistant>
+<script type="module">
+  import * as mdi from "/mdi.js";
+
+  class HaIcon extends HTMLElement {
+    static get observedAttributes() { return ["icon"]; }
+    constructor() {
+      super();
+      this.attachShadow({ mode: "open" }).innerHTML =
+        `<style>:host{display:inline-flex;width:var(--mdc-icon-size,24px);height:var(--mdc-icon-size,24px);fill:currentColor}svg{width:100%;height:100%}</style><svg viewBox="0 0 24 24"><path></path></svg>`;
+    }
+    set icon(v) { this._icon = v; this.draw(); }
+    get icon() { return this._icon; }
+    attributeChangedCallback(name, _old, v) { if (name === "icon") { this._icon = v; this.draw(); } }
+    connectedCallback() { this.draw(); }
+    draw() {
+      const name = (this._icon || "").replace(/^mdi:/, "");
+      const key = "mdi" + name.split("-").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join("");
+      const path = mdi[key];
+      this.shadowRoot.querySelector("path").setAttribute("d", path || "");
+    }
+  }
+  customElements.define("ha-icon", HaIcon);
+
+  // A stand-in for Home Assistant's own element, with just enough of what Dockbar reads.
+  class HomeAssistant extends HTMLElement {
+    constructor() {
+      super();
+      const root = this.attachShadow({ mode: "open" });
+      root.innerHTML = `<home-assistant-main></home-assistant-main>`;
+      const main = root.querySelector("home-assistant-main");
+      main.attachShadow({ mode: "open" }).innerHTML = `<ha-drawer></ha-drawer>`;
+    }
+  }
+  customElements.define("home-assistant", HomeAssistant);
+
+  const e = (id, state, name, extra = {}) => [id, { entity_id: id, state, attributes: { friendly_name: name, ...extra } }];
+  const states = Object.fromEntries([
+    e("light.lounge", "on", "Lounge Lamp"),
+    e("light.kitchen_ceiling", "off", "Kitchen Ceiling Light"),
+    e("light.hall", "on", "Hall Light"),
+    e("light.bedroom", "off", "Bedroom Light"),
+    e("light.study", "on", "Study Light"),
+    e("switch.garden_pump", "off", "Garden Pump"),
+    e("switch.coffee_machine", "off", "Coffee Machine"),
+    e("cover.garage", "closed", "Garage Door"),
+    e("cover.lounge_blinds", "open", "Lounge Blinds"),
+    e("lock.front_door", "locked", "Front Door"),
+    e("scene.movie_night", "scening", "Movie Night"),
+    e("scene.good_morning", "scening", "Good Morning"),
+    e("scene.dinner", "scening", "Dinner"),
+    e("script.good_night", "off", "Good Night"),
+    e("sensor.solar_power", "3.2", "Solar Power", { unit_of_measurement: "kW" }),
+    e("sensor.battery_level", "82", "Battery Level", { unit_of_measurement: "%" }),
+    e("sensor.house_power", "1.1", "House Power", { unit_of_measurement: "kW" }),
+    e("sensor.outdoor_temperature", "19.5", "Outdoor Temperature", { unit_of_measurement: "°C" }),
+    e("climate.living_room", "heat", "Living Room"),
+    e("media_player.lounge_tv", "playing", "Lounge TV"),
+    e("binary_sensor.front_door_open", "off", "Front Door Open"),
+    e("binary_sensor.motion_hall", "off", "Hall Motion"),
+    e("person.sam", "home", "Sam"),
+    e("update.home_assistant_core_update", "on", "Home Assistant Core", { supported_features: 1 }),
+  ]);
+
+  const dash = (url_path, title, icon) => [url_path, { component_name: "lovelace", url_path, title, icon }];
+  const panels = Object.fromEntries([
+    dash("dashboard-main", "Home", "mdi:home"),
+    dash("dashboard-weather", "Weather", "mdi:weather-cloudy"),
+    dash("dashboard-energy", "Energy", "mdi:lightning-bolt"),
+    dash("dashboard-lights", "Lights", "mdi:lightbulb-group"),
+    dash("dashboard-garden", "Garden", "mdi:flower"),
+    dash("dashboard-security", "Security", "mdi:shield-home"),
+    dash("dashboard-media", "Media", "mdi:play-box-multiple"),
+    ["config", { component_name: "config", url_path: "config", title: "config" }],
+    ["profile", { component_name: "profile", url_path: "profile", title: "profile" }],
+  ]);
+
+  const services = {
+    light: { turn_on: { name: "Turn on" }, turn_off: { name: "Turn off" }, toggle: { name: "Toggle" } },
+    switch: { turn_on: { name: "Turn on" }, turn_off: { name: "Turn off" }, toggle: { name: "Toggle" } },
+    scene: { turn_on: { name: "Activate" } },
+    script: { turn_on: { name: "Turn on" }, turn_off: { name: "Turn off" } },
+    cover: { open_cover: { name: "Open" }, close_cover: { name: "Close" }, toggle: { name: "Toggle" } },
+    lock: { lock: { name: "Lock" }, unlock: { name: "Unlock" } },
+    climate: { set_temperature: { name: "Set target temperature" }, turn_off: { name: "Turn off" } },
+    media_player: { media_play_pause: { name: "Play/Pause" }, volume_set: { name: "Set volume" } },
+    notify: { notify: { name: "Send a notification" } },
+  };
+
+  const light = new URLSearchParams(location.search).has("light");
+  if (light) document.body.style.background = "#E6E9EE";
+  const button = (id, name, icon, extra = {}) => ({ id, name, icon, action: "navigate", ...extra });
+  const layer = {
+    version: 2,
+    padding: 14,
+    gap: 10,
+    size: light ? 120 : 88,
+    background: "#E6E9EE",
+    backdrop_filter: "none",
+    show_names: true,
+    active_indicator: "fill",
+    hover_effect: "none",
+    indicator_color: "#4F6B62",
+    defaults: {
+      background: "#E6E9EE",
+      border: "none",
+      border_radius: "20px",
+      icon_color: "#4F6B62",
+      name_color: "#4F6B62",
+      state_color: "#4F6B62",
+      badge_color: "#4F6B62",
+      font_size: "10px",
+      text_transform: "uppercase",
+      letter_spacing: "0.14em",
+      shadow: "soft-ui",
+    },
+    active: { icon_color: "#3B5148", name_color: "#3B5148" },
+    custom_presets: {},
+    auto_add_dashboards: true,
+    seen_panels: Object.keys(panels).filter((k) => panels[k].component_name === "lovelace"),
+    buttons: [
+      button("home", "Home", "mdi:home", { path: "/dashboard-main/0" }),
+      button("weather", "Weather", "mdi:weather-cloudy", { path: "/dashboard-weather/0" }),
+      button("energy", "Energy", "mdi:lightning-bolt", { path: "/dashboard-energy/0", entity: "sensor.solar_power" }),
+      button("house", "House", "mdi:home-city", { action: "section" }),
+      button("lights", "Lights", "mdi:lightbulb-group", { path: "/dashboard-lights/0", parent: "house" }),
+      button("garden", "Garden", "mdi:flower", { path: "/dashboard-garden/0", parent: "house" }),
+      button("media", "Media", "mdi:play-box-multiple", { path: "/dashboard-media/0", parent: "house" }),
+      button("lounge", "Lounge", "mdi:lightbulb", { action: "toggle", entity: "light.lounge", on_icon_color: "#D9A400", show_value: false }),
+      button("garage", "Garage", "mdi:garage", { action: "toggle", entity: "cover.garage", on_icon_color: "#D14B4B", show_value: false, confirm: true }),
+      button("movie", "Movie night", "mdi:movie-open", { action: "perform_action", service: "scene.turn_on", target: "scene.movie_night" }),
+      button("security", "Security", "mdi:shield-home", { path: "/dashboard-security/0" }),
+      button("notifications", "Notifications", "mdi:bell", { action: "notifications" }),
+      button("settings", "Settings", "mdi:cog", { path: "/config" }),
+    ],
+  };
+
+  if (light) {
+    // The bar as it appears in the README's light page image: full-size buttons, the useful ones first.
+    document.documentElement.style.setProperty("--primary-color", "#4F6B62");
+    const byId = Object.fromEntries(layer.buttons.map((b) => [b.id, b]));
+    layer.buttons = ["home", "weather", "lounge", "garage", "movie", "settings", "energy", "house", "lights", "garden", "media", "security", "notifications"]
+      .map((id) => byId[id])
+      .filter(Boolean);
+  }
+
+  const connection = {
+    subscribeMessage(cb, msg) {
+      if (msg.type === "frontend/subscribe_system_data") setTimeout(() => cb({ value: layer }), 0);
+      else if (msg.type === "frontend/subscribe_user_data") setTimeout(() => cb({ value: null }), 0);
+      else if (msg.type === "persistent_notification/subscribe") setTimeout(() => cb({ type: "current", notifications: {} }), 0);
+      return Promise.resolve(() => {});
+    },
+    sendMessagePromise(msg) {
+      if (msg.type === "frontend/get_user_data") return Promise.resolve({ value: null });
+      if (msg.type === "lovelace/config") return Promise.resolve({ views: [{ path: "0", title: "Overview" }, { path: "rooms", title: "Rooms" }] });
+      if (msg.type === "repairs/list_issues") return Promise.resolve({ issues: [] });
+      return Promise.resolve({});
+    },
+    subscribeEvents() { return Promise.resolve(() => {}); },
+  };
+
+  const format = (entity) => {
+    const u = entity.attributes.unit_of_measurement;
+    return u ? `${entity.state} ${u}` : entity.state.charAt(0).toUpperCase() + entity.state.slice(1);
+  };
+
+  const ha = document.querySelector("home-assistant");
+  ha.hass = {
+    dockedSidebar: "auto",
+    user: { is_admin: true, name: "Sam" },
+    panels,
+    states,
+    entities: {},
+    connection,
+    localize: (key) => ({ "ui.notification_drawer.title": "Notifications", "panel.config": "Settings", "panel.profile": "Profile" })[key] ?? "",
+    userData: null,
+    systemData: null,
+    locale: { language: "en" },
+    services,
+    callService: async () => {},
+    formatEntityState: format,
+    formatEntityAttributeValue: (entity, attr) => String(entity.attributes[attr]),
+  };
+
+  const phoneParams = new URLSearchParams(location.search);
+  if (phoneParams.get("phone")) (await import("/phone.js")).setup(layer, phoneParams);
+
+  window.__ready = import("/dockbar.js");
+</script>
+</body>
+</html>
