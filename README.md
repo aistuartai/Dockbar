@@ -35,7 +35,7 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with `switch.dockbar`.
 
 <p align="center">
-  <img alt="Dockbar as a top bar on a phone" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phone-home.png" width="260">
+  <img alt="Dockbar on a phone: a Glass bar at the top, and Soft and 3D bars at the bottom" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phones.png" width="800">
 </p>
 
 ## Looks
