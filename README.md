@@ -25,7 +25,7 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **New dashboards appear by themselves.** Turn on one setting and a button for each dashboard you create from then on is added to the end of the bar.
 - **Sections.** Group buttons under a top-level button that opens in place, like folders.
 - **Live values and badges.** Show an entity's state on a button, or HA-style count badges for updates, repairs and notifications.
-- **Buttons that do things.** Toggle a light, open a garage door, run a scene or any Home Assistant action, or open an entity's details, with an optional "ask first".
+- **Buttons that do things.** Toggle a light, open a garage door, run a scene or any Home Assistant action, or open an entity's details, with an optional "ask first". The icon can change colour while the entity is on.
 - **Three levels.** Set it for **everyone**, **just me** or **this device**, so a wall tablet can have its own layout.
 - **Mobile friendly.** Left, right, top or bottom, with its own edge and size on phones (or hidden there), and the bar scrolls when buttons don't fit.
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with `switch.dockbar`.
@@ -95,7 +95,7 @@ The dialog has three tabs:
 | Tab | For |
 |---|---|
 | **General** | The look (presets, current-page marker, hover, shadow), layout, phones, HA's sidebar and header, hiding on dashboards, pinned buttons, and colours |
-| **Buttons** | Adding, ordering, hiding and deleting buttons, sections, badges, live values, and importing buttons from YAML |
+| **Buttons** | Adding, ordering, hiding and deleting buttons, what each one does when tapped, sections, badges, live values, and importing buttons from YAML. Entity, action and page fields are searchable pickers. |
 | **Advanced** | A YAML editor for everything the level you're editing changes, and custom CSS |
 
 ### Three levels
@@ -281,7 +281,7 @@ Other projects tackle parts of the same problem. They're worth a look, and may s
 - [**kiosk-mode**](https://github.com/NemesisRE/kiosk-mode) hides the header and/or sidebar on Home Assistant dashboards. It does that one job and doesn't add navigation of its own.
 - [**navbar-card**](https://github.com/joseluis9595/lovelace-navbar-card) is a Lovelace card you add from the dashboard editor. It shows a bottom navigation bar on mobile and a side bar on desktop, with a visual editor, configurable routes, styling, haptic feedback and an optional media player widget. It's the closest in spirit to Dockbar.
 
-Dockbar takes a different approach: it's an integration, not a card or a sidebar tweak. It loads once for the whole frontend and draws a separate navigation bar on any edge, with its own phone layout, so nothing is added to individual dashboards. It can hide HA's sidebar and header too. Everything is set up in a settings dialog, with a YAML editor there when you want it. It has no templating or click actions yet; if you need those, custom-sidebar is the better fit.
+Dockbar takes a different approach: it's an integration, not a card or a sidebar tweak. It loads once for the whole frontend and draws a separate navigation bar on any edge, with its own phone layout, so nothing is added to individual dashboards. It can hide HA's sidebar and header too. Everything is set up in a settings dialog, with a YAML editor there when you want it. Buttons run Home Assistant actions on a tap, but there's no templating and no long-press or other click types yet; if you need those, custom-sidebar is the better fit.
 
 ## Development
 
