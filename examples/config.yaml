@@ -109,5 +109,22 @@ buttons:
     icon: mdi:open-in-new
     url: https://www.home-assistant.io
 
+  # Buttons that do something in Home Assistant when tapped (use your own entities).
+  - name: Garage
+    icon: mdi:garage
+    action: toggle                    # lights and switches toggle, locks lock/unlock, covers open/close, scenes run
+    entity: cover.garage              # also shows its state on the button
+    confirm: true                     # ask before running
+  - name: Movie night
+    icon: mdi:movie-open
+    service: scene.turn_on            # a button with a service needs no action
+    target: scene.movie_night
+  - name: Evening
+    icon: mdi:weather-sunset
+    service: light.turn_on
+    target: [light.lounge, light.hall]
+    data:
+      brightness_pct: 40
+
 # style: |                # raw CSS inside the bar's shadow root
 #   .btn.active { box-shadow: 0 0 12px #9C88FF; }

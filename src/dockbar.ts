@@ -3,6 +3,7 @@ import { ConfigError, loadYamlLayer, safeUrl, type DockbarButton, type DockbarCo
 import { DockbarEditor, type EditorHost } from "./editor/editor.ts";
 import * as ha from "./ha.ts";
 import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
+import { serviceCall, toggleCall } from "./actions.ts";
 import { isSection, sectionFor } from "./sections.ts";
 import { merge } from "./merge.ts";
 import { KEY, LayerStore, type Scope } from "./storage.ts";
@@ -333,7 +334,35 @@ class Dockbar implements EditorHost {
       case "notifications":
         ha.showNotifications();
         break;
+      case "perform_action":
+        this.runAction(b, () => {
+          const call = serviceCall(b);
+          if (!call) throw new Error("no action is set");
+          return ha.callService(call);
+        });
+        break;
+      case "toggle":
+        this.runAction(b, () => {
+          if (!b.entity) throw new Error("no entity is set");
+          return ha.callService(toggleCall(b.entity, ha.entityState(b.entity)));
+        });
+        break;
+      case "more_info":
+        if (b.entity && (!b.confirm || confirm(`Open ${b.name ?? b.entity}?`))) ha.moreInfo(b.entity);
+        break;
     }
+  }
+
+  /** Runs a button's action, asking first if it's set to, and reports a failure the way HA does. */
+  private runAction(b: DockbarButton, run: () => Promise<void>) {
+    if (b.confirm && !confirm(`${b.name ?? "Run this action"}?`)) return;
+    Promise.resolve()
+      .then(run)
+      .catch((err: unknown) => {
+        const reason = err instanceof Error ? err.message : String(err);
+        console.warn(`Dockbar: ${b.name ?? b.id} failed: ${reason}`);
+        ha.notify(`${b.name ?? "Dockbar"}: ${reason}`);
+      });
   }
 }
 

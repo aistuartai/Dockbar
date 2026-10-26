@@ -258,3 +258,48 @@ test("auto-add settings are read, validated and off by default", () => {
   assert.equal(sanitiseLayer({ seen_panels: "a" }, (m) => warnings.push(m)).seen_panels, undefined);
   assert.equal(warnings.length, 1);
 });
+
+test("action buttons are read, checked and tidied", () => {
+  const warnings: string[] = [];
+  const layer = sanitiseLayer(
+    {
+      buttons: [
+        { name: "Movie", service: "scene.turn_on", target: "scene.movie" },
+        { name: "Lights", action: "perform_action", service: "light.turn_on", target: ["light.a", "light.b"], data: { brightness_pct: 40 }, confirm: true },
+        { name: "Garage", action: "toggle", entity: "cover.garage", confirm: true },
+        { name: "Door", action: "more_info", entity: "lock.door" },
+        { name: "Bad service", action: "perform_action", service: "nodot" },
+        { name: "No entity", action: "toggle" },
+        { name: "Bad target", service: "light.turn_on", target: ["light.a", "nonsense"], data: "x" },
+      ],
+    },
+    (m) => warnings.push(m),
+  );
+  assert.deepEqual(
+    layer.buttons?.map((x) => [x.name, x.action]),
+    [
+      ["Movie", "perform_action"],
+      ["Lights", "perform_action"],
+      ["Garage", "toggle"],
+      ["Door", "more_info"],
+      ["Bad target", "perform_action"],
+    ],
+  );
+  assert.deepEqual(layer.buttons?.[1].data, { brightness_pct: 40 });
+  assert.equal(layer.buttons?.[1].confirm, true);
+  assert.deepEqual(layer.buttons?.[4].target, ["light.a"]);
+  assert.equal(layer.buttons?.[4].data, undefined);
+  assert.ok(warnings.some((w) => w.includes("service must look like")));
+  assert.ok(warnings.some((w) => w.includes("needs an entity")));
+  assert.ok(warnings.some((w) => w.includes("target must be")));
+  assert.ok(warnings.some((w) => w.includes("data must be a mapping")));
+});
+
+test("unchanged action data isn't stored as an edit, and a changed one is", () => {
+  const lower = [b("lights", { action: "perform_action", service: "light.turn_on", target: ["light.a"], data: { brightness_pct: 40 } })];
+  const copy = JSON.parse(JSON.stringify(lower));
+  const full = (buttons: DockbarButton[]) => ({ ...merge([]), buttons });
+  assert.equal(diffLayer(full(lower), full(copy), false).button_overrides, undefined);
+  copy[0].data = { brightness_pct: 80 };
+  assert.deepEqual(diffLayer(full(lower), full(copy), false).button_overrides?.edits?.lights, { data: { brightness_pct: 80 } });
+});

@@ -25,6 +25,7 @@ Dockbar isn't a card. It loads once for the whole frontend, so it stays put when
 - **New dashboards appear by themselves.** Turn on one setting and a button for each dashboard you create from then on is added to the end of the bar.
 - **Sections.** Group buttons under a top-level button that opens in place, like folders.
 - **Live values and badges.** Show an entity's state on a button, or HA-style count badges for updates, repairs and notifications.
+- **Buttons that do things.** Toggle a light, open a garage door, run a scene or any Home Assistant action, or open an entity's details, with an optional "ask first".
 - **Three levels.** Set it for **everyone**, **just me** or **this device**, so a wall tablet can have its own layout.
 - **Mobile friendly.** Left, right, top or bottom, with its own edge and size on phones (or hidden there), and the bar scrolls when buttons don't fit.
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with `switch.dockbar`.
@@ -134,6 +135,9 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 | `section` | | Only opens and closes the buttons inside it |
 | `toggle_sidebar` | | Opens HA's sidebar when it's hidden, or collapses and expands it when it's docked |
 | `toggle_header` | | Shows or hides the dashboard header |
+| `perform_action` | `service` | Runs a Home Assistant action, such as `scene.turn_on`, as the signed-in user. Optional `target` (one entity or a list), `data` (a mapping sent with it) and `confirm`. |
+| `toggle` | `entity` | Toggles the entity: lights, switches and fans toggle, locks lock or unlock, covers open or close, scenes and scripts run, buttons are pressed. Optional `confirm`. |
+| `more_info` | `entity` | Opens the entity's details dialog, the same as tapping it on a dashboard. Optional `confirm`. |
 | `settings` | | Opens Dockbar settings |
 | `disable` | | Turns Dockbar off on this device |
 
@@ -187,7 +191,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 | `custom_presets` | none | Saved looks by name. Each holds any of the look settings: `background`, `background_opacity`, `backdrop_filter`, `show_names`, `active_indicator`, `indicator_color`, `hover_effect`, `defaults`, `active`, `alert`. A look that leaves out `defaults` or `active` keeps your current ones. |
 | `style` | | Raw CSS inside the bar's shadow root. Parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer` |
 
-**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `parent`, `hidden`, plus any style key.
+**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `parent`, `hidden`, `service`, `target`, `data`, `confirm`, plus any style key.
 
 **Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
 
@@ -217,6 +221,30 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 - name: Notifications
   icon: mdi:bell
   action: notifications
+```
+
+**Action buttons:** a tap can run something in Home Assistant, using whatever the signed-in user is allowed to do. A button with a `service` and no `action` is an action button. Set `confirm: true` on anything you could press by accident, like a garage door, and the bar asks first. If an action fails, Home Assistant shows the reason at the bottom of the screen.
+
+```yaml
+- name: Garage
+  icon: mdi:garage
+  action: toggle
+  entity: cover.garage              # also shows its state on the button
+  confirm: true
+- name: Lounge
+  icon: mdi:lightbulb
+  action: toggle
+  entity: light.lounge
+- name: Movie night
+  icon: mdi:movie-open
+  service: scene.turn_on            # no action needed when there's a service
+  target: scene.movie_night
+- name: Evening
+  icon: mdi:weather-sunset
+  service: light.turn_on
+  target: [light.lounge, light.hall]
+  data:
+    brightness_pct: 40
 ```
 
 **Live values:** give a button `entity: sensor.pv_power` to show its state under the name, formatted the way HA shows it (units, translations). Add `attribute: <name>` to show an attribute instead. `state_color` colours the value.

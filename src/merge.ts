@@ -120,7 +120,7 @@ export function diffButtons(lower: DockbarButton[], working: DockbarButton[]): B
     if (!base) continue;
     const e: Record<string, unknown> = {};
     for (const k of BUTTON_KEYS) {
-      if (b[k] === base[k]) continue;
+      if (same(b[k], base[k])) continue;
       if (b[k] !== undefined) e[k] = b[k];
       else if ((CLEARABLE_KEYS as readonly string[]).includes(k)) e[k] = null;
     }

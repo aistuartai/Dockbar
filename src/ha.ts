@@ -1,5 +1,6 @@
 // Everything that touches Home Assistant's frontend lives here, so HA upgrades only break one file.
 import type { DockbarButton, Position } from "./config.ts";
+import type { ServiceCall } from "./actions.ts";
 import { firstSegment } from "./match.ts";
 import { buttonsForNewDashboards, dashboardPanels, sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
 import { local } from "./storage.ts";
@@ -28,6 +29,8 @@ export interface HassLike {
   userData?: { default_panel?: string } | null;
   systemData?: { default_panel?: string } | null;
   locale?: { language?: string };
+  services?: Record<string, Record<string, unknown>>;
+  callService?: (domain: string, service: string, data?: Record<string, unknown>, target?: { entity_id: string | string[] }) => Promise<unknown>;
   formatEntityState?: (entity: HassEntity, state?: string) => string;
   formatEntityAttributeValue?: (entity: HassEntity, attribute: string, value?: unknown) => string;
 }
@@ -242,6 +245,7 @@ export function checkHooks(): string[] {
   }
   if (!h.panels || typeof h.panels !== "object") problems.push("the panel list (hass.panels)");
   if (!h.entities) problems.push("the entity registry (hass.entities), so the Dockbar switch can't be found");
+  if (typeof h.callService !== "function") problems.push("hass.callService, so action buttons won't work");
   if (typeof h.formatEntityState !== "function") problems.push("hass.formatEntityState, so live values show raw states");
   const main = homeAssistant()?.shadowRoot?.querySelector("home-assistant-main");
   if (!main) problems.push("<home-assistant-main>, so the sidebar and notification buttons won't work");
@@ -401,6 +405,39 @@ export function setSidebarHidden(hidden: boolean) {
     if (prev && current === "always_hidden") fire(ha, "hass-dock-sidebar", { dock: prev });
     store?.removeItem(PREV_DOCK_KEY);
   }
+}
+
+/** Runs a Home Assistant action as the signed-in user, so Home Assistant's own permissions apply. */
+export async function callService(call: ServiceCall): Promise<void> {
+  const h = hass();
+  if (!h?.callService) throw new Error("Home Assistant isn't ready");
+  await h.callService(call.domain, call.service, call.data, call.target);
+}
+
+/** An entity's state, or undefined if it doesn't exist. */
+export function entityState(entityId: string): string | undefined {
+  return hass()?.states[entityId]?.state;
+}
+
+/** Opens the entity's details dialog, the same as tapping it on a dashboard. */
+export function moreInfo(entityId: string) {
+  const el = homeAssistant();
+  if (el) fire(el, "hass-more-info", { entityId });
+}
+
+/** A brief message at the bottom of the screen, the way Home Assistant shows its own. */
+export function notify(message: string) {
+  // Fired from inside the page so it bubbles up to wherever Home Assistant listens for it.
+  const from = homeAssistant()?.shadowRoot?.querySelector("home-assistant-main") ?? homeAssistant();
+  if (from) fire(from, "hass-notification", { message });
+}
+
+/** Every `domain.action` Home Assistant offers, for the editor's suggestions. */
+export function serviceNames(): string[] {
+  const services = hass()?.services ?? {};
+  return Object.entries(services)
+    .flatMap(([domain, actions]) => Object.keys(actions).map((name) => `${domain}.${name}`))
+    .sort();
 }
 
 /** Opens HA's notifications drawer, the same as the bell in its sidebar. */

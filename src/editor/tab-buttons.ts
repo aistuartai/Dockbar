@@ -1,12 +1,83 @@
 import { html, nothing } from "lit";
-import { load } from "js-yaml";
+import { dump, load } from "js-yaml";
 import { ACTIONS, BADGE_SOURCES, sanitiseLayer, uniqueId, type ButtonStyle, type DockbarButton } from "../config.ts";
 import { clone, same } from "../merge.ts";
 import { badgeSource } from "../match.ts";
 import { childrenOf, groupOrder, isSection, moveWithin, parentOf } from "../sections.ts";
+import { actionProblem } from "../actions.ts";
 import { entityText, hass } from "../ha.ts";
 import { ACTION_LABELS, BADGE_LABELS, HA_BUTTONS, asHex } from "./constants.ts";
 import type { DockbarEditor } from "./editor.ts";
+
+/** Sets a button field to any value; undefined removes it. */
+function setButtonValue(ed: DockbarEditor, i: number, key: keyof DockbarButton, value: unknown) {
+  const b = { ...ed.working.buttons[i] } as Record<string, unknown>;
+  if (value === undefined) delete b[key];
+  else b[key] = value;
+  ed.working.buttons = ed.working.buttons.map((x, n) => (n === i ? (b as unknown as DockbarButton) : x));
+  ed.changed();
+}
+
+/** The entity or entities an action acts on: one is stored as text, several as a list. */
+function targetField(ed: DockbarEditor, i: number) {
+  const target = ed.working.buttons[i].target;
+  return html`<label class="field">
+    <span class="label">Target entity</span>
+    <input
+      type="text"
+      list="dockbar-entities"
+      placeholder="scene.movie_night"
+      .value=${Array.isArray(target) ? target.join(", ") : (target ?? "")}
+      @change=${(e: Event) => {
+        const list = (e.target as HTMLInputElement).value.split(",").map((t) => t.trim()).filter(Boolean);
+        setButtonValue(ed, i, "target", list.length === 0 ? undefined : list.length === 1 ? list[0] : list);
+      }}
+    />
+    <span class="hint">Separate several with commas.</span>
+  </label>`;
+}
+
+/** Extra data for an action, edited as YAML. */
+function dataField(ed: DockbarEditor, i: number) {
+  const data = ed.working.buttons[i].data;
+  return html`<label class="field">
+    <span class="label">Data (YAML)</span>
+    <textarea
+      rows="3"
+      spellcheck="false"
+      placeholder="brightness_pct: 40"
+      .value=${data && Object.keys(data).length ? dump(data, { lineWidth: 120, noRefs: true }) : ""}
+      @change=${(e: Event) => {
+        try {
+          const parsed = load((e.target as HTMLTextAreaElement).value || "{}") ?? {};
+          if (typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("it needs to be a mapping like brightness_pct: 40");
+          ed.error = "";
+          setButtonValue(ed, i, "data", Object.keys(parsed).length ? JSON.parse(JSON.stringify(parsed)) : undefined);
+        } catch (err: any) {
+          ed.error = `Data isn't valid: ${err.message}`;
+        }
+      }}
+    ></textarea>
+  </label>`;
+}
+
+/** Ask before running, for buttons you could press by accident, like a garage door. */
+function confirmField(ed: DockbarEditor, i: number) {
+  const b = ed.working.buttons[i];
+  return html`<label class="field">
+    <span class="label">Ask before running</span>
+    <input
+      type="checkbox"
+      class="switch"
+      .checked=${Boolean(b.confirm)}
+      @change=${(e: Event) => {
+        const on = (e.target as HTMLInputElement).checked;
+        // Switching it off writes an explicit false only when a lower level turned it on, so it can override that.
+        setButtonValue(ed, i, "confirm", on ? true : ed.lower.buttons.find((x) => x.id === b.id)?.confirm ? false : undefined);
+      }}
+    />
+  </label>`;
+}
 
 export function moveButton(ed: DockbarEditor, i: number, delta: number) {
   const list = moveWithin(ed.working.buttons, i, delta);
@@ -191,8 +262,14 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
           ? buttonText(ed, i, "Page", "path", { list: "dockbar-paths", placeholder: "/lovelace/0" })
           : nothing}
         ${b.action === "url" ? buttonText(ed, i, "Link", "url", { placeholder: "https://…" }) : nothing}
+        ${b.action === "perform_action"
+          ? html`${buttonText(ed, i, "Action", "service", { list: "dockbar-services", placeholder: "light.turn_on" })}
+            ${targetField(ed, i)} ${dataField(ed, i)}`
+          : nothing}
+        ${["perform_action", "toggle", "more_info"].includes(b.action) ? confirmField(ed, i) : nothing}
         ${sectionField(ed, b, i)}
       </div>
+      ${actionProblem(b) ? html`<span class="hint warn">${actionProblem(b)}</span>` : nothing}
       <h4>Count badge <span class="hint">a number in the corner when something needs attention</span></h4>
       <div class="grid">
         <label class="field">
@@ -212,7 +289,7 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
             As a section, while closed it also shows the total of its buttons' badges, using these colours.
           </span>`
         : nothing}
-      <h4>Live value <span class="hint">shows an entity's state on the button</span></h4>
+      <h4>Live value <span class="hint">shows an entity's state on the button, and is the entity that Toggle and Open details use</span></h4>
       <div class="grid">
         ${buttonText(ed, i, "Entity", "entity", { list: "dockbar-entities", placeholder: "sensor.pv_power" })}
         ${buttonText(ed, i, "Attribute", "attribute", { list: `dockbar-attrs-${i}`, placeholder: "blank = state" })}

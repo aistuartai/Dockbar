@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { type DockbarConfig, type Layer } from "../config.ts";
 import { clone, diffLayer, merge } from "../merge.ts";
 import { groupOrder } from "../sections.ts";
-import { entityIds, navTargets, type NavTarget } from "../ha.ts";
+import { entityIds, navTargets, serviceNames, type NavTarget } from "../ha.ts";
 import { type Scope } from "../storage.ts";
 import { SCOPES, getPath, setPath } from "./constants.ts";
 import { editorStyles } from "./styles.ts";
@@ -296,6 +296,9 @@ export class DockbarEditor extends LitElement {
         <datalist id="dockbar-paths">
           ${this.targets.map((t) => html`<option value=${t.path}>${t.label}</option>`)}
         </datalist>
+        ${this.tab === "buttons" && this.working.buttons.find((b) => b.id === this.expanded)?.action === "perform_action"
+          ? html`<datalist id="dockbar-services">${serviceNames().map((s) => html`<option value=${s}></option>`)}</datalist>`
+          : nothing}
         ${this.tab === "buttons" && this.expanded
           ? html`<datalist id="dockbar-entities">${entityIds().map((id) => html`<option value=${id}></option>`)}</datalist>`
           : nothing}

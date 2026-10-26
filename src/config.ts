@@ -11,7 +11,10 @@ export type ButtonAction =
   | "settings"
   | "disable"
   | "notifications"
-  | "section";
+  | "section"
+  | "perform_action"
+  | "toggle"
+  | "more_info";
 export const ACTIONS: ButtonAction[] = [
   "navigate",
   "url",
@@ -21,6 +24,9 @@ export const ACTIONS: ButtonAction[] = [
   "disable",
   "notifications",
   "section",
+  "perform_action",
+  "toggle",
+  "more_info",
 ];
 
 /**
@@ -92,8 +98,33 @@ export interface DockbarButton extends ButtonStyle {
   alert_icon_color?: string;
   /** Puts this button inside another one, which then opens and closes to show it. */
   parent?: string;
+  /** For "perform_action": the Home Assistant action to run, like `light.turn_on`. */
+  service?: string;
+  /** For "perform_action": the entity or entities it acts on. */
+  target?: string | string[];
+  /** For "perform_action": extra data sent with the action. */
+  data?: Record<string, unknown>;
+  /** Ask before running a "perform_action", "toggle" or "more_info" button. */
+  confirm?: boolean;
 }
-export const BUTTON_KEYS = ["name", "icon", "action", "path", "url", "hidden", "entity", "attribute", "badge", "parent", "alert_icon_color", ...STYLE_KEYS] as const;
+export const BUTTON_KEYS = [
+  "name",
+  "icon",
+  "action",
+  "path",
+  "url",
+  "hidden",
+  "entity",
+  "attribute",
+  "badge",
+  "parent",
+  "alert_icon_color",
+  "service",
+  "target",
+  "data",
+  "confirm",
+  ...STYLE_KEYS,
+] as const;
 
 export interface Settings {
   position: Position;
@@ -306,6 +337,9 @@ export function safeUrl(url: string): string | null {
 /** Fields an override may set to null to clear what a lower level gave the button. */
 export const CLEARABLE_KEYS = BUTTON_KEYS.filter((k) => k !== "name" && k !== "action");
 
+const SERVICE_ID = /^[a-z0-9_]+\.[a-z0-9_]+$/;
+const ENTITY_ID = /^[a-z0-9_]+\.[a-z0-9_]+$/;
+
 function sanitiseButtonFields(raw: Record<string, unknown>, warn?: Warn): Partial<Omit<DockbarButton, "id">> {
   const out: Partial<Omit<DockbarButton, "id">> = { ...sanitiseStyle(raw) };
   if (typeof raw.name === "string") out.name = raw.name;
@@ -325,6 +359,15 @@ function sanitiseButtonFields(raw: Record<string, unknown>, warn?: Warn): Partia
   if (typeof raw.attribute === "string" && raw.attribute) out.attribute = raw.attribute.trim();
   if (BADGE_SOURCES.includes(raw.badge as BadgeSource)) out.badge = raw.badge as BadgeSource;
   else if (raw.badge != null) warn?.(`badge must be one of ${BADGE_SOURCES.join(", ")}`);
+  if (typeof raw.service === "string" && SERVICE_ID.test(raw.service.trim())) out.service = raw.service.trim();
+  else if (raw.service != null && raw.service !== "") warn?.(`service must look like light.turn_on`);
+  const targets = typeof raw.target === "string" ? [raw.target] : Array.isArray(raw.target) ? raw.target : [];
+  const entities = targets.filter((t): t is string => typeof t === "string" && ENTITY_ID.test(t.trim())).map((t) => t.trim());
+  if (entities.length) out.target = typeof raw.target === "string" ? entities[0] : entities;
+  if (raw.target != null && raw.target !== "" && entities.length !== targets.length) warn?.(`target must be one or more entities like light.kitchen`);
+  if (isObject(raw.data)) out.data = JSON.parse(JSON.stringify(raw.data));
+  else if (raw.data != null) warn?.(`data must be a mapping`);
+  if (typeof raw.confirm === "boolean") out.confirm = raw.confirm;
   if (typeof raw.parent === "string") out.parent = raw.parent;
   if (typeof raw.alert_icon_color === "string" && raw.alert_icon_color) out.alert_icon_color = raw.alert_icon_color;
   return out;
@@ -339,9 +382,11 @@ function sanitiseButtons(raw: unknown, field: string, warn: Warn, taken = new Se
   raw.forEach((item, i) => {
     if (!isObject(item)) return warn(`${field}[${i}] must be a mapping`);
     const fields = sanitiseButtonFields(item, (m) => warn(`${field}[${i}]: ${m}`));
-    const action = fields.action ?? (fields.url ? "url" : "navigate");
+    const action = fields.action ?? (fields.service ? "perform_action" : fields.url ? "url" : "navigate");
     if (action === "navigate" && !fields.path) return warn(`${field}[${i}] needs a path`);
     if (action === "url" && !fields.url) return warn(`${field}[${i}] needs a url`);
+    if (action === "perform_action" && !fields.service) return warn(`${field}[${i}] needs a service`);
+    if ((action === "toggle" || action === "more_info") && !fields.entity) return warn(`${field}[${i}] needs an entity`);
     const wanted = typeof item.id === "string" && item.id ? item.id : (fields.name ?? fields.path ?? action);
     const id = typeof item.id === "string" && item.id && !taken.has(item.id) ? item.id : uniqueId(wanted, taken);
     taken.add(id);

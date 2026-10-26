@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canOpen, checkHooks, clearDisabled, isDisabled, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
+import { callService, canOpen, checkHooks, clearDisabled, entityState, isDisabled, moreInfo, notify, serviceNames, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
 
 type Fake = Record<string, any>;
 
@@ -19,6 +19,7 @@ const base = (extra: Fake = {}) => ({
   states: {},
   entities: {},
   formatEntityState: () => "",
+  callService: async () => {},
   ...extra,
 });
 
@@ -121,4 +122,49 @@ test("a ?dockbar=off from earlier in the session can be forgotten", () => {
   assert.equal(isDisabled(), true);
   (globalThis as any).location = { search: "?dockbar=on" };
   assert.equal(isDisabled(), false, "?dockbar=on still turns it back on");
+});
+
+test("a missing callService is named by the hook check", () => {
+  const main = { shadowRoot: { querySelector: (s: string) => (s === "ha-drawer" ? {} : null) } };
+  const root = { querySelector: (s: string) => (s === "home-assistant-main" ? main : null) };
+  withHass(base({ callService: undefined }), { root });
+  assert.match(checkHooks().join(" "), /callService/);
+});
+
+test("actions go to Home Assistant as the signed-in user", async () => {
+  const calls: unknown[][] = [];
+  withHass(base({ callService: async (...args: unknown[]) => void calls.push(args), states: { "lock.door": { state: "locked" } } }));
+  await callService({ domain: "light", service: "turn_on", data: { brightness_pct: 40 }, target: { entity_id: "light.kitchen" } });
+  assert.deepEqual(calls, [["light", "turn_on", { brightness_pct: 40 }, { entity_id: "light.kitchen" }]]);
+  assert.equal(entityState("lock.door"), "locked");
+  assert.equal(entityState("lock.nope"), undefined);
+  withHass(base({ callService: undefined }));
+  await assert.rejects(callService({ domain: "light", service: "turn_on", data: {} }), /isn't ready/);
+});
+
+test("more-info and notifications are fired as events on the page", () => {
+  const events: { type: string; detail: any }[] = [];
+  const target = { dispatchEvent: (e: any) => void events.push({ type: e.type, detail: e.detail }) };
+  (globalThis as any).CustomEvent = class {
+    type: string;
+    detail: unknown;
+    constructor(type: string, init: { detail: unknown }) {
+      this.type = type;
+      this.detail = init.detail;
+    }
+  };
+  (globalThis as any).document = { querySelector: () => ({ hass: base(), ...target, shadowRoot: { querySelector: () => target } }) };
+  moreInfo("light.kitchen");
+  notify("Garage: it failed");
+  assert.deepEqual(events, [
+    { type: "hass-more-info", detail: { entityId: "light.kitchen" } },
+    { type: "hass-notification", detail: { message: "Garage: it failed" } },
+  ]);
+});
+
+test("the editor's action suggestions come from the services Home Assistant offers", () => {
+  withHass(base({ services: { light: { turn_on: {}, toggle: {} }, scene: { turn_on: {} } } }));
+  assert.deepEqual(serviceNames(), ["light.toggle", "light.turn_on", "scene.turn_on"]);
+  withHass(undefined);
+  assert.deepEqual(serviceNames(), []);
 });

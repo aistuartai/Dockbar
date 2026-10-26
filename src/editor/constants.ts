@@ -16,6 +16,9 @@ export const ACTION_LABELS: Record<ButtonAction, string> = {
   disable: "Turn off Dockbar",
   notifications: "Open notifications",
   section: "Only open its buttons (no page)",
+  perform_action: "Run a Home Assistant action",
+  toggle: "Toggle an entity",
+  more_info: "Open an entity's details",
 };
 
 export const BADGE_LABELS: Record<BadgeSource, string> = {
