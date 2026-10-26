@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+**Action buttons**
+- A button can now do something in Home Assistant when tapped: **Run a Home Assistant action** (any action, with an optional target and data), **Toggle an entity**, or **Open an entity's details**. Pick it under "Does" in the button's settings, or use `action: perform_action`, `toggle` or `more_info` in YAML. A button with a `service` and no `action` is an action button.
+- Actions run as the signed-in user, so Home Assistant's own permissions apply, and a failure shows Home Assistant's message at the bottom of the screen.
+- **Ask before running** adds a confirmation, for buttons you could press by accident, like a garage door.
+- The editor suggests the actions Home Assistant offers, and warns when a button is missing its action or entity.
+- Toggle picks the right action for each kind of entity: locks lock or unlock, covers open or close, scenes and scripts run, buttons are pressed, everything else toggles.
+
+**Dependencies and tooling**
+- Updated Vite to 8, TypeScript to 7 and js-yaml to 5 (with its YAML parsing hardening), plus the GitHub Actions the workflows use. `@types/node` stays on 24 to match the Node version CI uses.
+- Added a security policy, Dependabot, CodeQL scanning and issue and pull request templates.
+
 ## 0.7.0
 
 **New dashboards**
