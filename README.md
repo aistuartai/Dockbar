@@ -253,6 +253,12 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
     brightness_pct: 40
 ```
 
+Or set one up in the editor:
+
+<p align="center">
+  <img alt="A Toggle button's settings: ask before running, the entity it shows, and its icon colour when on" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-toggle.png" width="760">
+</p>
+
 **Live values:** give a button `entity: sensor.pv_power` to show its state under the name, formatted the way HA shows it (units, translations). Add `attribute: <name>` to show an attribute instead. `state_color` colours the value. `on_icon_color` changes the icon's colour while the entity is on, open, unlocked, playing or otherwise active, so a toggle button can show at a glance whether the light is on. Set `show_value: false` to leave the written value off and keep just the icon.
 
 ```yaml
@@ -267,9 +273,22 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 
 Everything above is available in the settings dialog. Every setting also lives in the **Advanced** tab as YAML, so you can copy a whole setup between levels or instances.
 
+**General** has the looks, layout, colours and what to hide:
+
 <p align="center">
-  <img alt="General settings with the Look section" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-look.png" width="49%">
-  <img alt="Button list" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-buttons.png" width="49%">
+  <img alt="The General tab: eight presets, current-page marker, hover effect, shadow and layout" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-general.png" width="760">
+</p>
+
+**Buttons** lists every button, with sections shown nested under their parent:
+
+<p align="center">
+  <img alt="The Buttons tab, with a House section holding Lights, Garden and Media" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-list.png" width="760">
+</p>
+
+Pick what a button does, and search for entities and actions as you type:
+
+<p align="center">
+  <img alt="Searching for an action while setting up a Run a Home Assistant action button" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-actions.png" width="760">
 </p>
 
 ## Escape hatches
