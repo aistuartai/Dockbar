@@ -243,6 +243,12 @@ Everything above is available in the settings dialog. Every setting also lives i
 - `?dockbar=off` in any URL disables Dockbar for that browser session. `?dockbar=on` brings it back, and also undoes the Turn off button on this device. Turning the Dockbar integration off and on again in **Settings → Devices & services** also brings it back on a page that was disabled this way.
 - `?dockbar=edit` opens the settings dialog, even if the Settings button is hidden.
 
+## Similar projects
+
+[**custom-sidebar**](https://github.com/elchininet/custom-sidebar) is the established way to personalise Home Assistant's own sidebar, per user or device. If you like how HA's sidebar behaves and want to tidy or extend it, start there.
+
+Dockbar takes a different approach: it draws a separate navigation bar (on any edge, with its own phone layout) and can hide HA's sidebar and header, with everything set up in a settings dialog. Pick whichever matches how you want to navigate.
+
 ## Development
 
 ```bash
