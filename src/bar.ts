@@ -23,7 +23,9 @@ const SHADOWS: Record<string, string> = {
   // A solid darker "side" under the button, a soft drop shadow and a light top edge.
   "3d": "0 4px 0 var(--db-edge), 0 6px 12px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.22)",
   // Neumorphism: light from the top left, shade to the bottom right, both from the button's own colour.
-  "soft-ui": "-5px -5px 10px var(--db-nm-light), 5px 5px 12px var(--db-nm-dark)",
+  // The offsets and blur shrink with the bar's padding (see .btn.nm), so the shade fits in the room it has.
+  "soft-ui":
+    "calc(var(--db-sh-off) * -1) calc(var(--db-sh-off) * -1) var(--db-sh-blur) var(--db-nm-light), var(--db-sh-off) var(--db-sh-off) calc(var(--db-sh-blur) * 1.2) var(--db-nm-dark)",
 };
 
 /** Fades the bar colour with color-mix, which works for hex, rgb(a), named colours and theme vars. */
@@ -270,6 +272,11 @@ export class DockbarNav extends LitElement {
       gap: var(--db-gap);
       overflow: auto;
       scrollbar-width: none;
+      /* A scrolling box clips whatever sticks out of it, shadows included. Give it the bar's padding as
+         inner room and take the same off its margin, so the layout is unchanged but the clip line
+         is the bar's edge, not the buttons'. */
+      padding: var(--db-pad);
+      margin: calc(var(--db-pad) * -1);
     }
     .main::-webkit-scrollbar {
       display: none;
@@ -495,6 +502,9 @@ export class DockbarNav extends LitElement {
     .btn.nm {
       --db-nm-light: color-mix(in srgb, var(--db-bg, #e6e9ee) 30%, #fff);
       --db-nm-dark: color-mix(in srgb, var(--db-bg, #e6e9ee) 72%, #000);
+      /* The shade reaches about offset + blur past the button; keep that within the bar's padding. */
+      --db-sh-off: min(5px, calc(var(--db-pad) * 0.3));
+      --db-sh-blur: min(10px, calc(var(--db-pad) * 0.55));
     }
     /* Where supported, step the button's own colour up and down by the same perceived lightness,
        so dark colours get a subtle rim and a deep shade instead of a white halo. */

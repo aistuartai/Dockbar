@@ -13,6 +13,7 @@
 - Toggle picks the right action for each kind of entity: locks lock or unlock, covers open or close, scenes and scripts run, buttons are pressed, everything else toggles.
 
 **Fixes**
+- Shadows on the bar's buttons are no longer cut off at the sides. The Soft preset (and 3D and glow shadows) were clipped at the edge of the buttons because the row of buttons scrolls; it now clips at the edge of the bar. The Soft shadow also scales with the bar's padding, so it fits in the room it has.
 - With "Add new dashboards automatically" on, the button for a new dashboard now appears as soon as you create it. Before, the bar only looked for new dashboards when its settings changed or the page loaded, so it needed a reload.
 
 **Dependencies and tooling**
