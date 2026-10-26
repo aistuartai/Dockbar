@@ -21,6 +21,6 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.19.2",
     "typescript": "^7.0.2",
-    "vite": "^6.0.7"
+    "vite": "^8.3.5"
   }
 }

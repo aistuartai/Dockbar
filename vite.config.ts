@@ -19,7 +19,7 @@ export default defineConfig({
       output: {
         format: "es",
         entryFileNames: "dockbar.js",
-        inlineDynamicImports: true,
+        codeSplitting: false,
       },
     },
   },
