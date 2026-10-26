@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { callService, canOpen, checkHooks, clearDisabled, entityState, isDisabled, moreInfo, notify, serviceOptions, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
+import { callService, canOpen, panelsRef, checkHooks, clearDisabled, entityState, isDisabled, moreInfo, notify, serviceOptions, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
 
 type Fake = Record<string, any>;
 
@@ -171,4 +171,15 @@ test("the editor's action suggestions come from the services Home Assistant offe
   ]);
   withHass(undefined);
   assert.deepEqual(serviceOptions(), []);
+});
+
+test("the panel list is exposed so a new dashboard can be noticed", () => {
+  const before = { lovelace: { component_name: "lovelace", url_path: "lovelace", title: "Overview" } };
+  withHass(base({ panels: before }));
+  assert.equal(panelsRef(), before);
+  const after = { ...before, garden: { component_name: "lovelace", url_path: "garden", title: "Garden" } };
+  withHass(base({ panels: after }));
+  assert.notEqual(panelsRef(), before, "HA hands over a new object when the list changes");
+  withHass(undefined);
+  assert.equal(panelsRef(), undefined);
 });

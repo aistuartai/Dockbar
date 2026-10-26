@@ -12,6 +12,9 @@
 - **Show the value on the button** can be switched off for a button with an entity, so a toggle shows just its icon (with the on colour) and not "On" or "Off" written under the name. Screen readers still hear the value.
 - Toggle picks the right action for each kind of entity: locks lock or unlock, covers open or close, scenes and scripts run, buttons are pressed, everything else toggles.
 
+**Fixes**
+- With "Add new dashboards automatically" on, the button for a new dashboard now appears as soon as you create it. Before, the bar only looked for new dashboards when its settings changed or the page loaded, so it needed a reload.
+
 **Dependencies and tooling**
 - Updated Vite to 8, TypeScript to 7 and js-yaml to 5 (with its YAML parsing hardening), plus the GitHub Actions the workflows use. `@types/node` stays on 24 to match the Node version CI uses.
 - Added a security policy, Dependabot, CodeQL scanning and issue and pull request templates.

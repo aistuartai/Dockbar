@@ -45,6 +45,7 @@ class Dockbar implements EditorHost {
   private counts = { notifications: 0, repairs: 0 };
   private watching = new Set<string>();
   private statesRef: unknown;
+  private panelsRef: unknown;
   private position: Position | null = null;
   private mobileQuery: MediaQueryList | null = null;
   private onMobileChange = () => this.refresh();
@@ -208,6 +209,13 @@ class Dockbar implements EditorHost {
     if (switchOn !== this.switchOn) {
       this.switchOn = switchOn;
       return this.refresh();
+    }
+    // HA replaces its panel list when a dashboard is added, removed or renamed, so buttons for new dashboards can follow.
+    const panels = ha.panelsRef();
+    if (panels !== this.panelsRef) {
+      const first = this.panelsRef === undefined;
+      this.panelsRef = panels;
+      if (!first) return this.refresh();
     }
     ha.applyHeaderHidden(this.headerHidden);
     ha.syncLeftPad(!this.barGone && this.position === "left");

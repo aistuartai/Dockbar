@@ -229,6 +229,11 @@ export function sidebarDefaults(prefs: SidebarPrefs): DockbarButton[] {
   });
 }
 
+/** HA's panel list as an opaque value that changes whenever the list does, for noticing new dashboards. */
+export function panelsRef(): unknown {
+  return hass()?.panels;
+}
+
 /** Url paths of the dashboards this user has, sorted. */
 export function dashboardPaths(): string[] {
   const h = hass();
