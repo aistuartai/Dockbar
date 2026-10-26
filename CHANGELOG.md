@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.8.0
 
 **Action buttons**
 - A button can now do something in Home Assistant when tapped: **Run a Home Assistant action** (any action, with an optional target and data), **Toggle an entity**, or **Open an entity's details**. Pick it under "Does" in the button's settings, or use `action: perform_action`, `toggle` or `more_info` in YAML. A button with a `service` and no `action` is an action button.
