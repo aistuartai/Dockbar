@@ -73,6 +73,24 @@ function dataField(ed: DockbarEditor, i: number) {
   </label>`;
 }
 
+/** Whether the entity's value is written under the name. Off leaves just the icon, which suits a toggle. */
+function showValueField(ed: DockbarEditor, i: number) {
+  const b = ed.working.buttons[i];
+  return html`<label class="field">
+    <span class="label">Show the value on the button</span>
+    <input
+      type="checkbox"
+      class="switch"
+      .checked=${b.show_value !== false}
+      @change=${(e: Event) => {
+        const on = (e.target as HTMLInputElement).checked;
+        // Switching it back on writes an explicit true only when a lower level turned it off, so it can override that.
+        setButtonValue(ed, i, "show_value", on ? (ed.lower.buttons.find((x) => x.id === b.id)?.show_value === false ? true : undefined) : false);
+      }}
+    />
+  </label>`;
+}
+
 /** Ask before running, for buttons you could press by accident, like a garage door. */
 function confirmField(ed: DockbarEditor, i: number) {
   const b = ed.working.buttons[i];
@@ -331,7 +349,8 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
               <span class="preview-value">${entityText(b.entity, b.attribute) ?? "entity not found"}</span>
             </div>`
           : nothing}
-        ${b.entity ? buttonColour(ed, i, "Value colour", "state_color") : nothing}
+        ${b.entity ? showValueField(ed, i) : nothing}
+        ${b.entity && b.show_value !== false ? buttonColour(ed, i, "Value colour", "state_color") : nothing}
         ${b.entity ? buttonColour(ed, i, "Icon colour when on", "on_icon_color") : nothing}
       </div>
       <h4>Style for this button <span class="hint">blank = use "Every button"</span></h4>

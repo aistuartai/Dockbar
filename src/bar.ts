@@ -197,7 +197,7 @@ export class DockbarNav extends LitElement {
         ${b.icon ? html`<ha-icon .icon=${b.icon}></ha-icon>` : nothing}
         ${badge ? html`<span class="badge" part="badge">${badge > 99 ? "99+" : badge}</span>` : nothing}
         ${showName && c.show_names && b.name ? html`<span class="name">${b.name}</span>` : nothing}
-        ${state !== undefined ? html`<span class="state" part="state">${state}</span>` : nothing}
+        ${state !== undefined && b.show_value !== false ? html`<span class="state" part="state">${state}</span>` : nothing}
         ${section ? html`<ha-icon class="caret" icon="mdi:chevron-down"></ha-icon>` : nothing}
       </button>
     `;

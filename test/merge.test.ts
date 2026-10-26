@@ -303,3 +303,15 @@ test("unchanged action data isn't stored as an edit, and a changed one is", () =
   copy[0].data = { brightness_pct: 80 };
   assert.deepEqual(diffLayer(full(lower), full(copy), false).button_overrides?.edits?.lights, { data: { brightness_pct: 80 } });
 });
+
+test("a button can hide its live value and set an on colour", () => {
+  const layer = sanitiseLayer({
+    buttons: [{ name: "Lounge", action: "toggle", entity: "light.lounge", on_icon_color: "#FFD54F", show_value: false }],
+  });
+  assert.equal(layer.buttons?.[0].show_value, false);
+  assert.equal(layer.buttons?.[0].on_icon_color, "#FFD54F");
+  const lower = [b("lounge", { entity: "light.lounge", show_value: false })];
+  const working = [b("lounge", { entity: "light.lounge", show_value: true })];
+  const full = (buttons: DockbarButton[]) => ({ ...merge([]), buttons });
+  assert.deepEqual(diffLayer(full(lower), full(working), false).button_overrides?.edits?.lounge, { show_value: true });
+});
