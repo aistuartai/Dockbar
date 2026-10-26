@@ -249,9 +249,9 @@ Other projects tackle parts of the same problem. They're worth a look, and may s
 
 - [**custom-sidebar**](https://github.com/elchininet/custom-sidebar) customises Home Assistant's own sidebar from a YAML file: reorder, hide, rename and add items, section headers and dividers, restyle it, use JavaScript or Jinja templates and click actions, and apply different setups by user, admin or device. If you like how HA's sidebar behaves and want to extend it, start there.
 - [**kiosk-mode**](https://github.com/NemesisRE/kiosk-mode) hides the header and/or sidebar on Home Assistant dashboards. It does that one job and doesn't add navigation of its own.
-- [**navbar-card**](https://github.com/joseluis9595/lovelace-navbar-card) is a Lovelace card that shows a bottom navigation bar on mobile and a side bar on desktop.
+- [**navbar-card**](https://github.com/joseluis9595/lovelace-navbar-card) is a Lovelace card you add from the dashboard editor. It shows a bottom navigation bar on mobile and a side bar on desktop, with a visual editor, configurable routes, styling, haptic feedback and an optional media player widget. It's the closest in spirit to Dockbar.
 
-Dockbar takes a different approach: it's an integration that draws a separate navigation bar on any edge, with its own phone layout. It can hide HA's sidebar and header too, and it stays in place across every dashboard without a card on each one. Everything is set up in a settings dialog, with the YAML editor there when you want it.
+Dockbar takes a different approach: it's an integration, not a card or a sidebar tweak. It loads once for the whole frontend and draws a separate navigation bar on any edge, with its own phone layout, so nothing is added to individual dashboards. It can hide HA's sidebar and header too. Everything is set up in a settings dialog, with a YAML editor there when you want it. It has no templating or click actions yet; if you need those, custom-sidebar is the better fit.
 
 ## Development
 
