@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { callService, canOpen, checkHooks, clearDisabled, entityState, isDisabled, moreInfo, notify, serviceNames, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
+import { callService, canOpen, checkHooks, clearDisabled, entityState, isDisabled, moreInfo, notify, serviceOptions, dashboardPaths, dockbarSwitchState, newDashboardButtons, updatesCount } from "../src/ha.ts";
 
 type Fake = Record<string, any>;
 
@@ -163,8 +163,12 @@ test("more-info and notifications are fired as events on the page", () => {
 });
 
 test("the editor's action suggestions come from the services Home Assistant offers", () => {
-  withHass(base({ services: { light: { turn_on: {}, toggle: {} }, scene: { turn_on: {} } } }));
-  assert.deepEqual(serviceNames(), ["light.toggle", "light.turn_on", "scene.turn_on"]);
+  withHass(base({ services: { light: { turn_on: { name: "Turn on" }, toggle: {} }, scene: { turn_on: {} } } }));
+  assert.deepEqual(serviceOptions(), [
+    { value: "light.toggle", label: undefined },
+    { value: "light.turn_on", label: "Turn on" },
+    { value: "scene.turn_on", label: undefined },
+  ]);
   withHass(undefined);
-  assert.deepEqual(serviceNames(), []);
+  assert.deepEqual(serviceOptions(), []);
 });

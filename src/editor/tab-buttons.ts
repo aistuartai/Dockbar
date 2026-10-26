@@ -5,7 +5,8 @@ import { clone, same } from "../merge.ts";
 import { badgeSource } from "../match.ts";
 import { childrenOf, groupOrder, isSection, moveWithin, parentOf } from "../sections.ts";
 import { actionProblem } from "../actions.ts";
-import { entityText, hass } from "../ha.ts";
+import { attributeOptions, entityOptions, entityText, hass, serviceOptions } from "../ha.ts";
+import type { PickerOption } from "../search.ts";
 import { ACTION_LABELS, BADGE_LABELS, HA_BUTTONS, asHex } from "./constants.ts";
 import type { DockbarEditor } from "./editor.ts";
 
@@ -18,23 +19,34 @@ function setButtonValue(ed: DockbarEditor, i: number, key: keyof DockbarButton, 
   ed.changed();
 }
 
-/** The entity or entities an action acts on: one is stored as text, several as a list. */
+/** The entities an action acts on, as removable chips with a search box to add more. */
 function targetField(ed: DockbarEditor, i: number) {
   const target = ed.working.buttons[i].target;
-  return html`<label class="field">
+  const list = Array.isArray(target) ? target : target ? [target] : [];
+  const save = (next: string[]) => setButtonValue(ed, i, "target", next.length === 0 ? undefined : next.length === 1 ? next[0] : next);
+  return html`<div class="field">
     <span class="label">Target entity</span>
-    <input
-      type="text"
-      list="dockbar-entities"
-      placeholder="scene.movie_night"
-      .value=${Array.isArray(target) ? target.join(", ") : (target ?? "")}
-      @change=${(e: Event) => {
-        const list = (e.target as HTMLInputElement).value.split(",").map((t) => t.trim()).filter(Boolean);
-        setButtonValue(ed, i, "target", list.length === 0 ? undefined : list.length === 1 ? list[0] : list);
+    ${list.length
+      ? html`<div class="chips">
+          ${list.map(
+            (t) => html`<span class="chip">
+              <code>${t}</code>
+              <button class="chip-x" title="Remove" aria-label="Remove ${t}" @click=${() => save(list.filter((x) => x !== t))}>✕</button>
+            </span>`,
+          )}
+        </div>`
+      : nothing}
+    <dockbar-picker
+      clear-on-pick
+      label="Add a target entity"
+      placeholder="Search entities to add"
+      .options=${entityOptions}
+      @pick=${(e: CustomEvent<string>) => {
+        const added = e.detail.trim();
+        if (added && !list.includes(added)) save([...list, added]);
       }}
-    />
-    <span class="hint">Separate several with commas.</span>
-  </label>`;
+    ></dockbar-picker>
+  </div>`;
 }
 
 /** Extra data for an action, edited as YAML. */
@@ -192,17 +204,37 @@ export function setButton(ed: DockbarEditor, i: number, key: keyof DockbarButton
   ed.changed();
 }
 
-export function buttonText(ed: DockbarEditor, i: number, label: string, key: keyof DockbarButton, opts: { list?: string; placeholder?: string } = {}) {
+export function buttonText(ed: DockbarEditor, i: number, label: string, key: keyof DockbarButton, opts: { placeholder?: string } = {}) {
   return html`<label class="field">
     <span class="label">${label}</span>
     <input
       type="text"
-      list=${opts.list ?? nothing}
       placeholder=${opts.placeholder ?? ""}
       .value=${(ed.working.buttons[i][key] as string) ?? ""}
       @change=${(e: Event) => setButton(ed, i, key, (e.target as HTMLInputElement).value.trim())}
     />
   </label>`;
+}
+
+/** A text field that searches a list as you type, but accepts anything you type too. */
+export function buttonPicker(
+  ed: DockbarEditor,
+  i: number,
+  label: string,
+  key: keyof DockbarButton,
+  options: () => PickerOption[],
+  placeholder: string,
+) {
+  return html`<div class="field">
+    <span class="label">${label}</span>
+    <dockbar-picker
+      label=${label}
+      placeholder=${placeholder}
+      .value=${(ed.working.buttons[i][key] as string) ?? ""}
+      .options=${options}
+      @pick=${(e: CustomEvent<string>) => setButton(ed, i, key, e.detail.trim())}
+    ></dockbar-picker>
+  </div>`;
 }
 
 export function buttonColour(ed: DockbarEditor, i: number, label: string, key: keyof ButtonStyle | "alert_icon_color") {
@@ -259,11 +291,11 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
           </select>
         </label>
         ${b.action === "navigate"
-          ? buttonText(ed, i, "Page", "path", { list: "dockbar-paths", placeholder: "/lovelace/0" })
+          ? buttonPicker(ed, i, "Page", "path", () => ed.targets.map((t) => ({ value: t.path, label: t.label })), "Search dashboards, or type /lovelace/0")
           : nothing}
         ${b.action === "url" ? buttonText(ed, i, "Link", "url", { placeholder: "https://…" }) : nothing}
         ${b.action === "perform_action"
-          ? html`${buttonText(ed, i, "Action", "service", { list: "dockbar-services", placeholder: "light.turn_on" })}
+          ? html`${buttonPicker(ed, i, "Action", "service", serviceOptions, "Search actions, e.g. light turn on")}
             ${targetField(ed, i)} ${dataField(ed, i)}`
           : nothing}
         ${["perform_action", "toggle", "more_info"].includes(b.action) ? confirmField(ed, i) : nothing}
@@ -291,8 +323,8 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
         : nothing}
       <h4>Live value <span class="hint">shows an entity's state on the button, and is the entity that Toggle and Open details use</span></h4>
       <div class="grid">
-        ${buttonText(ed, i, "Entity", "entity", { list: "dockbar-entities", placeholder: "sensor.pv_power" })}
-        ${buttonText(ed, i, "Attribute", "attribute", { list: `dockbar-attrs-${i}`, placeholder: "blank = state" })}
+        ${buttonPicker(ed, i, "Entity", "entity", entityOptions, "Search entities, e.g. sensor.pv_power")}
+        ${buttonPicker(ed, i, "Attribute", "attribute", () => attributeOptions(b.entity), "blank = state")}
         ${b.entity
           ? html`<div class="field">
               <span class="label">Shows</span>
@@ -301,9 +333,6 @@ export function renderButtonForm(ed: DockbarEditor, b: DockbarButton, i: number)
           : nothing}
         ${b.entity ? buttonColour(ed, i, "Value colour", "state_color") : nothing}
       </div>
-      <datalist id=${`dockbar-attrs-${i}`}>
-        ${Object.keys((b.entity && hass()?.states[b.entity]?.attributes) || {}).map((a) => html`<option value=${a}></option>`)}
-      </datalist>
       <h4>Style for this button <span class="hint">blank = use "Every button"</span></h4>
       <div class="grid">
         ${buttonColour(ed, i, "Icon colour", "icon_color")} ${buttonColour(ed, i, "Name colour", "name_color")}

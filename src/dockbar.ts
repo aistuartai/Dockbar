@@ -1,6 +1,7 @@
 import { DockbarNav, type ButtonClickDetail } from "./bar.ts";
 import { ConfigError, loadYamlLayer, safeUrl, type DockbarButton, type DockbarConfig, type Layer, type Position } from "./config.ts";
 import { DockbarEditor, type EditorHost } from "./editor/editor.ts";
+import { DockbarPicker } from "./editor/picker.ts";
 import * as ha from "./ha.ts";
 import { badgeSource, cleanPath, findActive, onAnyPath } from "./match.ts";
 import { serviceCall, toggleCall } from "./actions.ts";
@@ -371,6 +372,7 @@ async function start() {
   if (window.__dockbar || customElements.get(TAG)) return;
   customElements.define(TAG, DockbarNav);
   customElements.define(EDITOR_TAG, DockbarEditor);
+  customElements.define("dockbar-picker", DockbarPicker);
 
   console.info(
     `%c DOCKBAR %c v${__DOCKBAR_VERSION__} `,

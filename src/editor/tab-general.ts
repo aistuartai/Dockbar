@@ -6,13 +6,12 @@ import { FOOTER_LABELS, INDICATOR_LABELS, HOVER_LABELS, SHADOW_CHOICES } from ".
 import { text, number, toggle, select, range, colour, styleFields, choice } from "./fields.ts";
 import type { DockbarEditor } from "./editor.ts";
 
-export function addHideOn(ed: DockbarEditor) {
-  const raw = ed.hideOnDraft.trim();
-  if (!raw) return;
-  const path = raw.startsWith("/") ? raw : "/" + raw;
+export function addHideOn(ed: DockbarEditor, raw: string) {
+  const text = raw.trim();
+  if (!text) return;
+  const path = text.startsWith("/") ? text : "/" + text;
   const list = ed.working.hide_on;
   if (!list.includes(path)) ed.set("hide_on", [...list, path]);
-  ed.hideOnDraft = "";
 }
 
 export function renderHideOn(ed: DockbarEditor) {
@@ -37,17 +36,13 @@ export function renderHideOn(ed: DockbarEditor) {
             )}
           </div>`
         : nothing}
-      <span class="colour">
-        <input
-          type="text"
-          list="dockbar-paths"
-          placeholder="/wall-panel"
-          .value=${ed.hideOnDraft}
-          @input=${(e: Event) => (ed.hideOnDraft = (e.target as HTMLInputElement).value)}
-          @keydown=${(e: KeyboardEvent) => e.key === "Enter" && addHideOn(ed)}
-        />
-        <button class="text" ?disabled=${!ed.hideOnDraft.trim()} @click=${() => addHideOn(ed)}>Add</button>
-      </span>
+      <dockbar-picker
+        clear-on-pick
+        label="Add a dashboard or view"
+        placeholder="Search dashboards, or type /wall-panel"
+        .options=${() => ed.targets.map((t) => ({ value: t.path, label: t.label }))}
+        @pick=${(e: CustomEvent<string>) => addHideOn(ed, e.detail)}
+      ></dockbar-picker>
       <span class="hint">
         A dashboard path covers all its views. The bar is hidden and its space given back; HA's sidebar and header stay as
         set above. For a wall tablet, add it under <strong>This device</strong> on that tablet.

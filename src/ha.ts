@@ -1,6 +1,7 @@
 // Everything that touches Home Assistant's frontend lives here, so HA upgrades only break one file.
 import type { DockbarButton, Position } from "./config.ts";
 import type { ServiceCall } from "./actions.ts";
+import type { PickerOption } from "./search.ts";
 import { firstSegment } from "./match.ts";
 import { buttonsForNewDashboards, dashboardPanels, sidebarButtons, type SidebarPrefs } from "./sidebar.ts";
 import { local } from "./storage.ts";
@@ -87,9 +88,18 @@ export function entityText(entityId: string, attribute?: string): string | undef
   return unit ? `${entity.state} ${unit}` : entity.state;
 }
 
-/** Every entity id, for the editor's suggestions. */
-export function entityIds(): string[] {
-  return Object.keys(hass()?.states ?? {}).sort();
+/** Every entity, with its friendly name, for the editor's pickers. */
+export function entityOptions(): PickerOption[] {
+  return Object.values(hass()?.states ?? {})
+    .map((e) => ({ value: e.entity_id, label: typeof e.attributes.friendly_name === "string" ? e.attributes.friendly_name : undefined }))
+    .sort((a, b) => a.value.localeCompare(b.value));
+}
+
+/** The attributes an entity currently has, for the live-value picker. */
+export function attributeOptions(entityId?: string): PickerOption[] {
+  return Object.keys((entityId && hass()?.states[entityId]?.attributes) || {})
+    .sort()
+    .map((value) => ({ value }));
 }
 
 let switchId: string | undefined;
@@ -432,12 +442,17 @@ export function notify(message: string) {
   if (from) fire(from, "hass-notification", { message });
 }
 
-/** Every `domain.action` Home Assistant offers, for the editor's suggestions. */
-export function serviceNames(): string[] {
+/** Every `domain.action` Home Assistant offers, with its name where it has one, for the editor's picker. */
+export function serviceOptions(): PickerOption[] {
   const services = hass()?.services ?? {};
   return Object.entries(services)
-    .flatMap(([domain, actions]) => Object.keys(actions).map((name) => `${domain}.${name}`))
-    .sort();
+    .flatMap(([domain, actions]) =>
+      Object.entries(actions).map(([name, info]) => ({
+        value: `${domain}.${name}`,
+        label: typeof (info as { name?: unknown } | null)?.name === "string" ? (info as { name: string }).name : undefined,
+      })),
+    )
+    .sort((a, b) => a.value.localeCompare(b.value));
 }
 
 /** Opens HA's notifications drawer, the same as the bell in its sidebar. */

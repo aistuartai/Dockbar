@@ -2,7 +2,7 @@ import { LitElement, html, nothing } from "lit";
 import { type DockbarConfig, type Layer } from "../config.ts";
 import { clone, diffLayer, merge } from "../merge.ts";
 import { groupOrder } from "../sections.ts";
-import { entityIds, navTargets, serviceNames, type NavTarget } from "../ha.ts";
+import { navTargets, type NavTarget } from "../ha.ts";
 import { type Scope } from "../storage.ts";
 import { SCOPES, getPath, setPath } from "./constants.ts";
 import { editorStyles } from "./styles.ts";
@@ -39,6 +39,7 @@ const FOCUSABLE = [
   "summary",
   "a[href]",
   "ha-icon-picker",
+  "dockbar-picker",
 ].join(",");
 
 export class DockbarEditor extends LitElement {
@@ -55,7 +56,6 @@ export class DockbarEditor extends LitElement {
     yamlText: { state: true },
     yamlMsg: { state: true },
     dragId: { state: true },
-    hideOnDraft: { state: true },
   };
 
   declare host_: EditorHost;
@@ -71,7 +71,6 @@ export class DockbarEditor extends LitElement {
   declare importText: string;
   declare importMsg: string;
   declare dragId: string | null;
-  declare hideOnDraft: string;
   lower!: DockbarConfig;
   private pristine = "";
   /** What had focus when the dialog opened, so closing it puts focus back there. */
@@ -91,7 +90,6 @@ export class DockbarEditor extends LitElement {
     this.yamlText = "";
     this.yamlMsg = "";
     this.dragId = null;
-    this.hideOnDraft = "";
   }
 
   open(host: EditorHost) {
@@ -293,15 +291,6 @@ export class DockbarEditor extends LitElement {
         <main role="tabpanel">
           ${this.tab === "general" ? renderGeneral(this) : this.tab === "buttons" ? renderButtons(this) : renderAdvanced(this)}
         </main>
-        <datalist id="dockbar-paths">
-          ${this.targets.map((t) => html`<option value=${t.path}>${t.label}</option>`)}
-        </datalist>
-        ${this.tab === "buttons" && this.working.buttons.find((b) => b.id === this.expanded)?.action === "perform_action"
-          ? html`<datalist id="dockbar-services">${serviceNames().map((s) => html`<option value=${s}></option>`)}</datalist>`
-          : nothing}
-        ${this.tab === "buttons" && this.expanded
-          ? html`<datalist id="dockbar-entities">${entityIds().map((id) => html`<option value=${id}></option>`)}</datalist>`
-          : nothing}
         <footer>
           ${this.scope !== "shared"
             ? html`<button class="text danger" @click=${() => this.resetScope()}>Reset "${scopeInfo.label}"</button>`
