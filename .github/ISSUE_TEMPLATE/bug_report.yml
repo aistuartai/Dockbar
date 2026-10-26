@@ -1,0 +1,69 @@
+name: Bug report
+description: Something doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Two quick checks first:
+        - If the bar isn't showing at all, add `?dockbar=on` to any Home Assistant address and reload. It clears "off" settings your browser may have kept.
+        - For security problems, please don't open a public issue. See the [security policy](https://github.com/aistuartai/Dockbar/security/policy).
+  - type: input
+    id: dockbar-version
+    attributes:
+      label: Dockbar version
+      description: Shown in the browser console as `DOCKBAR v…`, and in HACS.
+      placeholder: "0.7.0"
+    validations:
+      required: true
+  - type: input
+    id: ha-version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.10.4"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - HACS
+        - Manually
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser or app
+      description: For example Chrome on Windows, Safari on iPhone, or the Companion app on Android.
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. See …
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console output
+      description: Open the developer tools (F12), go to Console, and paste any lines starting with `Dockbar` or any red errors.
+      render: text
+  - type: textarea
+    id: config
+    attributes:
+      label: Your configuration (optional)
+      description: Open Dockbar settings, then the Advanced tab, and paste the YAML. Remove anything private first.
+      render: yaml
