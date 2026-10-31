@@ -348,6 +348,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 | `mobile_breakpoint` | `600` | Width in px |
 | `edge_offset` | `0` | Px between the bar and the screen edge it sits on, and the room the page leaves for it. Use it when a phone's navigation bar covers the bar |
 | `hide_sidebar` | `false` | Uses HA's "always hidden" sidebar mode; your previous setting is restored when turned off |
+| `reserve_space` | `false` | Top and bottom bars only: the Home Assistant page ends at the bar and no longer scrolls underneath it (otherwise it is only padded clear at the end of the scroll). Experimental |
 | `hide_header` | `false` | Hides the dashboard header (it comes back in edit mode) |
 | `size` | `88` | Bar thickness in px |
 | `padding`, `gap` | `8` | Spacing in px |

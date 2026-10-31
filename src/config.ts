@@ -142,6 +142,8 @@ export interface Settings {
   mobile_size: number | null;
   hide_sidebar: boolean;
   hide_header: boolean;
+  /** Top and bottom bars: shrink the Home Assistant page so it ends at the bar, instead of scrolling under it. */
+  reserve_space: boolean;
   /** Bar thickness in px. */
   size: number;
   padding: number;
@@ -206,6 +208,7 @@ export const SETTING_KEYS: SettingKey[] = [
   "mobile_size",
   "hide_sidebar",
   "hide_header",
+  "reserve_space",
   "size",
   "padding",
   "gap",
@@ -262,6 +265,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mobile_size: null,
   hide_sidebar: false,
   hide_header: false,
+  reserve_space: false,
   size: 88,
   padding: 8,
   gap: 8,
@@ -498,7 +502,7 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
     const v = raw.background_opacity === null ? null : num(raw.background_opacity, "background_opacity", warn);
     set("background_opacity", v === null || v === undefined ? v : Math.min(100, v));
   }
-  for (const key of ["hide_sidebar", "hide_header", "show_names", "auto_add_dashboards"] as const) {
+  for (const key of ["hide_sidebar", "hide_header", "reserve_space", "show_names", "auto_add_dashboards"] as const) {
     if (raw[key] === undefined) continue;
     if (typeof raw[key] === "boolean") set(key, raw[key]);
     else if (raw[key] === "true" || raw[key] === "false") set(key, raw[key] === "true");

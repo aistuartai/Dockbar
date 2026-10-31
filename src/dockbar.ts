@@ -196,7 +196,10 @@ class Dockbar implements EditorHost {
     const pos = mobile && mobile !== "hidden" ? mobile : c.position;
     this.position = pos;
     this.bar.position = pos;
-    ha.setInset(this.barGone ? null : pos, c.size, c.edge_offset);
+    // A top or bottom bar can shrink the page itself; a side bar keeps using the inset HA already honours.
+    const reserve = c.reserve_space && (pos === "top" || pos === "bottom") && !this.barGone;
+    ha.setReserve(reserve ? pos : null, c.size, c.edge_offset);
+    ha.setInset(this.barGone || reserve ? null : pos, c.size, c.edge_offset);
     this.syncChrome();
   }
 

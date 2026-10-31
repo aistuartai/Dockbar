@@ -4,6 +4,7 @@
 
 **Fixes**
 - On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They now shrink to fit its height.
+- New **Page ends at the bar** setting (`reserve_space`, experimental, off by default). For top and bottom bars it shrinks the whole Home Assistant page so it stops at the bar, so dashboard cards no longer scroll under the bar or show in the gap beside a phone navigation bar.
 - New **Edge offset** setting (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
 
 ## 0.8.0

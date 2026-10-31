@@ -363,6 +363,33 @@ export function setInset(position: Position | null, px: number, offset = 0) {
   }
 }
 
+const RESERVE_STYLE_ID = "dockbar-reserve";
+
+/**
+ * Makes the whole Home Assistant page end at the bar instead of scrolling underneath it.
+ * Padding can only leave room at the end of a scroll; this shrinks the page itself, so a see-through bar or
+ * the gap beside a phone's navigation bar never shows dashboard content. Pass null to put the page back.
+ */
+export function setReserve(position: Position | null, px: number, offset = 0) {
+  let style = document.getElementById(RESERVE_STYLE_ID);
+  if (!position) return style?.remove();
+  if (!style) {
+    style = document.createElement("style");
+    style.id = RESERVE_STYLE_ID;
+    document.head.appendChild(style);
+  }
+  const room = `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`;
+  style.textContent = `home-assistant {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    ${position}: ${room} !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: clip !important;
+  }`;
+}
+
 const MAIN_STYLE_ID = "dockbar-main";
 const PAD_ATTR = "dockbar-pad";
 // HA only honours the left safe-area inset in its narrow (phone) layout or via a docked sidebar.
