@@ -11,6 +11,7 @@ position: left            # left | right | top | bottom
 mobile_position: bottom   # used below mobile_breakpoint; none keeps `position`, hidden = no bar on phones
 mobile_size: 64           # bar thickness on phones; leave out to use `size`
 mobile_breakpoint: 600    # px
+edge_offset: 0            # px between the bar and the screen edge; raise it if a phone navigation bar covers the bar
 hide_sidebar: true        # hide HA's sidebar (the pinned Menu button still opens it)
 hide_header: true         # hide the dashboard header (it comes back in edit mode)
 hide_on: []               # paths where the bar is hidden, e.g. [/wall-panel]

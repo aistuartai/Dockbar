@@ -123,6 +123,8 @@ test("phone settings: hidden position and a separate thickness", () => {
   assert.equal(sanitiseLayer({ mobile_position: "hidden" }).mobile_position, "hidden");
   assert.equal(sanitiseLayer({ mobile_position: "none" }).mobile_position, null);
   assert.equal(sanitiseLayer({ mobile_position: "sideways" }, () => {}).mobile_position, undefined);
+  assert.equal(sanitiseLayer({ edge_offset: 48 }).edge_offset, 48);
+  assert.equal(sanitiseLayer({ edge_offset: -4 }).edge_offset, undefined);
   assert.equal(sanitiseLayer({ mobile_size: 64 }).mobile_size, 64);
   assert.equal(sanitiseLayer({ mobile_size: null }).mobile_size, null);
   assert.equal(merge([{ mobile_size: 64 }, { mobile_size: null }]).mobile_size, null);

@@ -352,13 +352,13 @@ export function navigate(path: string) {
  * Reserve room for the bar using the same CSS hook the companion apps use for notches,
  * so every HA page (dashboards, settings, dialogs) lays itself out around the bar.
  */
-export function setInset(position: Position | null, px: number) {
+export function setInset(position: Position | null, px: number, offset = 0) {
   const style = document.documentElement.style;
   for (const side of SIDES) style.removeProperty(`--app-safe-area-inset-${side}`);
   if (position) {
     style.setProperty(
       `--app-safe-area-inset-${position}`,
-      `calc(env(safe-area-inset-${position}, 0px) + ${px}px)`,
+      `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`,
     );
   }
 }

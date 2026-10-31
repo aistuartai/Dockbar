@@ -82,6 +82,7 @@ export class DockbarNav extends LitElement {
       "--db-size": `${c.size}px`,
       "--db-pad": `${c.padding}px`,
       "--db-gap": `${c.gap}px`,
+      "--db-offset": `${c.edge_offset}px`,
       "--db-btn-len": `${c.button_length ?? c.size - c.padding * 2}px`,
       "--db-btn-min": `${c.button_min_length}px`,
       "--db-btn-len-top": `${c.button_length ?? c.size - c.padding * 2}px`,
@@ -235,10 +236,10 @@ export class DockbarNav extends LitElement {
       width: var(--db-size);
     }
     :host([position="left"]) {
-      left: env(safe-area-inset-left, 0px);
+      left: calc(env(safe-area-inset-left, 0px) + var(--db-offset, 0px));
     }
     :host([position="right"]) {
-      right: env(safe-area-inset-right, 0px);
+      right: calc(env(safe-area-inset-right, 0px) + var(--db-offset, 0px));
     }
     :host([position="top"]),
     :host([position="bottom"]) {
@@ -247,10 +248,10 @@ export class DockbarNav extends LitElement {
       height: var(--db-size);
     }
     :host([position="top"]) {
-      top: env(safe-area-inset-top, 0px);
+      top: calc(env(safe-area-inset-top, 0px) + var(--db-offset, 0px));
     }
     :host([position="bottom"]) {
-      bottom: env(safe-area-inset-bottom, 0px);
+      bottom: calc(env(safe-area-inset-bottom, 0px) + var(--db-offset, 0px));
     }
 
     .bar {
@@ -302,9 +303,16 @@ export class DockbarNav extends LitElement {
     :host([position="top"]) .footer,
     :host([position="bottom"]) .footer {
       grid-auto-flow: column;
-      grid-template-rows: repeat(2, 1fr);
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      /* Two rows have to fit the bar's own height, so the second row never hangs off the edge. */
+      min-height: 0;
       padding-left: var(--db-gap);
       border-left: 1px solid var(--db-divider);
+    }
+    :host([position="top"]) .footer .btn,
+    :host([position="bottom"]) .footer .btn {
+      min-height: 0;
+      padding: 2px 6px;
     }
     .footer .btn {
       --db-icon-size: 18px;

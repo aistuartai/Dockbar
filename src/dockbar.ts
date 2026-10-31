@@ -196,7 +196,7 @@ class Dockbar implements EditorHost {
     const pos = mobile && mobile !== "hidden" ? mobile : c.position;
     this.position = pos;
     this.bar.position = pos;
-    ha.setInset(this.barGone ? null : pos, c.size);
+    ha.setInset(this.barGone ? null : pos, c.size, c.edge_offset);
     this.syncChrome();
   }
 

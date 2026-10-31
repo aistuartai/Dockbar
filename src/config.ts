@@ -146,6 +146,8 @@ export interface Settings {
   size: number;
   padding: number;
   gap: number;
+  /** Gap in px between the bar and the screen edge it sits on, for a phone navigation bar the app does not report. */
+  edge_offset: number;
   /** Preferred button length along the bar in px; null gives square buttons. */
   button_length: number | null;
   /** Buttons shrink to fit the screen down to this length, then the bar scrolls. */
@@ -207,6 +209,7 @@ export const SETTING_KEYS: SettingKey[] = [
   "size",
   "padding",
   "gap",
+  "edge_offset",
   "button_length",
   "button_min_length",
   "background",
@@ -262,6 +265,7 @@ export const DEFAULT_SETTINGS: Settings = {
   size: 88,
   padding: 8,
   gap: 8,
+  edge_offset: 0,
   button_length: null,
   button_min_length: 52,
   background: "var(--sidebar-background-color, var(--card-background-color))",
@@ -440,6 +444,7 @@ const LIMITS: Record<string, number> = {
   mobile_breakpoint: 5000,
   padding: 200,
   gap: 200,
+  edge_offset: 300,
   size: 600,
   mobile_size: 600,
   button_length: 600,
@@ -480,7 +485,7 @@ export function sanitiseLayer(raw: unknown, warn: Warn = () => {}): Layer {
   if (raw.mobile_size !== undefined) {
     set("mobile_size", raw.mobile_size === null ? null : num(raw.mobile_size, "mobile_size", warn, 1));
   }
-  for (const key of ["mobile_breakpoint", "padding", "gap"] as const) {
+  for (const key of ["mobile_breakpoint", "padding", "gap", "edge_offset"] as const) {
     if (raw[key] !== undefined) set(key, num(raw[key], key, warn));
   }
   for (const key of ["size", "button_min_length"] as const) {

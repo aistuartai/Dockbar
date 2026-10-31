@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+**Fixes**
+- On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They now shrink to fit its height.
+- New **Edge offset** setting (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
+
 ## 0.8.0
 
 **Action buttons**

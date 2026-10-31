@@ -346,6 +346,7 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 | `mobile_position` | `bottom` | Position below `mobile_breakpoint`; `none` keeps `position`; `hidden` shows no bar on phones (HA's sidebar and header come back there) |
 | `mobile_size` | same as `size` | Bar thickness in px on phones |
 | `mobile_breakpoint` | `600` | Width in px |
+| `edge_offset` | `0` | Px between the bar and the screen edge it sits on, and the room the page leaves for it. Use it when a phone's navigation bar covers the bar |
 | `hide_sidebar` | `false` | Uses HA's "always hidden" sidebar mode; your previous setting is restored when turned off |
 | `hide_header` | `false` | Hides the dashboard header (it comes back in edit mode) |
 | `size` | `88` | Bar thickness in px |

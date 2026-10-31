@@ -66,7 +66,7 @@ export function renderGeneral(ed: DockbarEditor) {
           ? nothing
           : number(ed, "Phone bar thickness", "mobile_size", "px, blank = same as Bar thickness")}
         ${number(ed, "Bar thickness", "size", "px")} ${number(ed, "Padding", "padding", "px")}
-        ${number(ed, "Gap", "gap", "px")}
+        ${number(ed, "Gap", "gap", "px")} ${number(ed, "Edge offset", "edge_offset", "px, lifts the bar off the screen edge")}
         ${number(ed, "Button length", "button_length", "px, blank = square")}
         ${number(ed, "Smallest button", "button_min_length", "px, then the bar scrolls")}
       </div>
