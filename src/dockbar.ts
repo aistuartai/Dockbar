@@ -449,6 +449,7 @@ async function launch() {
   setTimeout(() => {
     const problems = ha.checkHooks();
     if (problems.length) {
+      // scripts/ha-check/check.mjs matches this text; change both together.
       console.warn(`Dockbar: Home Assistant doesn't look as expected, so some features may not work. Missing: ${problems.join("; ")}.`);
     }
   }, HOOK_CHECK_DELAY_MS);

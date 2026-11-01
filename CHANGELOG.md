@@ -2,11 +2,13 @@
 
 ## Unreleased
 
+**New**
+- **Choose the bar's font.** New **Font** and **Font weight** style settings (`font_family`, `font_weight`) in the editor for the whole bar, and in YAML for the whole bar or a single button. The editor offers stacks that exist on nearly every device (System, Rounded, Condensed, Serif, Monospace, Humanist, Handwriting); any other CSS font stack can be typed in YAML. The weight applies to button names; live values stay semi-bold. Left alone, the bar keeps using Home Assistant's font.
+- **Page ends at the bar** (`reserve_space`, experimental, off by default). For top and bottom bars it shrinks the whole Home Assistant page so it stops at the bar, so dashboard cards no longer scroll under the bar or show in the gap beside a phone navigation bar. The editor only shows it when a top or bottom bar is in use.
+- **Edge offset** (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
+
 **Fixes**
 - On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They now shrink to fit its height.
-- **Choose the bar's font.** New **Font** and **Font weight** style settings (`font_family`, `font_weight`) in the editor for the whole bar, and in YAML for the whole bar or a single button. The editor offers stacks that exist on nearly every device (System, Rounded, Condensed, Serif, Monospace, Humanist, Handwriting); any other CSS font stack can be typed in YAML. Left alone, the bar keeps using Home Assistant's font.
-- New **Page ends at the bar** setting (`reserve_space`, experimental, off by default). For top and bottom bars it shrinks the whole Home Assistant page so it stops at the bar, so dashboard cards no longer scroll under the bar or show in the gap beside a phone navigation bar.
-- New **Edge offset** setting (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
 
 **Tooling**
 - A nightly check (`.github/workflows/ha-check.yml`) starts the Home Assistant beta and dev images in Docker, installs Dockbar through its config flow, opens the UI in headless Chrome and fails if the bar doesn't appear or Dockbar reports a missing Home Assistant hook. Run it by hand from the Actions tab.

@@ -107,6 +107,7 @@ try {
 
   // checkHooks runs a few seconds after load; wait for it, then read what it said.
   await sleep(8000);
+  // These strings are Dockbar's own console messages in src/dockbar.ts; change both together.
   for (const w of warnings) if (w.includes("doesn't look as expected")) problems.push(w);
   if (warnings.some((w) => w.includes("failed to start"))) problems.push("Dockbar logged a start-up error");
   await page.screenshot({ path: "ha-check.png" });

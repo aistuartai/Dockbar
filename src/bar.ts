@@ -227,6 +227,7 @@ export class DockbarNav extends LitElement {
       z-index: 7;
       display: block;
       box-sizing: border-box;
+      --db-font-default: var(--ha-font-family-body, Roboto, sans-serif);
     }
     :host([hidden]) {
       display: none;
@@ -313,6 +314,7 @@ export class DockbarNav extends LitElement {
     }
     :host([position="top"]) .footer .btn,
     :host([position="bottom"]) .footer .btn {
+      --db-icon-size: 16px;
       min-height: 0;
       padding: 2px 6px;
     }
@@ -595,7 +597,7 @@ export class DockbarNav extends LitElement {
       flex-shrink: 0;
     }
     .name {
-      font-family: var(--db-font-family, var(--ha-font-family-body, Roboto, sans-serif));
+      font-family: var(--db-font-family, var(--db-font-default));
       font-weight: var(--db-font-weight, normal);
       font-size: var(--db-font-size);
       text-transform: var(--db-text-transform, none);
@@ -609,9 +611,9 @@ export class DockbarNav extends LitElement {
     }
 
     .state {
-      font-family: var(--db-font-family, var(--ha-font-family-body, Roboto, sans-serif));
+      font-family: var(--db-font-family, var(--db-font-default));
       font-size: calc(var(--db-font-size, 12px) * 0.95);
-      font-weight: var(--db-font-weight, 600);
+      font-weight: 600;
       line-height: 1.1;
       color: var(--db-state-color, var(--db-name-color));
       text-align: center;

@@ -109,6 +109,12 @@ export const FONT_WEIGHT_CHOICES: [string, string][] = [
   ["800", "Extra bold"],
 ];
 
+/** Style keys that are picked from a list rather than typed. A value typed in YAML still shows as "Custom". */
+export const STYLE_CHOICES: Partial<Record<keyof ButtonStyle, [string, string][]>> = {
+  font_family: FONT_CHOICES,
+  font_weight: FONT_WEIGHT_CHOICES,
+};
+
 export const COLOUR_KEYS: ReadonlySet<string> = new Set(["background", "icon_color", "name_color", "state_color", "badge_color"]);
 
 export function getPath(obj: any, path: string): any {

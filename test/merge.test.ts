@@ -119,18 +119,27 @@ test("hide_on and live value fields survive sanitising", () => {
   assert.equal(layer.buttons?.[0].state_color, "#FFD54F");
 });
 
-test("phone settings: hidden position and a separate thickness", () => {
-  assert.equal(sanitiseLayer({ mobile_position: "hidden" }).mobile_position, "hidden");
-  assert.equal(sanitiseLayer({ mobile_position: "none" }).mobile_position, null);
-  assert.equal(sanitiseLayer({ mobile_position: "sideways" }, () => {}).mobile_position, undefined);
+test("font family and weight are read as text", () => {
   assert.deepEqual(sanitiseLayer({ defaults: { font_family: "Georgia, serif", font_weight: 600 } }).defaults, {
     font_family: "Georgia, serif",
     font_weight: "600",
   });
+});
+
+test("reserve_space is a yes/no setting", () => {
   assert.equal(sanitiseLayer({ reserve_space: true }).reserve_space, true);
   assert.equal(sanitiseLayer({ reserve_space: "false" }).reserve_space, false);
+});
+
+test("edge_offset is zero or more pixels", () => {
   assert.equal(sanitiseLayer({ edge_offset: 48 }).edge_offset, 48);
-  assert.equal(sanitiseLayer({ edge_offset: -4 }).edge_offset, undefined);
+  assert.equal(sanitiseLayer({ edge_offset: -4 }, () => {}).edge_offset, undefined);
+});
+
+test("phone settings: hidden position and a separate thickness", () => {
+  assert.equal(sanitiseLayer({ mobile_position: "hidden" }).mobile_position, "hidden");
+  assert.equal(sanitiseLayer({ mobile_position: "none" }).mobile_position, null);
+  assert.equal(sanitiseLayer({ mobile_position: "sideways" }, () => {}).mobile_position, undefined);
   assert.equal(sanitiseLayer({ mobile_size: 64 }).mobile_size, 64);
   assert.equal(sanitiseLayer({ mobile_size: null }).mobile_size, null);
   assert.equal(merge([{ mobile_size: 64 }, { mobile_size: null }]).mobile_size, null);

@@ -75,7 +75,9 @@ export function renderGeneral(ed: DockbarEditor) {
       <h3>Home Assistant</h3>
       <div class="grid">
         ${toggle(ed, "Hide HA sidebar", "hide_sidebar", "The Menu button still opens it")}
-        ${toggle(ed, "Page ends at the bar", "reserve_space", "Top and bottom bars: the page no longer scrolls under the bar")}
+        ${[ed.working.position, ed.working.mobile_position].some((p) => p === "top" || p === "bottom")
+          ? toggle(ed, "Page ends at the bar", "reserve_space", "The page no longer scrolls under a top or bottom bar")
+          : nothing}
         ${toggle(ed, "Hide dashboard header", "hide_header", "Comes back when editing a dashboard")}
         ${toggle(ed, "Show button names", "show_names")}
         ${ed.scope === "shared"

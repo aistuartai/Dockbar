@@ -356,14 +356,16 @@ export function setInset(position: Position | null, px: number, offset = 0) {
   const style = document.documentElement.style;
   for (const side of SIDES) style.removeProperty(`--app-safe-area-inset-${side}`);
   if (position) {
-    style.setProperty(
-      `--app-safe-area-inset-${position}`,
-      `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`,
-    );
+    style.setProperty(`--app-safe-area-inset-${position}`, edgeRoom(position, px, offset));
   }
 }
 
 const RESERVE_STYLE_ID = "dockbar-reserve";
+
+/** The room a bar takes along its edge: the device's own inset, the offset, and the bar's thickness. */
+function edgeRoom(position: Position, px: number, offset: number): string {
+  return `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`;
+}
 
 /**
  * Makes the whole Home Assistant page end at the bar instead of scrolling underneath it.
@@ -378,12 +380,13 @@ export function setReserve(position: Position | null, px: number, offset = 0) {
     style.id = RESERVE_STYLE_ID;
     document.head.appendChild(style);
   }
-  const room = `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`;
+  // The room above already counts the device inset, so Home Assistant's own padding for it is zeroed.
   style.textContent = `home-assistant {
     display: block !important;
     position: fixed !important;
     inset: 0 !important;
-    ${position}: ${room} !important;
+    ${position}: ${edgeRoom(position, px, offset)} !important;
+    --safe-area-inset-${position}: 0px !important;
     height: auto !important;
     min-height: 0 !important;
     overflow: clip !important;
