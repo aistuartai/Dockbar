@@ -1,0 +1,57 @@
+name: Home Assistant check
+
+# Starts the newest Home Assistant (beta, and the nightly dev build), installs Dockbar into it,
+# and checks the bar appears with every Home Assistant hook still in place. A failure means a
+# coming Home Assistant release broke something, before anyone upgrades into it.
+# Scheduled runs only start from the default branch; run it by hand with "Run workflow".
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/ha-check.yml"
+      - "scripts/ha-check/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [beta, dev]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci
+        working-directory: scripts/ha-check
+      - name: Start Home Assistant ${{ matrix.image }} with Dockbar installed
+        run: |
+          mkdir -p ha-config/custom_components
+          cp -r custom_components/dockbar ha-config/custom_components/dockbar
+          docker run -d --name ha -p 8123:8123 -v "$PWD/ha-config:/config" \
+            ghcr.io/home-assistant/home-assistant:${{ matrix.image }}
+      - name: Check the bar
+        working-directory: scripts/ha-check
+        run: node check.mjs http://localhost:8123
+        env:
+          CHROME_PATH: google-chrome
+      - name: Home Assistant log
+        if: failure()
+        run: docker logs ha 2>&1 | tail -150
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ha-check-${{ matrix.image }}
+          path: scripts/ha-check/ha-check.png
+          if-no-files-found: ignore

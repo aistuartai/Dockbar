@@ -53,6 +53,8 @@ export const STYLE_LABELS: Record<keyof ButtonStyle, string> = {
   name_color: "Name colour",
   icon_size: "Icon size",
   font_size: "Name size",
+  font_family: "Font",
+  font_weight: "Font weight",
   state_color: "Live value colour",
   badge_color: "Badge colour",
   shadow: "Shadow",
@@ -81,6 +83,30 @@ export const SHADOW_CHOICES: [string, string][] = [
   ["glow", "Glow"],
   ["3d", "3D"],
   ["soft-ui", "Soft UI"],
+];
+
+/**
+ * Font stacks that exist on nearly every device, so the choice works without loading anything.
+ * An empty value means Home Assistant's own font. Anything else can be typed in YAML.
+ */
+export const FONT_CHOICES: [string, string][] = [
+  ["", "Home Assistant default"],
+  ["system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif", "System"],
+  ["ui-rounded, 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Quicksand, 'Varela Round', system-ui, sans-serif", "Rounded"],
+  ["'Arial Narrow', 'Roboto Condensed', 'Helvetica Neue Condensed', sans-serif-condensed, sans-serif", "Condensed"],
+  ["Georgia, 'Times New Roman', serif", "Serif"],
+  ["ui-monospace, 'SF Mono', Menlo, Consolas, 'Roboto Mono', monospace", "Monospace"],
+  ["'Trebuchet MS', 'Segoe UI', sans-serif", "Humanist"],
+  ["cursive", "Handwriting"],
+];
+export const FONT_WEIGHT_CHOICES: [string, string][] = [
+  ["", "Default"],
+  ["300", "Light"],
+  ["400", "Regular"],
+  ["500", "Medium"],
+  ["600", "Semi-bold"],
+  ["700", "Bold"],
+  ["800", "Extra bold"],
 ];
 
 export const COLOUR_KEYS: ReadonlySet<string> = new Set(["background", "icon_color", "name_color", "state_color", "badge_color"]);

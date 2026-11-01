@@ -1,0 +1,9 @@
+{
+  "name": "dockbar-ha-check",
+  "private": true,
+  "type": "module",
+  "description": "Starts a real Home Assistant container, installs Dockbar, and checks the bar appears.",
+  "dependencies": {
+    "puppeteer-core": "^25.16.0"
+  }
+}

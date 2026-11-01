@@ -169,6 +169,8 @@ export class DockbarNav extends LitElement {
       "--db-name-color": s.name_color,
       "--db-icon-size": child ? `calc(${s.icon_size ?? "24px"} * 0.8)` : s.icon_size,
       "--db-font-size": s.font_size,
+      "--db-font-family": s.font_family,
+      "--db-font-weight": s.font_weight,
       "--db-state-color": s.state_color,
       "--db-badge-color": s.badge_color,
       "--db-shadow": s.shadow ? (SHADOWS[s.shadow] ?? s.shadow) : undefined,
@@ -593,7 +595,8 @@ export class DockbarNav extends LitElement {
       flex-shrink: 0;
     }
     .name {
-      font-family: var(--ha-font-family-body, Roboto, sans-serif);
+      font-family: var(--db-font-family, var(--ha-font-family-body, Roboto, sans-serif));
+      font-weight: var(--db-font-weight, normal);
       font-size: var(--db-font-size);
       text-transform: var(--db-text-transform, none);
       letter-spacing: var(--db-letter-spacing, normal);
@@ -606,9 +609,9 @@ export class DockbarNav extends LitElement {
     }
 
     .state {
-      font-family: var(--ha-font-family-body, Roboto, sans-serif);
+      font-family: var(--db-font-family, var(--ha-font-family-body, Roboto, sans-serif));
       font-size: calc(var(--db-font-size, 12px) * 0.95);
-      font-weight: 600;
+      font-weight: var(--db-font-weight, 600);
       line-height: 1.1;
       color: var(--db-state-color, var(--db-name-color));
       text-align: center;

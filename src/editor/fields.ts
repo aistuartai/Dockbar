@@ -1,7 +1,7 @@
 import { html, nothing, type TemplateResult } from "lit";
 import { STYLE_KEYS, type ButtonStyle } from "../config.ts";
 import { clone, same } from "../merge.ts";
-import { STYLE_LABELS, COLOUR_KEYS, getPath, asHex } from "./constants.ts";
+import { STYLE_LABELS, COLOUR_KEYS, FONT_CHOICES, FONT_WEIGHT_CHOICES, getPath, asHex } from "./constants.ts";
 import type { DockbarEditor } from "./editor.ts";
 
 export function field(ed: DockbarEditor, label: string, path: string, control: TemplateResult, hint?: string) {
@@ -139,9 +139,13 @@ export function colour(ed: DockbarEditor, label: string, path: string, hint?: st
 }
 
 export function styleFields(ed: DockbarEditor, prefix: string, keys: (keyof ButtonStyle)[] = STYLE_KEYS) {
-  return keys.map((k) =>
-    COLOUR_KEYS.has(k) ? colour(ed, STYLE_LABELS[k], `${prefix}.${k}`) : text(ed, STYLE_LABELS[k], `${prefix}.${k}`),
-  );
+  return keys.map((k) => {
+    const path = `${prefix}.${k}`;
+    if (COLOUR_KEYS.has(k)) return colour(ed, STYLE_LABELS[k], path);
+    if (k === "font_family") return choice(ed, STYLE_LABELS[k], path, FONT_CHOICES);
+    if (k === "font_weight") return choice(ed, STYLE_LABELS[k], path, FONT_WEIGHT_CHOICES);
+    return text(ed, STYLE_LABELS[k], path);
+  });
 }
 
 /** A plain select whose values are stored as they are (no "none" means inherit). */

@@ -309,7 +309,7 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 
 **Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `on_icon_color`, `show_value`, `parent`, `hidden`, `service`, `target`, `data`, `confirm`, plus any style key.
 
-**Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
+**Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `font_family` (a CSS font stack such as `Georgia, serif`; the editor offers System, Rounded, Condensed, Serif, Monospace, Humanist and Handwriting), `font_weight` (e.g. `500`, `bold`), `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
 
 ### Looks in detail
 

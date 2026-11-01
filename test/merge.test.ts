@@ -123,6 +123,10 @@ test("phone settings: hidden position and a separate thickness", () => {
   assert.equal(sanitiseLayer({ mobile_position: "hidden" }).mobile_position, "hidden");
   assert.equal(sanitiseLayer({ mobile_position: "none" }).mobile_position, null);
   assert.equal(sanitiseLayer({ mobile_position: "sideways" }, () => {}).mobile_position, undefined);
+  assert.deepEqual(sanitiseLayer({ defaults: { font_family: "Georgia, serif", font_weight: 600 } }).defaults, {
+    font_family: "Georgia, serif",
+    font_weight: "600",
+  });
   assert.equal(sanitiseLayer({ reserve_space: true }).reserve_space, true);
   assert.equal(sanitiseLayer({ reserve_space: "false" }).reserve_space, false);
   assert.equal(sanitiseLayer({ edge_offset: 48 }).edge_offset, 48);

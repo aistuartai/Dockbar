@@ -48,6 +48,10 @@ export interface ButtonStyle {
   name_color?: string;
   icon_size?: string;
   font_size?: string;
+  /** A CSS font stack, e.g. `Georgia, serif`. Left unset, the bar uses Home Assistant's own font. */
+  font_family?: string;
+  /** e.g. 500 or bold. */
+  font_weight?: string;
   /** Colour of the live entity value. */
   state_color?: string;
   /** Colour of the count badge, and of the ring around a button that has one. */
@@ -67,6 +71,8 @@ export const STYLE_KEYS: (keyof ButtonStyle)[] = [
   "name_color",
   "icon_size",
   "font_size",
+  "font_family",
+  "font_weight",
   "state_color",
   "badge_color",
   "shadow",
