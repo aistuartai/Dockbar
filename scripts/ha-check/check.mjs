@@ -4,7 +4,7 @@
 //
 //   node check.mjs [http://localhost:8123]
 //
-// Chrome comes from CHROME_PATH (the GitHub runner has `google-chrome` on the PATH).
+// Chrome comes from CHROME_PATH (the GitHub runner has /usr/bin/google-chrome).
 import puppeteer from "puppeteer-core";
 
 const BASE = (process.argv[2] ?? "http://localhost:8123").replace(/\/$/, "");
@@ -69,7 +69,7 @@ await addDockbar(tokens.access_token);
 console.log("Dockbar added through its config flow");
 
 const browser = await puppeteer.launch({
-  executablePath: process.env.CHROME_PATH ?? "google-chrome",
+  executablePath: process.env.CHROME_PATH ?? "/usr/bin/google-chrome",
   headless: true,
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });

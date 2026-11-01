@@ -45,7 +45,7 @@ jobs:
         working-directory: scripts/ha-check
         run: node check.mjs http://localhost:8123
         env:
-          CHROME_PATH: google-chrome
+          CHROME_PATH: /usr/bin/google-chrome
       - name: Home Assistant log
         if: failure()
         run: docker logs ha 2>&1 | tail -150
