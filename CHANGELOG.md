@@ -1,25 +1,24 @@
 # Changelog
 
-## Unreleased
+## 0.9.0
 
 **New**
-- **Choose the bar's font.** New **Font** and **Font weight** style settings (`font_family`, `font_weight`) in the editor for the whole bar, and in YAML for the whole bar or a single button. The editor offers stacks that exist on nearly every device (System, Rounded, Condensed, Serif, Monospace, Humanist, Handwriting); any other CSS font stack can be typed in YAML. The weight applies to button names; live values stay semi-bold. Left alone, the bar keeps using Home Assistant's font.
-- **Page ends at the bar** (`reserve_space`, experimental, off by default). For top and bottom bars it shrinks the whole Home Assistant page so it stops at the bar, so dashboard cards no longer scroll under the bar or show in the gap beside a phone navigation bar. The page scrolls inside that space. The editor only shows the setting when a top or bottom bar is in use.
-- **Edge offset** (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
-- **A dashboard button can open the settings.** `?dockbar=edit` now also works when you navigate to it inside Home Assistant, so a button card with the tap action Navigate and the path `?dockbar=edit` opens the dialog without a reload. The address is cleaned afterwards.
-- **Hold the bar to open the settings.** If you hid the Settings button on a kiosk with no address bar, holding a finger on the bar for two seconds opens the settings. Letting go doesn't tap the button under your finger, and moving your finger cancels it.
+- **Fonts.** Choose the bar's font and weight (`font_family`, `font_weight`) in the editor, or in YAML for the bar or a single button.
+- **Page ends at the bar** (`reserve_space`, experimental, off by default). On top and bottom bars the page stops at the bar instead of scrolling under it.
+- **Edge offset** (`edge_offset`, px) lifts the bar off the screen edge, for phones whose navigation bar covers it.
+- **Open the settings from a dashboard.** A button card with the tap action Navigate and path `?dockbar=edit` opens the settings without a reload.
+- **Open the settings on a kiosk.** With the Settings button hidden, hold a finger on the bar for two seconds.
 
 **Changes**
-- **Three reset buttons replace Reset and Reset to defaults**, at every level, each with a warning that says what it resets: **Reset buttons**, **Reset look** and **Reset everything**. Reset buttons and Reset look keep your saved looks, and Reset look keeps your buttons; only Reset everything removes saved looks made at that level. Each one previews first and applies when you click Save.
-- The README is now a short front page, with the guides (using Dockbar, buttons, looks and YAML, all settings, troubleshooting, how it works) in `docs/`. It also explains where each level's settings are stored and how to edit them.
+- **Three reset buttons** replace Reset and Reset to defaults, at every level, each with a warning: **Reset buttons**, **Reset look** and **Reset everything**. Only Reset everything removes saved looks.
+- The README is now a short front page, with the guides in `docs/`.
 
 **Fixes**
-- The pinned buttons (settings, menu, header and turn off) no longer hang off the bar. On a left or right bar they sit two by two inside its width, and on a top or bottom bar the two rows fit its height. They used the bar's own icon size, which made them too big for a narrow or short bar. They now have a smaller icon and less padding.
+- The pinned buttons (settings, menu, header, turn off) no longer hang off narrow side bars or short top and bottom bars. They now have a smaller icon and less padding.
 
 **Tooling**
-- A nightly check (`.github/workflows/ha-check.yml`) starts the Home Assistant beta and dev images in Docker, installs Dockbar through its config flow, opens the UI in headless Chrome and fails if the bar doesn't appear or Dockbar reports a missing Home Assistant hook. Run it by hand from the Actions tab.
-- The scripts that render the README's interface images live in `scripts/screenshots`.
-- The release workflow's `softprops/action-gh-release` is updated, and the reset logic has tests.
+- A nightly check runs Dockbar in Home Assistant's beta and dev images and fails if the bar doesn't appear.
+- The README image scripts live in `scripts/screenshots`, and the reset logic has tests.
 
 ## 0.8.0
 
