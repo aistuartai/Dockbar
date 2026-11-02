@@ -299,9 +299,16 @@ export class DockbarNav extends LitElement {
     /* Footer: a 2-column grid on side bars, two rows on top/bottom bars. */
     :host([position="left"]) .footer,
     :host([position="right"]) .footer {
-      grid-template-columns: repeat(2, 1fr);
+      /* minmax(0, ...) lets a column be narrower than its button, so two columns always fit the bar's width. */
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       padding-top: var(--db-gap);
       border-top: 1px solid var(--db-divider);
+    }
+    :host([position="left"]) .footer .btn,
+    :host([position="right"]) .footer .btn {
+      --db-icon-size: 18px !important;
+      min-width: 0;
+      padding: 4px;
     }
     :host([position="top"]) .footer,
     :host([position="bottom"]) .footer {
@@ -314,12 +321,14 @@ export class DockbarNav extends LitElement {
     }
     :host([position="top"]) .footer .btn,
     :host([position="bottom"]) .footer .btn {
-      --db-icon-size: 16px;
+      --db-icon-size: 16px !important;
       min-height: 0;
       padding: 2px 6px;
     }
+    /* Every button carries the bar's icon size inline, which beats these rules, so the footer's sizes are !important.
+       Otherwise the footer's icons follow the bar's 28px and its buttons overflow a narrow or short bar. */
     .footer .btn {
-      --db-icon-size: 18px;
+      --db-icon-size: 18px !important;
       padding: 6px;
       opacity: 0.75;
     }

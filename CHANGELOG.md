@@ -14,7 +14,7 @@
 - The README is now a short front page, with the guides (using Dockbar, buttons, looks and YAML, all settings, troubleshooting, how it works) in `docs/`. It also explains where each level's settings are stored and how to edit them.
 
 **Fixes**
-- On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They shrink to fit its height, with a smaller icon and less padding.
+- The pinned buttons (settings, menu, header and turn off) no longer hang off the bar. On a left or right bar they sit two by two inside its width, and on a top or bottom bar the two rows fit its height. They used the bar's own icon size, which made them too big for a narrow or short bar. They now have a smaller icon and less padding.
 
 **Tooling**
 - A nightly check (`.github/workflows/ha-check.yml`) starts the Home Assistant beta and dev images in Docker, installs Dockbar through its config flow, opens the UI in headless Chrome and fails if the bar doesn't appear or Dockbar reports a missing Home Assistant hook. Run it by hand from the Actions tab.
