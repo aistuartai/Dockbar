@@ -146,7 +146,10 @@ export class DockbarEditor extends LitElement {
   }
 
   layer(): Layer {
-    if (this.resetPending) return {};
+    if (this.resetPending) {
+      const looks = this.working.custom_presets;
+      return looks && Object.keys(looks).length ? { ...this.host_.defaultLayer(), custom_presets: looks } : {};
+    }
     return diffLayer(this.lower, this.working, this.scope === "shared");
   }
 
@@ -215,11 +218,13 @@ export class DockbarEditor extends LitElement {
   private resetToDefaults() {
     if (
       !confirm(
-        "Reset Everyone to defaults?\n\nThe bar goes back to what a fresh install shows, and the Everyone settings and saved looks are removed. Just me and This device changes stay. Nothing changes until you click Save.",
+        "Reset Everyone to defaults?\n\nThe bar goes back to what a fresh install shows, and the Everyone settings are removed. Saved looks are kept. Just me and This device changes stay. Nothing changes until you click Save.",
       )
     )
       return;
+    const looks = this.working.custom_presets;
     this.working = merge([this.host_.defaultLayer()]);
+    this.working.custom_presets = looks;
     this.working.buttons = groupOrder(this.working.buttons);
     this.changed();
     this.resetPending = true;

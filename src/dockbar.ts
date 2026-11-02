@@ -21,6 +21,7 @@ const EDITOR_TAG = "dockbar-editor";
 const DEFAULT_CONFIG_URL = "/local/dockbar/config.yaml";
 // How often to re-check the header, the left padding and live entity values.
 const CHROME_POLL_MS = 750;
+const LONG_PRESS_MS = 2000;
 // Long enough for Home Assistant to have drawn its own UI, which the check looks inside.
 const HOOK_CHECK_DELAY_MS = 5000;
 const SCOPE_ORDER: Scope[] = ["shared", "user", "device"];
@@ -63,6 +64,7 @@ class Dockbar implements EditorHost {
       this.onClick((e as CustomEvent<ButtonClickDetail>).detail.button),
     );
     this.bar.addEventListener("dockbar-on", () => this.setOff(false));
+    this.watchLongPress();
     document.body.appendChild(this.bar);
 
     ha.onRouteChange(() => this.onRoute());
@@ -308,6 +310,25 @@ class Dockbar implements EditorHost {
 
   private isHere(b: DockbarButton) {
     return b.action === "navigate" && Boolean(b.path) && cleanPath(b.path!) === cleanPath(location.pathname);
+  }
+
+  /**
+   * A kiosk has no address bar for `?dockbar=edit`, so an admin who hid the Settings button
+   * can still open the editor by holding a finger on the bar for two seconds.
+   */
+  private watchLongPress() {
+    let timer = 0;
+    const cancel = () => clearTimeout(timer);
+    this.bar.addEventListener("pointerdown", () => {
+      cancel();
+      timer = window.setTimeout(() => {
+        const hasSettings =
+          this.config.footer.includes("settings") ||
+          this.config.buttons.some((b) => b.action === "settings" && !b.hidden);
+        if (!hasSettings && this.isAdmin) this.openEditor();
+      }, LONG_PRESS_MS);
+    });
+    for (const type of ["pointerup", "pointercancel", "pointerleave"]) this.bar.addEventListener(type, cancel);
   }
 
   openEditor() {

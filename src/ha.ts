@@ -389,7 +389,12 @@ export function setReserve(position: Position | null, px: number, offset = 0) {
     --safe-area-inset-${position}: 0px !important;
     height: auto !important;
     min-height: 0 !important;
-    overflow: clip !important;
+    /* Dashboards and the energy page scroll the page itself, not an inner panel, so the shrunk page must scroll.
+       The transform keeps HA's fixed header inside this box instead of under a top bar. */
+    overflow: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
   }`;
 }
 

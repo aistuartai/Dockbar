@@ -8,6 +8,9 @@
 - **Edge offset** (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
 
 **Fixes**
+- **Page ends at the bar** no longer stops dashboards and the energy page from scrolling.
+- Hid the Settings button and no way back (a kiosk has no address bar)? An admin can now hold a finger on the bar for 2 seconds to open the settings.
+- **Reset to defaults** now keeps your saved looks.
 - On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They now shrink to fit its height.
 
 **Tooling**
