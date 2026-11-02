@@ -147,6 +147,13 @@ export function wantsEditor(): boolean {
   return new URLSearchParams(location.search).get("dockbar") === "edit";
 }
 
+/** Takes `?dockbar=edit` out of the address once it has been acted on, so a later route change doesn't reopen it. */
+export function clearEditRequest() {
+  const url = new URL(location.href);
+  url.searchParams.delete("dockbar");
+  history.replaceState(history.state, "", url);
+}
+
 export interface NavTarget {
   path: string;
   label: string;
@@ -381,6 +388,8 @@ export function setReserve(position: Position | null, px: number, offset = 0) {
     document.head.appendChild(style);
   }
   // The room above already counts the device inset, so Home Assistant's own padding for it is zeroed.
+  // The page scrolls inside this box: dashboards and the energy page scroll the page itself rather than an inner
+  // panel, so clipping it (as beta 3 did) left nothing able to scroll.
   style.textContent = `home-assistant {
     display: block !important;
     position: fixed !important;
@@ -389,12 +398,7 @@ export function setReserve(position: Position | null, px: number, offset = 0) {
     --safe-area-inset-${position}: 0px !important;
     height: auto !important;
     min-height: 0 !important;
-    /* Dashboards and the energy page scroll the page itself, not an inner panel, so the shrunk page must scroll.
-       The transform keeps HA's fixed header inside this box instead of under a top bar. */
     overflow: auto !important;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-    transform: translateZ(0);
   }`;
 }
 

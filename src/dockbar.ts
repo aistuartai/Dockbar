@@ -21,6 +21,7 @@ const EDITOR_TAG = "dockbar-editor";
 const DEFAULT_CONFIG_URL = "/local/dockbar/config.yaml";
 // How often to re-check the header, the left padding and live entity values.
 const CHROME_POLL_MS = 750;
+/** How long a finger rests on the bar to open the settings when the Settings button is gone. */
 const LONG_PRESS_MS = 2000;
 // Long enough for Home Assistant to have drawn its own UI, which the check looks inside.
 const HOOK_CHECK_DELAY_MS = 5000;
@@ -285,6 +286,11 @@ class Dockbar implements EditorHost {
   }
 
   private onRoute() {
+    // A dashboard button that navigates to `?dockbar=edit` changes the address without reloading the page.
+    if (ha.wantsEditor()) {
+      ha.clearEditRequest();
+      this.openEditor();
+    }
     const hidden = onAnyPath(location.pathname, this.config.hide_on);
     if (hidden !== this.routeHidden) {
       this.routeHidden = hidden;
@@ -313,19 +319,22 @@ class Dockbar implements EditorHost {
   }
 
   /**
-   * A kiosk has no address bar for `?dockbar=edit`, so an admin who hid the Settings button
+   * A kiosk has no address bar for `?dockbar=edit`, so someone who hid the Settings button
    * can still open the editor by holding a finger on the bar for two seconds.
    */
+  private get hasSettingsButton() {
+    return (
+      this.config.footer.includes("settings") || this.config.buttons.some((b) => b.action === "settings" && !b.hidden)
+    );
+  }
+
   private watchLongPress() {
     let timer = 0;
     const cancel = () => clearTimeout(timer);
     this.bar.addEventListener("pointerdown", () => {
       cancel();
       timer = window.setTimeout(() => {
-        const hasSettings =
-          this.config.footer.includes("settings") ||
-          this.config.buttons.some((b) => b.action === "settings" && !b.hidden);
-        if (!hasSettings && this.isAdmin) this.openEditor();
+        if (!this.hasSettingsButton) this.openEditor();
       }, LONG_PRESS_MS);
     });
     for (const type of ["pointerup", "pointercancel", "pointerleave"]) this.bar.addEventListener(type, cancel);

@@ -54,6 +54,11 @@ export const editorStyles = css`
   footer {
     border-top: 1px solid var(--db-ed-line);
   }
+  .resets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
   .error {
     flex: 1;
     color: var(--error-color, #f44336);

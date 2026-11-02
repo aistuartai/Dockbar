@@ -10,7 +10,8 @@
 **Fixes**
 - **Page ends at the bar** no longer stops dashboards and the energy page from scrolling.
 - Hid the Settings button and no way back (a kiosk has no address bar)? An admin can now hold a finger on the bar for 2 seconds to open the settings.
-- **Reset to defaults** now keeps your saved looks.
+- `?dockbar=edit` now also works when you navigate to it inside Home Assistant, so a dashboard button (tap action Navigate, path `?dockbar=edit`) can open the settings. Documented, along with where settings are stored and how to edit them.
+- Three reset buttons at every level, each with a warning: **Reset buttons**, **Reset look** (keeps your buttons and saved looks) and **Reset everything**. They replace Reset and Reset to defaults. Reset buttons and Reset look keep your saved looks.
 - On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They now shrink to fit its height.
 
 **Tooling**

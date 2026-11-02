@@ -154,7 +154,7 @@ The dialog has three levels. Each one only stores what it changes, and they stac
 | **Just me** | Each person | That person, on every device |
 | **This device** | Anyone | This browser only, for example a wall tablet |
 
-A ● next to a setting means it's changed at the level you're editing. Click it to put it back. The **Reset** button in the footer removes everything changed at the level you're on, and you see the result before you save.
+A ● next to a setting means it's changed at the level you're editing. Click it to put it back. The footer has three reset buttons, each with a warning that says what it resets: **Reset buttons** (the button list only), **Reset look** (colours, presets and styles; your buttons and saved looks stay) and **Reset everything** (all changes at the level you're on, including saved looks made there). You see the result before you save.
 
 ### Recipes
 
@@ -198,9 +198,9 @@ Set up a **Toggle an entity** button for the garage door and tick **Ask before r
 
 **The bar isn't showing.** Add `?dockbar=on` to any Home Assistant address and reload. This clears the "off" settings a browser can keep from an earlier install or the Turn off button.
 
-**I hid the Settings button and can't get back in.** Add `?dockbar=edit` to any address.
+**I hid the Settings button and can't get back in.** Add `?dockbar=edit` to any address. On a kiosk with no address bar, hold a finger on the bar for two seconds.
 
-**I want to start again.** Open the settings, choose the level, and click **Reset**. At **Everyone** it's **Reset to defaults**. Reinstalling Dockbar keeps your settings, because they're stored in Home Assistant, so a reset is also how you start clean after a reinstall.
+**I want to start again.** Open the settings, choose the level, and click **Reset buttons**, **Reset look** or **Reset everything**. Reinstalling Dockbar keeps your settings, because they're stored in Home Assistant, so a reset is also how you start clean after a reinstall.
 
 **I want to turn it off for a moment.** Add `?dockbar=off` to an address. It lasts for that browser session. Turning the Dockbar integration off and on again also brings the bar back on a page that was disabled this way.
 
@@ -329,6 +329,11 @@ Custom CSS goes in the same tab and is injected into the bar. You can target the
   <img alt="Searching for an action while setting up a Run a Home Assistant action button" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-actions.png" width="760">
 </p>
 
+### Where settings live, and editing them
+
+- **Everyone** is saved in Home Assistant's system storage, **Just me** in your Home Assistant user data, and **This device** in the browser's own storage. None of them is a file you edit by hand. To change them, use the settings dialog, or its **Advanced** tab, which shows the same YAML with **Apply** and **Save**.
+- A file in `/config/www/dockbar/config.yaml` is only a starting point, described next. After the first save under Everyone, Dockbar ignores it.
+
 ### Starting from YAML (optional)
 
 If `/config/www/dockbar/config.yaml` exists and nothing has been saved under **Everyone** yet, Dockbar uses the file as the shared config. The first time an admin saves under **Everyone**, the file's contents move into HA and the file is ignored from then on.
@@ -375,7 +380,23 @@ See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/exa
 ### Escape hatches
 
 - `?dockbar=off` in any URL disables Dockbar for that browser session. `?dockbar=on` brings it back, and also undoes the Turn off button on this device. Turning the Dockbar integration off and on again in **Settings → Devices & services** also brings it back on a page that was disabled this way.
-- `?dockbar=edit` opens the settings dialog, even if the Settings button is hidden.
+- `?dockbar=edit` opens the settings dialog, even if the Settings button is hidden. It works when the page loads and when you navigate to it from inside Home Assistant, so a dashboard button can open the settings (see below).
+- On a kiosk with no address bar, hold a finger on the bar for two seconds to open the settings if the Settings button is hidden.
+
+### A dashboard button for the settings
+
+Add a button card (or any card with a tap action) that navigates to `?dockbar=edit`:
+
+```yaml
+type: button
+name: Dockbar settings
+icon: mdi:tune-variant
+tap_action:
+  action: navigate
+  navigation_path: "?dockbar=edit"
+```
+
+It stays on the same dashboard page and opens the settings dialog on top.
 
 ### How it works
 

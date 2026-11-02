@@ -1,5 +1,5 @@
 import { LitElement, html, nothing } from "lit";
-import { type DockbarConfig, type Layer } from "../config.ts";
+import { LOOK_KEYS, type DockbarConfig, type Layer } from "../config.ts";
 import { clone, diffLayer, merge } from "../merge.ts";
 import { groupOrder } from "../sections.ts";
 import { navTargets, type NavTarget } from "../ha.ts";
@@ -114,7 +114,9 @@ export class DockbarEditor extends LitElement {
   /** Keeps Tab inside the dialog, wrapping from the last control to the first and back. */
   private trapTab(e: KeyboardEvent) {
     const dialog = this.renderRoot.querySelector<HTMLElement>(".dialog");
-    const items = [...this.renderRoot.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.offsetParent !== null);
+    const items = [...this.renderRoot.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+      (el) => el.offsetParent !== null,
+    );
     if (!dialog || !items.length) return;
     const active = (this.renderRoot as ShadowRoot).activeElement;
     if (e.shiftKey && (active === items[0] || active === dialog)) {
@@ -146,10 +148,7 @@ export class DockbarEditor extends LitElement {
   }
 
   layer(): Layer {
-    if (this.resetPending) {
-      const looks = this.working.custom_presets;
-      return looks && Object.keys(looks).length ? { ...this.host_.defaultLayer(), custom_presets: looks } : {};
-    }
+    if (this.resetPending) return {};
     return diffLayer(this.lower, this.working, this.scope === "shared");
   }
 
@@ -214,27 +213,77 @@ export class DockbarEditor extends LitElement {
     }
   }
 
-  /** Everyone level: back to what a fresh install shows. Applied when Save is clicked, like any other change. */
-  private resetToDefaults() {
+  /** What a reset puts back: the level below, or at Everyone what a fresh install shows. */
+  private baseline(): DockbarConfig {
+    return this.scope === "shared" ? merge([this.host_.defaultLayer()]) : this.lower;
+  }
+
+  private get levelName() {
+    return SCOPES.find((s) => s.scope === this.scope)!.label;
+  }
+
+  private resetButtons() {
+    const where =
+      this.scope === "shared"
+        ? "what a fresh install shows (your HA sidebar, with new dashboards added automatically)"
+        : "the buttons from the level below";
     if (
       !confirm(
-        "Reset Everyone to defaults?\n\nThe bar goes back to what a fresh install shows, and the Everyone settings are removed. Saved looks are kept. Just me and This device changes stay. Nothing changes until you click Save.",
+        `Reset buttons at "${this.levelName}"?
+
+Your buttons go back to ${where}. Custom buttons, order, sections, hidden buttons and any colours set on a single button are removed. The look (colours, presets, spacing) and saved looks stay.
+
+Nothing changes until you click Save.`,
       )
     )
       return;
-    const looks = this.working.custom_presets;
+    this.working.buttons = groupOrder(clone(this.baseline().buttons));
+    this.changed();
+  }
+
+  private resetLooks() {
+    if (
+      !confirm(
+        `Reset the look at "${this.levelName}"?
+
+Background, opacity, blur, button names, current-page marker, hover effect and the every-button, current-page and alert styles go back to ${this.scope === "shared" ? "the defaults" : "the level below"}. Your buttons and your saved looks stay.
+
+Nothing changes until you click Save.`,
+      )
+    )
+      return;
+    const base = this.baseline();
+    for (const key of LOOK_KEYS) (this.working as any)[key] = clone(base[key]);
+    this.changed();
+  }
+
+  /** Everything at this level. At Everyone that is a fresh install, applied when Save is clicked like any other change. */
+  private resetEverything() {
+    if (this.scope !== "shared") {
+      if (
+        !confirm(
+          `Reset everything at "${this.levelName}"?
+
+Every "${this.levelName.toLowerCase()}" change is removed, buttons and look, and you'll see the config from the level below. Saved looks made at this level are removed too. Other levels stay.
+
+Nothing changes until you click Save.`,
+        )
+      )
+        return;
+      this.working = clone(this.lower);
+      this.changed();
+      return;
+    }
+    if (
+      !confirm(
+        "Reset everything at Everyone?\n\nThe buttons and the look go back to what a fresh install shows, and all Everyone settings and saved looks are removed. Just me and This device changes stay.\n\nNothing changes until you click Save.",
+      )
+    )
+      return;
     this.working = merge([this.host_.defaultLayer()]);
-    this.working.custom_presets = looks;
     this.working.buttons = groupOrder(this.working.buttons);
     this.changed();
     this.resetPending = true;
-  }
-
-  private resetScope() {
-    const label = SCOPES.find((s) => s.scope === this.scope)!.label.toLowerCase();
-    if (!confirm(`Remove all "${label}" changes? You'll see the config from the level below.`)) return;
-    this.working = clone(this.lower);
-    this.changed();
   }
 
   render() {
@@ -260,48 +309,63 @@ export class DockbarEditor extends LitElement {
         </header>
         <div class="scopes" role="tablist">
           ${SCOPES.map(
-            (s) => html`<button
-              role="tab"
-              aria-selected=${s.scope === this.scope}
-              ?disabled=${s.scope === "shared" && !this.host_.isAdmin}
-              title=${s.hint}
-              @click=${() => this.switchScope(s.scope)}
-            >
-              ${s.label}
-            </button>`,
+            (s) =>
+              html`<button
+                role="tab"
+                aria-selected=${s.scope === this.scope}
+                ?disabled=${s.scope === "shared" && !this.host_.isAdmin}
+                title=${s.hint}
+                @click=${() => this.switchScope(s.scope)}
+              >
+                ${s.label}
+              </button>`,
           )}
         </div>
         <p class="hint scope-hint">
-          ${scopeInfo.hint} ${this.scope !== "shared" ? html`<strong>●</strong> marks a setting changed at this level.` : nothing}
+          ${scopeInfo.hint}
+          ${this.scope !== "shared" ? html`<strong>●</strong> marks a setting changed at this level.` : nothing}
         </p>
-        ${this.host_.usingSidebar
-          ? html`<p class="banner">
-              These buttons are copied from your Home Assistant sidebar, so everyone sees their own until an admin saves under
-              <strong>Everyone</strong>. Saving keeps this list for all users.
-            </p>`
-          : nothing}
-        ${this.scope === "shared" && this.host_.usingYaml
-          ? html`<p class="banner">
-              Currently using <code>www/dockbar/config.yaml</code>. Saving here moves the config into Home Assistant, and the
-              YAML file is ignored from then on.
-            </p>`
-          : nothing}
+        ${
+          this.host_.usingSidebar
+            ? html`<p class="banner">
+                These buttons are copied from your Home Assistant sidebar, so everyone sees their own until an admin
+                saves under
+                <strong>Everyone</strong>. Saving keeps this list for all users.
+              </p>`
+            : nothing
+        }
+        ${
+          this.scope === "shared" && this.host_.usingYaml
+            ? html`<p class="banner">
+                Currently using <code>www/dockbar/config.yaml</code>. Saving here moves the config into Home Assistant,
+                and the YAML file is ignored from then on.
+              </p>`
+            : nothing
+        }
         <div class="tabs" role="tablist" aria-label="Settings sections">
-          <button role="tab" aria-selected=${this.tab === "general"} @click=${() => (this.tab = "general")}>General</button>
+          <button role="tab" aria-selected=${this.tab === "general"} @click=${() => (this.tab = "general")}>
+            General
+          </button>
           <button role="tab" aria-selected=${this.tab === "buttons"} @click=${() => (this.tab = "buttons")}>
             Buttons (${this.working.buttons.length})
           </button>
-          <button role="tab" aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>Advanced</button>
+          <button role="tab" aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>
+            Advanced
+          </button>
         </div>
         <main role="tabpanel">
           ${this.tab === "general" ? renderGeneral(this) : this.tab === "buttons" ? renderButtons(this) : renderAdvanced(this)}
         </main>
         <footer>
-          ${this.scope !== "shared"
-            ? html`<button class="text danger" @click=${() => this.resetScope()}>Reset "${scopeInfo.label}"</button>`
-            : this.host_.usingSidebar
-              ? nothing
-              : html`<button class="text danger" @click=${() => this.resetToDefaults()}>Reset to defaults</button>`}
+          <div class="resets">
+            <button class="text danger" @click=${() => this.resetButtons()}>Reset buttons</button>
+            <button class="text danger" @click=${() => this.resetLooks()}>Reset look</button>
+            ${
+              this.scope === "shared" && this.host_.usingSidebar
+                ? nothing
+                : html`<button class="text danger" @click=${() => this.resetEverything()}>Reset everything</button>`
+            }
+          </div>
           <span class="error">${this.error}</span>
           <button class="text" @click=${() => this.close()}>Cancel</button>
           <button class="primary" ?disabled=${!this.canSave || this.saving} @click=${() => this.save()}>
