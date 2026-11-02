@@ -11,6 +11,7 @@ SS = 4
 
 SETS = {
     "phone-a": [("phone-glass-top", "Glass", "Top bar"), ("phone-soft-bottom", "Soft", "Bottom bar"), ("phone-3d-bottom", "3D", "Bottom bar")],
+    "phone-c": [("phone-glass-reserve", "Page ends at the bar", "Bottom bar, scrolled"), ("phone-soft-font", "Choose a font", "Monospace, bottom bar"), ("phone-neon-serif", "Fits short bars", "Serif, top bar")],
     "phone-b": [("phone-neon-top", "Neon", "Top bar"), ("phone-softdark-bottom", "Soft Dark", "Bottom bar"), ("phone-dock-bottom", "Dock", "Bottom bar")],
 }
 
@@ -73,12 +74,18 @@ def phone(shot_path, scr_w=270):
     return body
 
 
+TITLES = {
+    "phone-c": ("New: the page ends at the bar, fonts, and tidy footer buttons", "Dashboards stop at the bar even when you scroll, and the pinned buttons sit inside it."),
+}
+DEFAULT_TITLE = ("On a phone, the bar goes top or bottom", "It keeps clear of the status bar and home indicator, and the page lays itself out around it.")
+
 for name, items in SETS.items():
+    title, subtitle = TITLES.get(name, DEFAULT_TITLE)
     CW, CH = 1000, 780
     canvas = gradient(CW * S, CH * S)
     d = ImageDraw.Draw(canvas)
-    d.text((CW * S / 2, 52 * S), "On a phone, the bar goes top or bottom", font=SEMI(34), fill=(255, 255, 255, 255), anchor="mm")
-    d.text((CW * S / 2, 92 * S), "It keeps clear of the status bar and home indicator, and the page lays itself out around it.", font=LIGHT(17), fill=(255, 255, 255, 195), anchor="mm")
+    d.text((CW * S / 2, 52 * S), title, font=SEMI(34), fill=(255, 255, 255, 255), anchor="mm")
+    d.text((CW * S / 2, 92 * S), subtitle, font=LIGHT(17), fill=(255, 255, 255, 195), anchor="mm")
     phones = [phone(f"{shots}/{shot}.png") for shot, _, _ in items]
     pw = phones[0].width
     gap = (CW * S - len(phones) * pw) // (len(phones) + 1)

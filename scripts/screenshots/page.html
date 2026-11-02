@@ -55,7 +55,7 @@
     constructor() {
       super();
       const root = this.attachShadow({ mode: "open" });
-      root.innerHTML = `<home-assistant-main></home-assistant-main>`;
+      root.innerHTML = `<home-assistant-main></home-assistant-main><slot></slot>`;   // the slot shows a phone example's page when it sits inside this element
       const main = root.querySelector("home-assistant-main");
       main.attachShadow({ mode: "open" }).innerHTML = `<ha-drawer></ha-drawer>`;
     }

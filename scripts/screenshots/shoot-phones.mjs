@@ -4,6 +4,8 @@ import { start } from "./server.mjs";
 
 const out = new URL("./out/", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 await mkdir(out, { recursive: true });
+const FONT_MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, 'Roboto Mono', monospace";
+const FONT_SERIF = "Georgia, 'Times New Roman', serif";
 const SHOTS = [
   { name: "phone-neon-top", look: "neon", pos: "top", theme: "dark" },
   { name: "phone-soft-bottom", look: "soft", pos: "bottom", theme: "light" },
@@ -11,6 +13,10 @@ const SHOTS = [
   { name: "phone-glass-top", look: "glass", pos: "top", theme: "dark" },
   { name: "phone-dock-bottom", look: "dock", pos: "bottom", theme: "dark" },
   { name: "phone-softdark-bottom", look: "soft-dark", pos: "bottom", theme: "dark" },
+  // New in 0.9: the page ends at the bar, fonts, and the pinned buttons fitting a short bar.
+  { name: "phone-glass-reserve", look: "glass", pos: "bottom", theme: "dark", extra: "&reserve", scroll: 190 },
+  { name: "phone-soft-font", look: "soft", pos: "bottom", theme: "light", extra: `&footer&font=${encodeURIComponent(FONT_MONO)}` },
+  { name: "phone-neon-serif", look: "neon", pos: "top", theme: "dark", extra: `&footer&font=${encodeURIComponent(FONT_SERIF)}` },
 ];
 const server = await start();
 const browser = await puppeteer.launch({
@@ -29,9 +35,13 @@ try {
     } catch (e) {
       console.log("  safe-area override not available:", e.message);
     }
-    await page.goto(`http://localhost:8765/dashboard-main/0?phone=${s.look}&pos=${s.pos}&theme=${s.theme}`, { waitUntil: "networkidle0" });
+    await page.goto(`http://localhost:8765/dashboard-main/0?phone=${s.look}&pos=${s.pos}&theme=${s.theme}${s.extra ?? ""}`, { waitUntil: "networkidle0" });
     await page.waitForFunction(() => document.querySelector("dockbar-nav")?.shadowRoot?.querySelector(".btn"), { timeout: 15000 });
     await new Promise((r) => setTimeout(r, 1500));
+    if (s.scroll) {
+      await page.evaluate((y) => (document.querySelector("home-assistant").scrollTop = y), s.scroll);
+      await new Promise((r) => setTimeout(r, 300));
+    }
     await page.screenshot({ path: `${out}${s.name}.png` });
     console.log("saved", s.name);
     await page.close();

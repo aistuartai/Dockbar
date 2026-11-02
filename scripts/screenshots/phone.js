@@ -38,11 +38,14 @@ export function setup(layer, params) {
   const theme = params.get("theme") || "dark";
 
   Object.assign(layer, PRESETS[look]);
-  layer.footer = [];   // a phone example keeps its room for the buttons
+  const footer = params.has("footer");   // the pinned buttons, which sit two by two on a short bar
+  if (!footer) layer.footer = [];   // otherwise a phone example keeps its room for the buttons
+  if (params.get("font")) layer.defaults = { ...layer.defaults, font_family: params.get("font") };
+  if (params.has("reserve")) layer.reserve_space = true;
   if (layer.defaults && layer.defaults.text_transform) Object.assign(layer.defaults, { font_size: "9px", letter_spacing: "0.05em" });
   Object.assign(layer, { mobile_position: pos, mobile_breakpoint: 600, mobile_size: look === "dock" ? 64 : 72, padding: 10, gap: 8, button_min_length: 44, button_length: 62, auto_add_dashboards: false });
   const byId = Object.fromEntries(layer.buttons.map((b) => [b.id, b]));
-  layer.buttons = ["home", "weather", "lounge", "garage", "settings"].map((id) => byId[id]);
+  layer.buttons = (footer ? ["home", "weather", "lounge", "settings"] : ["home", "weather", "lounge", "garage", "settings"]).map((id) => byId[id]);
   if (layer.defaults && layer.defaults.text_transform) byId.settings.name = "More";   // the spaced capitals of the Soft looks need a shorter word
 
   const light = theme === "light";
@@ -74,6 +77,7 @@ export function setup(layer, params) {
       : "background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);"} }
   `;
   document.head.appendChild(style);
+  if (params.has("reserve")) style.textContent += " main { height: auto; min-height: 100%; overflow: visible; }";
 
   const stroke = light ? "#4F6B62" : "#B9A8FF";
   document.body.insertAdjacentHTML("afterbegin", `
@@ -93,6 +97,16 @@ export function setup(layer, params) {
       </div>
       <div class="wide"><small>Energy today</small><svg viewBox="0 0 300 44" preserveAspectRatio="none" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M0 34 C 30 30, 45 8, 75 14 S 120 36, 150 24 S 205 2, 235 12 S 280 30, 300 18"/></svg><b>12.4 kWh</b></div>
       <div class="chips"><span class="chip">Movie night</span><span class="chip">Dinner</span><span class="chip">Good night</span></div>
+      ${params.has("reserve") ? `
+      <div class="grid" style="margin-top:14px">
+        <div class="tile"><small>Bedroom</small><b>Off</b></div>
+        <div class="tile"><small>Front door</small><b>Locked</b></div>
+        <div class="tile"><small>Hot water</small><b>54°C</b></div>
+        <div class="tile"><small>Battery</small><b class="amber">82%</b></div>
+      </div>
+      <div class="wide"><small>Energy this week</small><svg viewBox="0 0 300 44" preserveAspectRatio="none" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M0 14 C 40 40, 60 4, 100 20 S 160 38, 190 16 S 250 6, 300 30"/></svg><b>86.1 kWh</b></div>` : ""}
     </main>
     <div id="home"></div>`);
+  // With the page ending at the bar, the page scrolls inside the Home Assistant element instead of under the bar.
+  if (params.has("reserve")) document.querySelector("home-assistant").append(document.querySelector("main"));
 }

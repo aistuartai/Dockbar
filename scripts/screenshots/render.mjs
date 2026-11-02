@@ -33,6 +33,7 @@ if (process.argv.includes("--copy")) {
     ["framed/settings-toggle.png", "settings-toggle.png"],
     ["framed/settings-actions.png", "settings-actions.png"],
     ["phones/phone-a.png", "phones.png"],
+    ["phones/phone-c.png", "phones-new.png"],
     ["built/hero-page.png", "hero-page.png"],
   ];
   for (const [from, to] of copies) copyFileSync(join(here, from), join(repo, "docs", to));
