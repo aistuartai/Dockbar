@@ -355,23 +355,28 @@ export function navigate(path: string) {
   fire(window, "location-changed", { replace: false });
 }
 
+const RESERVE_STYLE_ID = "dockbar-reserve";
+
+/** The edge a bar sits on, how thick it is, and how far it is lifted off that edge, all in px. */
+export interface BarSpace {
+  position: Position;
+  px: number;
+  offset: number;
+}
+
+/** The room a bar takes along its edge: the device's own inset, the offset, and the bar's thickness. */
+function edgeRoom({ position, px, offset }: BarSpace): string {
+  return `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`;
+}
+
 /**
  * Reserve room for the bar using the same CSS hook the companion apps use for notches,
  * so every HA page (dashboards, settings, dialogs) lays itself out around the bar.
  */
-export function setInset(position: Position | null, px: number, offset = 0) {
+export function setInset(space: BarSpace | null) {
   const style = document.documentElement.style;
   for (const side of SIDES) style.removeProperty(`--app-safe-area-inset-${side}`);
-  if (position) {
-    style.setProperty(`--app-safe-area-inset-${position}`, edgeRoom(position, px, offset));
-  }
-}
-
-const RESERVE_STYLE_ID = "dockbar-reserve";
-
-/** The room a bar takes along its edge: the device's own inset, the offset, and the bar's thickness. */
-function edgeRoom(position: Position, px: number, offset: number): string {
-  return `calc(env(safe-area-inset-${position}, 0px) + ${offset + px}px)`;
+  if (space) style.setProperty(`--app-safe-area-inset-${space.position}`, edgeRoom(space));
 }
 
 /**
@@ -379,9 +384,12 @@ function edgeRoom(position: Position, px: number, offset: number): string {
  * Padding can only leave room at the end of a scroll; this shrinks the page itself, so a see-through bar or
  * the gap beside a phone's navigation bar never shows dashboard content. Pass null to put the page back.
  */
-export function setReserve(position: Position | null, px: number, offset = 0) {
+export function setReserve(space: BarSpace | null) {
   let style = document.getElementById(RESERVE_STYLE_ID);
-  if (!position) return style?.remove();
+  if (!space) {
+    style?.remove();
+    return;
+  }
   if (!style) {
     style = document.createElement("style");
     style.id = RESERVE_STYLE_ID;
@@ -394,8 +402,8 @@ export function setReserve(position: Position | null, px: number, offset = 0) {
     display: block !important;
     position: fixed !important;
     inset: 0 !important;
-    ${position}: ${edgeRoom(position, px, offset)} !important;
-    --safe-area-inset-${position}: 0px !important;
+    ${space.position}: ${edgeRoom(space)} !important;
+    --safe-area-inset-${space.position}: 0px !important;
     height: auto !important;
     min-height: 0 !important;
     overflow: auto !important;

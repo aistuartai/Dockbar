@@ -4,18 +4,22 @@
 
 **New**
 - **Choose the bar's font.** New **Font** and **Font weight** style settings (`font_family`, `font_weight`) in the editor for the whole bar, and in YAML for the whole bar or a single button. The editor offers stacks that exist on nearly every device (System, Rounded, Condensed, Serif, Monospace, Humanist, Handwriting); any other CSS font stack can be typed in YAML. The weight applies to button names; live values stay semi-bold. Left alone, the bar keeps using Home Assistant's font.
-- **Page ends at the bar** (`reserve_space`, experimental, off by default). For top and bottom bars it shrinks the whole Home Assistant page so it stops at the bar, so dashboard cards no longer scroll under the bar or show in the gap beside a phone navigation bar. The editor only shows it when a top or bottom bar is in use.
+- **Page ends at the bar** (`reserve_space`, experimental, off by default). For top and bottom bars it shrinks the whole Home Assistant page so it stops at the bar, so dashboard cards no longer scroll under the bar or show in the gap beside a phone navigation bar. The page scrolls inside that space. The editor only shows the setting when a top or bottom bar is in use.
 - **Edge offset** (`edge_offset`, in px) lifts the bar off the screen edge and makes the page leave the same extra room. For phones where the app draws the page under a visible navigation bar and reports no inset, so the bar sits behind it.
+- **A dashboard button can open the settings.** `?dockbar=edit` now also works when you navigate to it inside Home Assistant, so a button card with the tap action Navigate and the path `?dockbar=edit` opens the dialog without a reload. The address is cleaned afterwards.
+- **Hold the bar to open the settings.** If you hid the Settings button on a kiosk with no address bar, holding a finger on the bar for two seconds opens the settings. Letting go doesn't tap the button under your finger, and moving your finger cancels it.
+
+**Changes**
+- **Three reset buttons replace Reset and Reset to defaults**, at every level, each with a warning that says what it resets: **Reset buttons**, **Reset look** and **Reset everything**. Reset buttons and Reset look keep your saved looks, and Reset look keeps your buttons; only Reset everything removes saved looks made at that level. Each one previews first and applies when you click Save.
+- The README is now a short front page, with the guides (using Dockbar, buttons, looks and YAML, all settings, troubleshooting, how it works) in `docs/`. It also explains where each level's settings are stored and how to edit them.
 
 **Fixes**
-- **Page ends at the bar** no longer stops dashboards and the energy page from scrolling.
-- Hid the Settings button and no way back (a kiosk has no address bar)? An admin can now hold a finger on the bar for 2 seconds to open the settings.
-- `?dockbar=edit` now also works when you navigate to it inside Home Assistant, so a dashboard button (tap action Navigate, path `?dockbar=edit`) can open the settings. Documented, along with where settings are stored and how to edit them.
-- Three reset buttons at every level, each with a warning: **Reset buttons**, **Reset look** (keeps your buttons and saved looks) and **Reset everything**. They replace Reset and Reset to defaults. Reset buttons and Reset look keep your saved looks.
-- On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They now shrink to fit its height.
+- On top and bottom bars the two rows of footer buttons (menu, power and so on) no longer hang off the bar when the bar is short. They shrink to fit its height, with a smaller icon and less padding.
 
 **Tooling**
 - A nightly check (`.github/workflows/ha-check.yml`) starts the Home Assistant beta and dev images in Docker, installs Dockbar through its config flow, opens the UI in headless Chrome and fails if the bar doesn't appear or Dockbar reports a missing Home Assistant hook. Run it by hand from the Actions tab.
+- The scripts that render the README's interface images live in `scripts/screenshots`.
+- The release workflow's `softprops/action-gh-release` is updated, and the reset logic has tests.
 
 ## 0.8.0
 

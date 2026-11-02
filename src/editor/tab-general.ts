@@ -1,5 +1,5 @@
 import { html, nothing } from "lit";
-import { FOOTER_TOOLS, POSITIONS, STYLE_KEYS, ACTIVE_INDICATORS, HOVER_EFFECTS } from "../config.ts";
+import { FOOTER_TOOLS, isHorizontal, POSITIONS, STYLE_KEYS, ACTIVE_INDICATORS, HOVER_EFFECTS } from "../config.ts";
 import { clone, same } from "../merge.ts";
 import { PRESETS, applyPreset, captureLook, savedPreset } from "../presets.ts";
 import { FOOTER_LABELS, INDICATOR_LABELS, HOVER_LABELS, SHADOW_CHOICES } from "./constants.ts";
@@ -75,7 +75,7 @@ export function renderGeneral(ed: DockbarEditor) {
       <h3>Home Assistant</h3>
       <div class="grid">
         ${toggle(ed, "Hide HA sidebar", "hide_sidebar", "The Menu button still opens it")}
-        ${[ed.working.position, ed.working.mobile_position].some((p) => p === "top" || p === "bottom")
+        ${[ed.working.position, ed.working.mobile_position].some(isHorizontal)
           ? toggle(ed, "Page ends at the bar", "reserve_space", "The page no longer scrolls under a top or bottom bar")
           : nothing}
         ${toggle(ed, "Hide dashboard header", "hide_header", "Comes back when editing a dashboard")}

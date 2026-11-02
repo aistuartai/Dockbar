@@ -1,5 +1,14 @@
 import { DockbarNav, type ButtonClickDetail } from "./bar.ts";
-import { ConfigError, loadYamlLayer, safeUrl, type DockbarButton, type DockbarConfig, type Layer, type Position } from "./config.ts";
+import {
+  ConfigError,
+  isHorizontal,
+  loadYamlLayer,
+  safeUrl,
+  type DockbarButton,
+  type DockbarConfig,
+  type Layer,
+  type Position,
+} from "./config.ts";
 import { DockbarEditor, type EditorHost } from "./editor/editor.ts";
 import { DockbarPicker } from "./editor/picker.ts";
 import * as ha from "./ha.ts";
@@ -23,6 +32,8 @@ const DEFAULT_CONFIG_URL = "/local/dockbar/config.yaml";
 const CHROME_POLL_MS = 750;
 /** How long a finger rests on the bar to open the settings when the Settings button is gone. */
 const LONG_PRESS_MS = 2000;
+/** A finger that moves further than this while pressing is scrolling the bar, not holding it. */
+const LONG_PRESS_SLOP_PX = 10;
 // Long enough for Home Assistant to have drawn its own UI, which the check looks inside.
 const HOOK_CHECK_DELAY_MS = 5000;
 const SCOPE_ORDER: Scope[] = ["shared", "user", "device"];
@@ -68,7 +79,10 @@ class Dockbar implements EditorHost {
     this.watchLongPress();
     document.body.appendChild(this.bar);
 
-    ha.onRouteChange(() => this.onRoute());
+    ha.onRouteChange(() => {
+      this.onRoute();
+      this.openRequestedEditor();
+    });
     // HA re-creates hui-root per dashboard and flips the drawer between modal and docked on resize.
     // Nothing to keep in step while the tab is hidden; catch up as soon as it's shown.
     setInterval(() => document.hidden || this.syncChrome(), CHROME_POLL_MS);
@@ -80,7 +94,7 @@ class Dockbar implements EditorHost {
     });
 
     this.refresh();
-    if (ha.wantsEditor()) this.openEditor();
+    this.openRequestedEditor();
   }
 
   // ------------------------------------------------------------ EditorHost
@@ -200,9 +214,10 @@ class Dockbar implements EditorHost {
     this.position = pos;
     this.bar.position = pos;
     // A top or bottom bar can shrink the page itself; a side bar keeps using the inset HA already honours.
-    const reserve = c.reserve_space && (pos === "top" || pos === "bottom") && !this.barGone;
-    ha.setReserve(reserve ? pos : null, c.size, c.edge_offset);
-    ha.setInset(this.barGone || reserve ? null : pos, c.size, c.edge_offset);
+    const reserve = c.reserve_space && isHorizontal(pos) && !this.barGone;
+    const space = { position: pos, px: c.size, offset: c.edge_offset };
+    ha.setReserve(reserve ? space : null);
+    ha.setInset(this.barGone || reserve ? null : space);
     this.syncChrome();
   }
 
@@ -286,11 +301,6 @@ class Dockbar implements EditorHost {
   }
 
   private onRoute() {
-    // A dashboard button that navigates to `?dockbar=edit` changes the address without reloading the page.
-    if (ha.wantsEditor()) {
-      ha.clearEditRequest();
-      this.openEditor();
-    }
     const hidden = onAnyPath(location.pathname, this.config.hide_on);
     if (hidden !== this.routeHidden) {
       this.routeHidden = hidden;
@@ -318,26 +328,55 @@ class Dockbar implements EditorHost {
     return b.action === "navigate" && Boolean(b.path) && cleanPath(b.path!) === cleanPath(location.pathname);
   }
 
-  /**
-   * A kiosk has no address bar for `?dockbar=edit`, so someone who hid the Settings button
-   * can still open the editor by holding a finger on the bar for two seconds.
-   */
   private get hasSettingsButton() {
     return (
       this.config.footer.includes("settings") || this.config.buttons.some((b) => b.action === "settings" && !b.hidden)
     );
   }
 
+  /**
+   * A kiosk has no address bar for `?dockbar=edit`, so someone who hid the Settings button
+   * can still open the editor by holding a finger on the bar for two seconds.
+   */
   private watchLongPress() {
-    let timer = 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let start = { x: 0, y: 0 };
+    let opened = false;
     const cancel = () => clearTimeout(timer);
-    this.bar.addEventListener("pointerdown", () => {
+    this.bar.addEventListener("pointerdown", (e) => {
       cancel();
-      timer = window.setTimeout(() => {
-        if (!this.hasSettingsButton) this.openEditor();
+      opened = false;
+      start = { x: e.clientX, y: e.clientY };
+      timer = setTimeout(() => {
+        if (this.hasSettingsButton) return;
+        opened = true;
+        this.openEditor();
       }, LONG_PRESS_MS);
     });
+    this.bar.addEventListener("pointermove", (e) => {
+      if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > LONG_PRESS_SLOP_PX) cancel();
+    });
     for (const type of ["pointerup", "pointercancel", "pointerleave"]) this.bar.addEventListener(type, cancel);
+    // Letting go after the editor opened must not also tap the button under the finger, or pop up the browser's menu.
+    for (const type of ["click", "contextmenu"]) {
+      this.bar.addEventListener(
+        type,
+        (e) => {
+          if (!opened) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (type === "click") opened = false;
+        },
+        true,
+      );
+    }
+  }
+
+  /** `?dockbar=edit` opens the editor, on load or when a dashboard button navigates to it, and is then taken off the address. */
+  private openRequestedEditor() {
+    if (!ha.wantsEditor()) return;
+    ha.clearEditRequest();
+    this.openEditor();
   }
 
   openEditor() {

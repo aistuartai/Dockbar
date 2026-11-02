@@ -46,6 +46,8 @@ defaults:                 # applied to every button; each button can override an
   shadow: soft            # none | soft | raised | glow | 3d | soft-ui | any CSS box-shadow
   state_color: '#C9BEFF'  # colour of a button's live entity value
   badge_color: '#FF5252'  # colour of count badges
+  # font_family: Georgia, serif   # any CSS font stack; leave out to keep Home Assistant's font
+  # font_weight: bold             # normal | bold | 100-900, for button names
   # text_transform: uppercase
   # letter_spacing: 0.12em
 

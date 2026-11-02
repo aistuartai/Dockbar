@@ -213,6 +213,15 @@ test("the example config loads without warnings", async () => {
   assert.equal(layer.buttons?.find((b) => b.name === "Repairs")?.hidden, true);
 });
 
+test("examples/config.yaml mentions every setting and style key", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { SETTING_KEYS, STYLE_KEYS } = await import("../src/config.ts");
+  const example = readFileSync("examples/config.yaml", "utf8");
+  const mentioned = (key: string) => new RegExp(`\\b${key}\\b`).test(example);
+  const missing = [...SETTING_KEYS, ...STYLE_KEYS].filter((key) => !mentioned(key));
+  assert.deepEqual(missing, []);
+});
+
 test("javascript: and other non-web links are dropped from url buttons", () => {
   const warnings: string[] = [];
   const layer = sanitiseLayer(

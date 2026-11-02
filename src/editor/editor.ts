@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from "lit";
-import { LOOK_KEYS, type DockbarConfig, type Layer } from "../config.ts";
+import { type DockbarConfig, type Layer } from "../config.ts";
 import { clone, diffLayer, merge } from "../merge.ts";
+import { resetButtons, resetLooks } from "../reset.ts";
 import { groupOrder } from "../sections.ts";
 import { navTargets, type NavTarget } from "../ha.ts";
 import { type Scope } from "../storage.ts";
@@ -114,9 +115,7 @@ export class DockbarEditor extends LitElement {
   /** Keeps Tab inside the dialog, wrapping from the last control to the first and back. */
   private trapTab(e: KeyboardEvent) {
     const dialog = this.renderRoot.querySelector<HTMLElement>(".dialog");
-    const items = [...this.renderRoot.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
-      (el) => el.offsetParent !== null,
-    );
+    const items = [...this.renderRoot.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((el) => el.offsetParent !== null);
     if (!dialog || !items.length) return;
     const active = (this.renderRoot as ShadowRoot).activeElement;
     if (e.shiftKey && (active === items[0] || active === dialog)) {
@@ -213,77 +212,67 @@ export class DockbarEditor extends LitElement {
     }
   }
 
-  /** What a reset puts back: the level below, or at Everyone what a fresh install shows. */
+  /** What a reset puts back: the level below, or at Everyone what a fresh install shows (or config.yaml). */
   private baseline(): DockbarConfig {
     return this.scope === "shared" ? merge([this.host_.defaultLayer()]) : this.lower;
+  }
+
+  private get shared() {
+    return this.scope === "shared";
   }
 
   private get levelName() {
     return SCOPES.find((s) => s.scope === this.scope)!.label;
   }
 
-  private resetButtons() {
-    const where =
-      this.scope === "shared"
-        ? "what a fresh install shows (your HA sidebar, with new dashboards added automatically)"
-        : "the buttons from the level below";
-    if (
-      !confirm(
-        `Reset buttons at "${this.levelName}"?
-
-Your buttons go back to ${where}. Custom buttons, order, sections, hidden buttons and any colours set on a single button are removed. The look (colours, presets, spacing) and saved looks stay.
-
-Nothing changes until you click Save.`,
-      )
-    )
-      return;
-    this.working.buttons = groupOrder(clone(this.baseline().buttons));
+  /** Asks first, then applies the reset to the working copy. Nothing is saved until Save, like any other change. */
+  private confirmReset(title: string, what: string, apply: () => void): boolean {
+    if (!confirm(`${title}\n\n${what}\n\nNothing changes until you click Save.`)) return false;
+    apply();
     this.changed();
+    return true;
+  }
+
+  private resetButtons() {
+    const to = this.shared
+      ? "what a fresh install shows (your HA sidebar, with new dashboards added automatically)"
+      : "the buttons from the level below";
+    this.confirmReset(
+      `Reset buttons at "${this.levelName}"?`,
+      `Your buttons go back to ${to}. Custom buttons, order, sections, hidden buttons and any colours set on a single button are removed. The look (colours, presets, spacing) and saved looks stay.`,
+      () => resetButtons(this.working, this.baseline()),
+    );
   }
 
   private resetLooks() {
-    if (
-      !confirm(
-        `Reset the look at "${this.levelName}"?
-
-Background, opacity, blur, button names, current-page marker, hover effect and the every-button, current-page and alert styles go back to ${this.scope === "shared" ? "the defaults" : "the level below"}. Your buttons and your saved looks stay.
-
-Nothing changes until you click Save.`,
-      )
-    )
-      return;
-    const base = this.baseline();
-    for (const key of LOOK_KEYS) (this.working as any)[key] = clone(base[key]);
-    this.changed();
+    const to = this.shared ? "what a fresh install shows (or your config.yaml, if you use one)" : "the level below";
+    this.confirmReset(
+      `Reset the look at "${this.levelName}"?`,
+      `Background, opacity, blur, button names, current-page marker, hover effect and the every-button, current-page and alert styles go back to ${to}. Your buttons and your saved looks stay.`,
+      () => resetLooks(this.working, this.baseline()),
+    );
   }
 
-  /** Everything at this level. At Everyone that is a fresh install, applied when Save is clicked like any other change. */
+  /** Everything at this level, buttons and look. At Everyone that is a fresh install, cleared when Save is clicked. */
   private resetEverything() {
-    if (this.scope !== "shared") {
-      if (
-        !confirm(
-          `Reset everything at "${this.levelName}"?
-
-Every "${this.levelName.toLowerCase()}" change is removed, buttons and look, and you'll see the config from the level below. Saved looks made at this level are removed too. Other levels stay.
-
-Nothing changes until you click Save.`,
-        )
-      )
-        return;
-      this.working = clone(this.lower);
-      this.changed();
+    if (!this.shared) {
+      this.confirmReset(
+        `Reset everything at "${this.levelName}"?`,
+        `Every "${this.levelName.toLowerCase()}" change is removed, buttons and look, and you'll see the config from the level below. Saved looks made at this level are removed too. Other levels stay.`,
+        () => (this.working = clone(this.lower)),
+      );
       return;
     }
-    if (
-      !confirm(
-        "Reset everything at Everyone?\n\nThe buttons and the look go back to what a fresh install shows, and all Everyone settings and saved looks are removed. Just me and This device changes stay.\n\nNothing changes until you click Save.",
-      )
-    )
-      return;
-    this.working = merge([this.host_.defaultLayer()]);
-    this.working.buttons = groupOrder(this.working.buttons);
-    this.changed();
-    this.resetPending = true;
+    const applied = this.confirmReset(
+      "Reset everything at Everyone?",
+      "The buttons and the look go back to what a fresh install shows, and all Everyone settings and saved looks are removed. Just me and This device changes stay.",
+      () => {
+        this.working = merge([this.host_.defaultLayer()]);
+        this.working.buttons = groupOrder(this.working.buttons);
+      },
+    );
+    // Set after changed() clears it. Any later edit saves the edited copy instead of clearing, and previews the same.
+    if (applied) this.resetPending = true;
   }
 
   render() {
@@ -309,49 +298,38 @@ Nothing changes until you click Save.`,
         </header>
         <div class="scopes" role="tablist">
           ${SCOPES.map(
-            (s) =>
-              html`<button
-                role="tab"
-                aria-selected=${s.scope === this.scope}
-                ?disabled=${s.scope === "shared" && !this.host_.isAdmin}
-                title=${s.hint}
-                @click=${() => this.switchScope(s.scope)}
-              >
-                ${s.label}
-              </button>`,
+            (s) => html`<button
+              role="tab"
+              aria-selected=${s.scope === this.scope}
+              ?disabled=${s.scope === "shared" && !this.host_.isAdmin}
+              title=${s.hint}
+              @click=${() => this.switchScope(s.scope)}
+            >
+              ${s.label}
+            </button>`,
           )}
         </div>
         <p class="hint scope-hint">
-          ${scopeInfo.hint}
-          ${this.scope !== "shared" ? html`<strong>●</strong> marks a setting changed at this level.` : nothing}
+          ${scopeInfo.hint} ${this.scope !== "shared" ? html`<strong>●</strong> marks a setting changed at this level.` : nothing}
         </p>
-        ${
-          this.host_.usingSidebar
-            ? html`<p class="banner">
-                These buttons are copied from your Home Assistant sidebar, so everyone sees their own until an admin
-                saves under
-                <strong>Everyone</strong>. Saving keeps this list for all users.
-              </p>`
-            : nothing
-        }
-        ${
-          this.scope === "shared" && this.host_.usingYaml
-            ? html`<p class="banner">
-                Currently using <code>www/dockbar/config.yaml</code>. Saving here moves the config into Home Assistant,
-                and the YAML file is ignored from then on.
-              </p>`
-            : nothing
-        }
+        ${this.host_.usingSidebar
+          ? html`<p class="banner">
+              These buttons are copied from your Home Assistant sidebar, so everyone sees their own until an admin saves under
+              <strong>Everyone</strong>. Saving keeps this list for all users.
+            </p>`
+          : nothing}
+        ${this.scope === "shared" && this.host_.usingYaml
+          ? html`<p class="banner">
+              Currently using <code>www/dockbar/config.yaml</code>. Saving here moves the config into Home Assistant, and the
+              YAML file is ignored from then on.
+            </p>`
+          : nothing}
         <div class="tabs" role="tablist" aria-label="Settings sections">
-          <button role="tab" aria-selected=${this.tab === "general"} @click=${() => (this.tab = "general")}>
-            General
-          </button>
+          <button role="tab" aria-selected=${this.tab === "general"} @click=${() => (this.tab = "general")}>General</button>
           <button role="tab" aria-selected=${this.tab === "buttons"} @click=${() => (this.tab = "buttons")}>
             Buttons (${this.working.buttons.length})
           </button>
-          <button role="tab" aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>
-            Advanced
-          </button>
+          <button role="tab" aria-selected=${this.tab === "advanced"} @click=${() => this.openAdvanced()}>Advanced</button>
         </div>
         <main role="tabpanel">
           ${this.tab === "general" ? renderGeneral(this) : this.tab === "buttons" ? renderButtons(this) : renderAdvanced(this)}
@@ -360,11 +338,9 @@ Nothing changes until you click Save.`,
           <div class="resets">
             <button class="text danger" @click=${() => this.resetButtons()}>Reset buttons</button>
             <button class="text danger" @click=${() => this.resetLooks()}>Reset look</button>
-            ${
-              this.scope === "shared" && this.host_.usingSidebar
-                ? nothing
-                : html`<button class="text danger" @click=${() => this.resetEverything()}>Reset everything</button>`
-            }
+            ${this.shared && this.host_.usingSidebar
+              ? nothing
+              : html`<button class="text danger" @click=${() => this.resetEverything()}>Reset everything</button>`}
           </div>
           <span class="error">${this.error}</span>
           <button class="text" @click=${() => this.close()}>Cancel</button>

@@ -58,9 +58,14 @@ async function onboard() {
 }
 
 async function addDockbar(token) {
-  let flow = await api("/api/config/config_entries/flow", { method: "POST", body: { handler: "dockbar", show_advanced_options: false }, token });
-  if (flow.type === "form") flow = await api(`/api/config/config_entries/flow/${flow.flow_id}`, { method: "POST", body: {}, token });
-  if (flow.type !== "create_entry") throw new Error(`config flow ended as "${flow.type}": ${JSON.stringify(flow).slice(0, 300)}`);
+  const start = { handler: "dockbar", show_advanced_options: false };
+  let flow = await api("/api/config/config_entries/flow", { method: "POST", body: start, token });
+  if (flow.type === "form") {
+    flow = await api(`/api/config/config_entries/flow/${flow.flow_id}`, { method: "POST", body: {}, token });
+  }
+  if (flow.type !== "create_entry") {
+    throw new Error(`config flow ended as "${flow.type}": ${JSON.stringify(flow).slice(0, 300)}`);
+  }
 }
 
 const tokens = await onboard();

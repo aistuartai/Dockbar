@@ -1,6 +1,11 @@
 import { load } from "js-yaml";
 
 export type Position = "left" | "right" | "top" | "bottom";
+
+/** A top or bottom bar, which runs along the screen rather than down it. */
+export function isHorizontal(position: string | null | undefined): boolean {
+  return position === "top" || position === "bottom";
+}
 export const POSITIONS: Position[] = ["left", "right", "top", "bottom"];
 
 export type ButtonAction =

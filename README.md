@@ -19,9 +19,8 @@
 <p align="center">
   <a href="#features">Features</a> ·
   <a href="#install">Install</a> ·
-  <a href="#using-dockbar">Using Dockbar</a> ·
-  <a href="#troubleshooting">Troubleshooting</a> ·
-  <a href="#reference">Reference</a>
+  <a href="#get-started">Get started</a> ·
+  <a href="#guides">Guides</a>
 </p>
 
 ---
@@ -54,7 +53,7 @@ Pick a look with one click, then change anything you like.
 | **Dock** | Icons only, growing on hover, a dot under the current page |
 
 - Choose how the current page is marked (fill, line, pill, dot or glow), the hover effect and the button shadow.
-- Set colours, corners and label styles for every button, or for just one.
+- Set colours, corners, fonts and label styles for every button, or for just one.
 - Save your own looks under a name, and offer them to everyone or keep them to yourself.
 - Add your own CSS for anything else.
 
@@ -97,7 +96,7 @@ Everything is in a settings dialog with a live preview, or in YAML if you prefer
 - **Works out of the box.** On first install the bar copies your Home Assistant sidebar, in your order.
 - **Searchable pickers.** Type a few words to find an entity, action or page. "kitchen light" finds `light.kitchen_ceiling`.
 - **Drag to reorder**, hide or delete buttons, and import buttons from YAML.
-- **Reset when you want a fresh start,** at any level, with a preview before anything changes.
+- **Reset when you want a fresh start:** buttons, look or everything, at any level, with a warning first and a preview before anything changes.
 
 <p align="center">
   <img alt="The Buttons tab, with a House section holding Lights, Garden and Media" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-list.png" width="760">
@@ -132,302 +131,27 @@ Unzip `dockbar.zip` from the latest [release](https://github.com/aistuartai/Dock
 
 Dockbar needs Home Assistant 2026.10.0 or newer.
 
-## Using Dockbar
+## Get started
 
-### Open the settings
+1. Click the **Dockbar settings** button (the sliders icon) at the end of the bar.
+2. Under **General → Look**, pick a preset.
+3. Under **Buttons**, add, reorder or hide buttons.
+4. Click **Save**. Nothing changes for good until you do.
 
-Click the **Dockbar settings** button (the sliders icon) at the end of the bar, or add `?dockbar=edit` to any address. Changes preview live on the bar, and nothing is saved until you click **Save**.
+Choose **Everyone**, **Just me** or **This device** at the top of the dialog to decide who a change applies to.
 
-| Tab | For |
+## Guides
+
+| Guide | What's in it |
 |---|---|
-| **General** | The look, the layout, what Home Assistant shows, where to hide the bar, the pinned buttons and colours |
-| **Buttons** | Your buttons: adding, ordering, hiding and deleting them, what each one does, sections, badges and live values |
-| **Advanced** | Every setting as YAML, and custom CSS |
-
-### Everyone, just me, or this device
-
-The dialog has three levels. Each one only stores what it changes, and they stack in this order, so you can set a base look for everyone and then adjust it for yourself or for one tablet.
-
-| Level | Who can edit | Applies to |
-|---|---|---|
-| **Everyone** | Admins | All users |
-| **Just me** | Each person | That person, on every device |
-| **This device** | Anyone | This browser only, for example a wall tablet |
-
-A ● next to a setting means it's changed at the level you're editing. Click it to put it back. The footer has three reset buttons, each with a warning that says what it resets: **Reset buttons** (the button list only), **Reset look** (colours, presets and styles; your buttons and saved looks stay) and **Reset everything** (all changes at the level you're on, including saved looks made there). You see the result before you save.
-
-### Recipes
-
-**Add a button that toggles a light**
-
-1. **Buttons → + Add button**, and give it a name and icon.
-2. Under **Does**, choose **Toggle an entity**.
-3. Under **Live value**, search for the light in **Entity**.
-4. Pick a colour for **Icon colour when on**, and switch off **Show the value on the button** if you only want the icon.
-
-**Run a scene**
-
-1. **Buttons → + Add button**, then under **Does** choose **Run a Home Assistant action**.
-2. In **Action**, search for `scene.turn_on`, and add the scene in **Target entity**.
-
-**Make a garage button safe to tap**
-
-Set up a **Toggle an entity** button for the garage door and tick **Ask before running**. The bar asks first, every time.
-
-**Put the bar at the bottom on phones**
-
-**General → Layout → On phones**, choose **Bottom** (or **Top**, or **Hidden**), and set **Phone bar thickness** if you want it thinner.
-
-**Hide the bar on a wall-panel dashboard**
-
-**General → Hide the bar on**, and search for the dashboard. To hide it on one tablet only, do this under **This device** on that tablet.
-
-**Hide Home Assistant's own sidebar**
-
-**General → Home Assistant → Hide HA sidebar.** The Menu button at the end of the bar still opens it.
-
-### Turning it on and off
-
-| How | Effect |
-|---|---|
-| **`switch.dockbar`** | Shows or hides the bar on every screen instantly. Works in automations, scripts and dashboards. |
-| **Settings → Devices & services → Dockbar → ⋮ → Disable** | Stops loading Dockbar. Open screens drop the bar immediately, and Home Assistant's sidebar and header come back. Enabling it brings the bar back the same way. |
-| **⏻ Turn off** pinned button | This device only. A round button in the bottom-right corner turns it back on. |
-
-## Troubleshooting
-
-**The bar isn't showing.** Add `?dockbar=on` to any Home Assistant address and reload. This clears the "off" settings a browser can keep from an earlier install or the Turn off button.
-
-**I hid the Settings button and can't get back in.** Add `?dockbar=edit` to any address. On a kiosk with no address bar, hold a finger on the bar for two seconds.
-
-**I want to start again.** Open the settings, choose the level, and click **Reset buttons**, **Reset look** or **Reset everything**. Reinstalling Dockbar keeps your settings, because they're stored in Home Assistant, so a reset is also how you start clean after a reinstall.
-
-**I want to turn it off for a moment.** Add `?dockbar=off` to an address. It lasts for that browser session. Turning the Dockbar integration off and on again also brings the bar back on a page that was disabled this way.
-
-**The header or sidebar has disappeared.** That's the **Hide HA sidebar** and **Hide dashboard header** settings under **General → Home Assistant**. The header comes back when you edit a dashboard.
-
----
-
-## Reference
-
-Everything below is for people who want the details: every action and setting, the YAML, and how Dockbar works.
-
-### Button actions
-
-| Action | Needs | Does |
-|---|---|---|
-| `navigate` (default) | `path` | Opens a dashboard or view. The editor suggests every dashboard and view you can open. |
-| `url` | `url` | Opens a link in a new tab. Only `http:`, `https:`, `mailto:` and `tel:` links are accepted. |
-| `notifications` | | Opens HA's notifications drawer |
-| `section` | | Only opens and closes the buttons inside it |
-| `toggle_sidebar` | | Opens HA's sidebar when it's hidden, or collapses and expands it when it's docked |
-| `toggle_header` | | Shows or hides the dashboard header |
-| `perform_action` | `service` | Runs a Home Assistant action, such as `scene.turn_on`, as the signed-in user. Optional `target` (one entity or a list), `data` (a mapping sent with it) and `confirm`. |
-| `toggle` | `entity` | Toggles the entity: lights, switches and fans toggle, locks lock or unlock, covers open or close, scenes and scripts run, buttons are pressed. Optional `confirm`. |
-| `more_info` | `entity` | Opens the entity's details dialog, the same as tapping it on a dashboard. Optional `confirm`. |
-| `settings` | | Opens Dockbar settings |
-| `disable` | | Turns Dockbar off on this device |
-
-### Pinned buttons
-
-These sit at the end of the bar. Turn each one on or off in **General → Pinned buttons**.
-
-| Button | Does |
-|---|---|
-| Dockbar settings (sliders) | Opens the settings dialog |
-| ☰ Menu | Opens Home Assistant's sidebar when it's hidden, or collapses and expands it when it's docked |
-| ▭ Header | Shows or hides the dashboard header for this session |
-| ⏻ Turn off | Turns Dockbar off **on this device**. HA's sidebar and header come back, and a small round button in the corner turns it back on. |
-
-### Buttons in YAML
-
-**Action buttons.** A tap can run something in Home Assistant, using whatever the signed-in user is allowed to do. A button with a `service` and no `action` is an action button. Set `confirm: true` on anything you could press by accident and the bar asks first. If an action fails, Home Assistant shows the reason at the bottom of the screen.
-
-```yaml
-- name: Garage
-  icon: mdi:garage
-  action: toggle
-  entity: cover.garage              # also shows its state on the button
-  confirm: true
-- name: Lounge
-  icon: mdi:lightbulb
-  action: toggle
-  entity: light.lounge
-  on_icon_color: '#FFD54F'          # the icon turns yellow while the light is on
-  show_value: false                 # just the icon, without "On" written under the name
-- name: Movie night
-  icon: mdi:movie-open
-  service: scene.turn_on            # no action needed when there's a service
-  target: scene.movie_night
-- name: Evening
-  icon: mdi:weather-sunset
-  service: light.turn_on
-  target: [light.lounge, light.hall]
-  data:
-    brightness_pct: 40
-```
-
-**Live values.** Give a button `entity: sensor.pv_power` to show its state under the name, formatted the way HA shows it (units, translations). Add `attribute: <name>` to show an attribute instead. `state_color` colours the value. `on_icon_color` changes the icon's colour while the entity is on, open, unlocked, playing or otherwise active. Set `show_value: false` to leave the written value off and keep just the icon.
-
-```yaml
-- name: Solar
-  icon: mdi:solar-power-variant
-  path: /energy/solar
-  entity: sensor.pv_power
-  state_color: "#FFD54F"
-```
-
-**Sections.** Open a button in the Buttons tab and pick **Inside section** to put it inside another top-level button. That button becomes a section: tapping it opens its page (if it has one) and shows its buttons underneath, and only one section is open at a time. Give a section the action **Only open its buttons** if it has no page of its own. In YAML, add `parent: <section id>` to a button.
-
-```yaml
-- id: energy
-  name: Energy
-  icon: mdi:lightning-bolt
-  action: section
-- name: Solar
-  icon: mdi:solar-power-variant
-  path: /solar/main
-  parent: energy
-- name: Costs
-  icon: mdi:cash
-  path: /home-dash/finance
-  parent: energy
-```
-
-**Count badges.** The Buttons tab has one-click **+ Settings**, **+ Notifications**, **+ Updates**, **+ Repairs** and **+ Profile** buttons. A button that opens `/config`, `/config/updates` or `/config/repairs`, or HA's notifications, gets the matching badge automatically. Set `badge` to `notifications`, `updates`, `repairs`, `config` (updates + repairs, like HA's Settings) or `none` to choose it yourself. `badge_color` sets its colour (default: your theme's accent). To change the icon too while there's a badge, use the `alert` style for every button, or `alert_icon_color` on one button. Repairs are only counted for admins, the same as in HA.
-
-```yaml
-- name: Settings
-  icon: mdi:cog
-  path: /config
-- name: Notifications
-  icon: mdi:bell
-  action: notifications
-```
-
-**Hiding and deleting.** Drag ⠿ to reorder, 👁 to hide a button from the bar (it stays in the list to show again later), and 🗑 to delete it. Deleting is only offered at the level the button was added; levels above hide it instead, so a user can hide a shared button for themselves without removing it for everyone. A button can also be hidden in YAML with `hidden: true`. When an admin adds a button for everyone, it still appears for users who've reordered or hidden their own buttons.
-
-**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `on_icon_color`, `show_value`, `parent`, `hidden`, `service`, `target`, `data`, `confirm`, plus any style key.
-
-**Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `font_family` (a CSS font stack such as `Georgia, serif`; the editor offers System, Rounded, Condensed, Serif, Monospace, Humanist and Handwriting), `font_weight` (e.g. `500`, `bold`; applies to names, live values stay semi-bold), `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
-
-### Looks in detail
-
-**General → Look** has the presets to start from. Each one sets the bar and the every-button styles; your buttons, and any colours set on a single button, stay as they are.
-
-**+ Save current look** keeps your current look (bar colours and blur, current-page marker, hover, and the every-button, current-page and badge styles) under a name, as a chip next to the built-in presets. Saved looks belong to the level you're editing: under **Everyone** they're offered to all users, under **Just me** only to you. They appear in the Advanced YAML as `custom_presets`, so you can copy one to share it. A look shared from **Everyone** can't be deleted under **Just me**, but if you change it there, **↺** puts it back to the shared version.
-
-Below the presets: how the current page is marked (fill, line, pill, dot or glow) and its colour, the hover effect, and the button shadow (none, soft, raised, glow, 3D or Soft UI). 3D and Soft UI work out their light and dark edges from each button's own colour, so they suit any colour scheme. Soft UI looks best when the bar and buttons share one mid-to-light or dark-grey colour; on near-black there's no darker shade left for its shadow. The Soft UI shadow is sized from the bar's **Padding**, so it fits in the room around the buttons: at the default padding of 8 it's a tight, subtle shade, and a padding of about 14 or more gives the full, deeper look. Shadows are never clipped at the edge of the buttons; the bar's edge is the limit.
-
-### Advanced: YAML and CSS
-
-The **Advanced** tab shows everything the level you're editing changes, as YAML. Edit anything, including values the other tabs don't offer (for example a shadow of your own like `0 0 20px #9C88FF`), then click **Apply** to preview and **Save** to keep it. Anything invalid is listed and skipped rather than breaking the bar.
-
-Custom CSS goes in the same tab and is injected into the bar. You can target these parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer`.
-
-<p align="center">
-  <img alt="Searching for an action while setting up a Run a Home Assistant action button" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/settings-actions.png" width="760">
-</p>
-
-### Where settings live, and editing them
-
-- **Everyone** is saved in Home Assistant's system storage, **Just me** in your Home Assistant user data, and **This device** in the browser's own storage. None of them is a file you edit by hand. To change them, use the settings dialog, or its **Advanced** tab, which shows the same YAML with **Apply** and **Save**.
-- A file in `/config/www/dockbar/config.yaml` is only a starting point, described next. After the first save under Everyone, Dockbar ignores it.
-
-### Starting from YAML (optional)
-
-If `/config/www/dockbar/config.yaml` exists and nothing has been saved under **Everyone** yet, Dockbar uses the file as the shared config. The first time an admin saves under **Everyone**, the file's contents move into HA and the file is ignored from then on.
-
-See [`examples/config.yaml`](https://github.com/aistuartai/Dockbar/blob/main/examples/config.yaml) for every option.
-
-> ⚠️ Everything in `/config/www` is served at `/local/` **without authentication**. Don't put secrets in the YAML.
-
-<details>
-<summary><b>All settings</b></summary>
-
-| Option | Default | Description |
-|---|---|---|
-| `position` | `left` | `left`, `right`, `top`, `bottom` |
-| `mobile_position` | `bottom` | Position below `mobile_breakpoint`; `none` keeps `position`; `hidden` shows no bar on phones (HA's sidebar and header come back there) |
-| `mobile_size` | same as `size` | Bar thickness in px on phones |
-| `mobile_breakpoint` | `600` | Width in px |
-| `edge_offset` | `0` | Px between the bar and the screen edge it sits on, and the room the page leaves for it. Use it when a phone's navigation bar covers the bar |
-| `hide_sidebar` | `false` | Uses HA's "always hidden" sidebar mode; your previous setting is restored when turned off |
-| `reserve_space` | `false` | Top and bottom bars only: the Home Assistant page ends at the bar and no longer scrolls underneath it (otherwise it is only padded clear at the end of the scroll). Experimental |
-| `hide_header` | `false` | Hides the dashboard header (it comes back in edit mode) |
-| `size` | `88` | Bar thickness in px |
-| `padding`, `gap` | `8` | Spacing in px |
-| `button_length` | square | Button length along the bar |
-| `button_min_length` | `52` | Buttons shrink to fit down to this, then the bar scrolls |
-| `background`, `backdrop_filter` | theme | Bar styling |
-| `background_opacity` | as written | 0–100. Fades the background colour, on top of any alpha it already has. The editor shows it as a slider. |
-| `show_names` | `true` | Show labels under icons |
-| `hide_on` | none | Paths where the bar is hidden, e.g. `/wall-panel` (all its views) or `/wall-panel/kiosk`. HA's sidebar and header settings still apply there. |
-| `auto_add_dashboards` | `false` | Read from the Everyone level only; set at Just me or This device it has no effect. Adds a button at the end of the bar for each dashboard created since `seen_panels` was recorded. On for a fresh install. |
-| `seen_panels` | none | The dashboards (url paths) that existed when the Everyone config was last saved. The editor fills it in on save; dashboards not listed count as new. |
-| `footer` | all four | Pinned buttons: any of `settings`, `menu`, `header`, `off` |
-| `defaults` | theme | Style for every button |
-| `active` | primary border | Style applied on top of the current page's button |
-| `alert` | none | Style applied on top while a button shows a count badge, e.g. `icon_color: "#FF5252"` |
-| `active_indicator` | `fill` | How the current page is marked: `fill`, `line`, `pill`, `dot`, `glow` |
-| `indicator_color` | primary colour | Colour of the line, pill, dot or glow |
-| `hover_effect` | `brighten` | `brighten`, `lift`, `grow`, `glow`, `none` |
-| `custom_presets` | none | Saved looks by name. Each holds any of the look settings: `background`, `background_opacity`, `backdrop_filter`, `show_names`, `active_indicator`, `indicator_color`, `hover_effect`, `defaults`, `active`, `alert`. A look that leaves out `defaults` or `active` keeps your current ones. |
-| `style` | | Raw CSS inside the bar's shadow root. Parts: `bar`, `button`, `active`, `alert`, `badge`, `state`, `children`, `footer` |
-
-</details>
-
-### Escape hatches
-
-- `?dockbar=off` in any URL disables Dockbar for that browser session. `?dockbar=on` brings it back, and also undoes the Turn off button on this device. Turning the Dockbar integration off and on again in **Settings → Devices & services** also brings it back on a page that was disabled this way.
-- `?dockbar=edit` opens the settings dialog, even if the Settings button is hidden. It works when the page loads and when you navigate to it from inside Home Assistant, so a dashboard button can open the settings (see below).
-- On a kiosk with no address bar, hold a finger on the bar for two seconds to open the settings if the Settings button is hidden.
-
-### A dashboard button for the settings
-
-Add a button card (or any card with a tap action) that navigates to `?dockbar=edit`:
-
-```yaml
-type: button
-name: Dockbar settings
-icon: mdi:tune-variant
-tap_action:
-  action: navigate
-  navigation_path: "?dockbar=edit"
-```
-
-It stays on the same dashboard page and opens the settings dialog on top.
-
-### How it works
-
-- **An integration plus a frontend module.** The integration serves a small JavaScript module and registers it with Home Assistant's frontend, so every page loads it once. It also provides `switch.dockbar` for turning the bar on and off.
-- **Settings live in Home Assistant.** The Everyone level is stored in Home Assistant's system data and Just me in each user's data, both under the key `dockbar`, and they sync live to every open screen. This device is stored in the browser's localStorage. Because the settings aren't part of the integration's files, they survive an uninstall and reinstall.
-- **Each level stores only what it changes,** and the levels are merged on the fly: defaults, then Everyone, then Just me, then This device.
-- **It reaches into Home Assistant's frontend** to hide the sidebar and header, reserve room for the bar through the safe-area insets Home Assistant already honours, and read panels, entities and notifications. All of that lives in one file (`src/ha.ts`). A few seconds after load, Dockbar checks those hooks and logs a clear warning in the browser console if an update has moved one.
-- **Actions run as the signed-in user** through Home Assistant's own service calls, so permissions are enforced by Home Assistant, not by Dockbar.
-- **Security.** Button links are limited to `http:`, `https:`, `mailto:` and `tel:`, and saved settings are validated when read. See the [security policy](https://github.com/aistuartai/Dockbar/blob/main/SECURITY.md) to report a problem.
-
-### Similar projects
-
-Other projects tackle parts of the same problem. They're worth a look, and may suit you better:
-
-- [**custom-sidebar**](https://github.com/elchininet/custom-sidebar) customises Home Assistant's own sidebar from a YAML file: reorder, hide, rename and add items, section headers and dividers, restyle it, use JavaScript or Jinja templates and click actions, and apply different setups by user, admin or device. If you like how HA's sidebar behaves and want to extend it, start there.
-- [**kiosk-mode**](https://github.com/NemesisRE/kiosk-mode) hides the header and/or sidebar on Home Assistant dashboards. It does that one job and doesn't add navigation of its own.
-- [**navbar-card**](https://github.com/joseluis9595/lovelace-navbar-card) is a Lovelace card you add from the dashboard editor. It shows a bottom navigation bar on mobile and a side bar on desktop, with a visual editor, configurable routes, styling, haptic feedback and an optional media player widget. It's the closest in spirit to Dockbar.
-
-Dockbar takes a different approach: it's an integration, not a card or a sidebar tweak. It loads once for the whole frontend and draws a separate navigation bar on any edge, with its own phone layout, so nothing is added to individual dashboards. It can hide HA's sidebar and header too. Everything is set up in a settings dialog, with a YAML editor there when you want it. Buttons run Home Assistant actions on a tap, but there's no templating and no long-press or other click types yet; if you need those, custom-sidebar is the better fit.
-
-### Development
-
-```bash
-npm install
-npm test             # unit tests (Node 24, native TypeScript)
-npm run build        # custom_components/dockbar/frontend/dockbar.js
-npm run brand        # re-render the icon and logo PNGs from brand/icon.svg
-npm run deploy       # build, then copy custom_components/dockbar into the HA config folder in .deploy-target or $DOCKBAR_DEPLOY_DIR
-```
-
-Releases are built by GitHub Actions when a `v*` tag is pushed. The interface images in this README are rendered from the real build by the scripts in [`scripts/screenshots`](https://github.com/aistuartai/Dockbar/tree/main/scripts/screenshots), so they can be regenerated when the interface changes. Bug reports and ideas are welcome as [issues](https://github.com/aistuartai/Dockbar/issues/new/choose).
+| [**Using Dockbar**](https://github.com/aistuartai/Dockbar/blob/main/docs/using.md) | The settings dialog, the three levels, recipes (toggle a light, run a scene, bottom bar on phones), turning it on and off |
+| [**Buttons**](https://github.com/aistuartai/Dockbar/blob/main/docs/buttons.md) | Every button action, the pinned buttons, live values, badges, sections and buttons in YAML |
+| [**Looks, YAML and CSS**](https://github.com/aistuartai/Dockbar/blob/main/docs/looks-and-yaml.md) | Presets and saved looks, the Advanced tab, custom CSS, where settings are stored |
+| [**All settings**](https://github.com/aistuartai/Dockbar/blob/main/docs/settings-reference.md) | Every option, with defaults |
+| [**Troubleshooting**](https://github.com/aistuartai/Dockbar/blob/main/docs/troubleshooting.md) | The bar isn't showing, hidden Settings button, starting again, `?dockbar=` switches |
+| [**How it works**](https://github.com/aistuartai/Dockbar/blob/main/docs/how-it-works.md) | What Dockbar does inside Home Assistant, similar projects, development |
+
+Bug reports and ideas are welcome as [issues](https://github.com/aistuartai/Dockbar/issues/new/choose). The [security policy](https://github.com/aistuartai/Dockbar/blob/main/SECURITY.md) explains how to report a problem privately.
 
 ## License
 
