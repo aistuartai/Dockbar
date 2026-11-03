@@ -35,8 +35,23 @@ jobs:
           test -f custom_components/dockbar/frontend/dockbar.js
           cd custom_components/dockbar && zip -r ../../dockbar.zip . -x "__pycache__/*"
           unzip -l ../../dockbar.zip | grep -q "frontend/dockbar.js"
+      # The release text is this version's section of CHANGELOG.md, which is what HACS shows when updating.
+      # A tag with no section there (a beta, say) gets GitHub's generated notes instead.
+      - name: Release notes from the changelog
+        id: notes
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v heading="## $VERSION" '$0 == heading { found = 1; next } /^## / { found = 0 } found' CHANGELOG.md > notes.md
+          if grep -q '[^[:space:]]' notes.md; then
+            echo "" >> notes.md
+            echo "**Full changelog:** https://github.com/$GITHUB_REPOSITORY/blob/main/CHANGELOG.md" >> notes.md
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           files: dockbar.zip
-          generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.found == 'true' && 'notes.md' || '' }}
+          generate_release_notes: ${{ steps.notes.outputs.found != 'true' }}
           prerelease: ${{ contains(github.ref_name, '-') }}
