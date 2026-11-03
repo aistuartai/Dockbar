@@ -10,7 +10,7 @@ Every option you can set in YAML or on the Advanced tab. See [`examples/config.y
 - **Sizes without a unit** (`size`, `padding`, `gap`, `edge_offset`...) are pixels. Style values such as `icon_size` are CSS, so they carry a unit (`28px`).
 - **Levels.** Each setting can be set under Everyone, Just me or This device. A level only needs the settings it changes, and the most specific level wins. See [where settings live](https://github.com/aistuartai/Dockbar/blob/main/docs/looks-and-yaml.md#where-settings-live-and-editing-them).
 - **Quote colours** that contain a `#`, for example `'#9C88FF'`. Unquoted, YAML reads everything after the `#` as a comment.
-- **Buttons** have their own keys (`name`, `icon`, `path`, `action`, `entity`...), listed in [Buttons](https://github.com/aistuartai/Dockbar/blob/main/docs/buttons.md#buttons-in-yaml).
+- **Buttons** have their own keys (`name`, `icon`, `path`, `action`, `entity`...), listed in [Buttons](https://github.com/aistuartai/Dockbar/blob/main/docs/buttons.md#button-keys).
 
 ---
 
@@ -49,7 +49,7 @@ Every option you can set in YAML or on the Advanced tab. See [`examples/config.y
 | `active_indicator` | `fill` | How the current page's button is marked: `fill` (only the `active` style), `line` (a line along one side of the button), `pill` (a pill behind the icon), `dot` (a dot under the icon) or `glow` (a glow around the button) |
 | `indicator_color` | primary colour | Colour of the line, pill, dot or glow |
 | `hover_effect` | `brighten` | What a button does under the pointer: `brighten`, `lift` (rises and gets a shadow), `grow`, `glow` or `none` |
-| `defaults` | theme | The style for every button. Holds any [button style key](https://github.com/aistuartai/Dockbar/blob/main/docs/buttons.md#buttons-in-yaml) (`background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `font_family`, `font_weight`, `state_color`, `badge_color`, `shadow`, `text_transform`, `letter_spacing`). A single button can override any of them |
+| `defaults` | theme | The style for every button. Holds any [button style key](https://github.com/aistuartai/Dockbar/blob/main/docs/buttons.md#button-style-keys) (`background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `font_family`, `font_weight`, `state_color`, `badge_color`, `shadow`, `text_transform`, `letter_spacing`). A single button can override any of them |
 | `active` | primary-colour border | Style applied on top of the current page's button. Same keys as `defaults` |
 | `alert` | none | Style applied on top while a button shows a count badge, for example `icon_color: '#FF5252'`. Same keys as `defaults` |
 | `custom_presets` | none | Your saved looks, by name, shown as chips under General → Look. Each holds any of the look settings in this section and `show_names`. A look that leaves out `defaults` or `active` keeps your current ones, so a look can change just the background |

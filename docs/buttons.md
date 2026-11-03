@@ -103,6 +103,26 @@ These sit at the end of the bar. Turn each one on or off in **General → Pinned
 
 **Hiding and deleting.** Drag ⠿ to reorder, 👁 to hide a button from the bar (it stays in the list to show again later), and 🗑 to delete it. Deleting is only offered at the level the button was added; levels above hide it instead, so a user can hide a shared button for themselves without removing it for everyone. A button can also be hidden in YAML with `hidden: true`. When an admin adds a button for everyone, it still appears for users who've reordered or hidden their own buttons.
 
-**Button keys:** `id`, `name`, `icon`, `action`, `path` (or `navigation_path`, as in HA's own cards), `url`, `entity`, `attribute`, `badge`, `alert_icon_color`, `on_icon_color`, `show_value`, `parent`, `hidden`, `service`, `target`, `data`, `confirm`, plus any style key.
+## Button keys
 
-**Button style keys** (in `defaults`, `active`, `alert`, or on a button): `background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `font_family` (a CSS font stack such as `Georgia, serif`; the editor offers System, Rounded, Condensed, Serif, Monospace, Humanist and Handwriting), `font_weight` (e.g. `500`, `bold`; applies to names, live values stay semi-bold), `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
+| Key | What it's for |
+|---|---|
+| `id` | A short, stable name other settings use to find the button (`parent`, per-user overrides). Made from the name if left out |
+| `name`, `icon` | The label and the icon (`mdi:...`, browse them at [pictogrammers.com](https://pictogrammers.com/library/mdi/)) |
+| `action` | What a tap does; see [Button actions](#button-actions). Worked out from the other keys if left out |
+| `path` | The dashboard or view to open (`navigation_path` also works, as in HA's own cards) |
+| `url` | The link to open |
+| `service`, `target`, `data`, `confirm` | For `perform_action`: the action, what it acts on, extra data, and whether to ask first |
+| `entity`, `attribute` | The entity a button acts on or shows, and an attribute to show instead of its state |
+| `on_icon_color`, `show_value`, `state_color` | How an entity's state looks on the button |
+| `badge`, `alert_icon_color`, `badge_color` | The count badge and the colours used while it shows |
+| `parent` | The section this button sits inside |
+| `hidden` | Keeps the button in the list but off the bar |
+
+Any style key (below) can also be set on a button.
+
+## Button style keys
+
+These work in `defaults`, `active` and `alert`, or on a single button:
+
+`background`, `border`, `border_radius`, `icon_color`, `name_color`, `icon_size`, `font_size`, `font_family` (a CSS font stack such as `Georgia, serif`; the editor offers System, Rounded, Condensed, Serif, Monospace, Humanist and Handwriting), `font_weight` (e.g. `500`, `bold`; applies to names, live values stay semi-bold), `state_color`, `badge_color`, `shadow` (`none`, `soft`, `raised`, `glow`, `3d`, `soft-ui`, or any CSS box-shadow), `text_transform` (e.g. `uppercase`), `letter_spacing` (e.g. `0.14em`).
