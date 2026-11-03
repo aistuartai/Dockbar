@@ -5,32 +5,37 @@
 #
 # Tip: quote any value that contains a #, e.g. border: '1px solid #9C88FF'.
 # Unquoted, YAML treats " #9C88FF" as a comment and the colour is lost.
+#
+# Every setting here is optional. Leave one out and Dockbar uses its default.
+# Sizes without a unit (size, padding, gap...) are pixels.
 
 # --- Layout ---------------------------------------------------------------
 position: left            # left | right | top | bottom
-mobile_position: bottom   # used below mobile_breakpoint; none keeps `position`, hidden = no bar on phones
+mobile_position: bottom   # where the bar goes on phones: left | right | top | bottom; none keeps `position`; hidden = no bar on phones
 mobile_size: 64           # bar thickness on phones; leave out to use `size`
-mobile_breakpoint: 600    # px
+mobile_breakpoint: 600    # screen width in px below which the phone settings above apply. Portrait phones are ~360-430 wide,
+                          # so 600 suits them; a phone turned sideways is often wider. Raise to ~900 to keep the phone layout in landscape.
 edge_offset: 0            # px between the bar and the screen edge; raise it if a phone navigation bar covers the bar
 hide_sidebar: true        # hide HA's sidebar (the pinned Menu button still opens it)
 reserve_space: false      # top/bottom bar: the page ends at the bar instead of scrolling under it (experimental)
 hide_header: true         # hide the dashboard header (it comes back in edit mode)
-hide_on: []               # paths where the bar is hidden, e.g. [/wall-panel]
-auto_add_dashboards: false  # add a button for each dashboard created after seen_panels was recorded
-seen_panels: []           # dashboards that already exist (url paths); the editor fills this in when you save
+hide_on: []               # dashboards where the bar is hidden, by URL path: [/wall-panel] covers all its views, [/wall-panel/kiosk] one view
+auto_add_dashboards: false  # add a button for each dashboard created after seen_panels was recorded (Everyone level only)
+seen_panels: []           # dashboards that already exist (url paths). The editor fills this in when you save, so leave it alone
 
-size: 88                  # bar thickness, px
-padding: 8
-gap: 8
-# button_length: 72       # default: square buttons; they shrink to fit, down to button_min_length
-button_min_length: 52
-show_names: true
-footer: [settings, menu, header, off]   # pinned at the end of the bar
+size: 88                  # bar thickness, px: the width of a side bar, the height of a top or bottom bar
+padding: 8                # space between the bar's edge and its buttons, px
+gap: 8                    # space between buttons, px
+# button_length: 72       # button size along the bar, px. Default: square (size minus padding on both sides)
+button_min_length: 52     # buttons shrink to fit the screen down to this, then the bar scrolls
+show_names: true          # labels under the icons
+footer: [settings, menu, header, off]   # pinned at the end of the bar: settings | menu (HA's sidebar) | header | off. Use [] for none.
+                          # With settings left out, hold a finger on the bar for two seconds to open it (or add ?dockbar=edit to the URL).
 
 # --- Look -----------------------------------------------------------------
 background: rgba(18, 12, 38, 0.92)
 background_opacity: 100   # 0-100, fades the background colour (100 = as written)
-backdrop_filter: blur(8px)
+backdrop_filter: blur(8px)  # blurs what's behind the bar (any CSS filter); leave out for none
 active_indicator: fill    # how the current page is marked: fill | line | pill | dot | glow
 indicator_color: '#9C88FF'
 hover_effect: lift        # brighten | lift | grow | glow | none
@@ -41,8 +46,8 @@ defaults:                 # applied to every button; each button can override an
   border_radius: 12px
   icon_color: var(--primary-text-color)
   name_color: '#9C88FF'
-  icon_size: 28px
-  font_size: 11px
+  icon_size: 28px         # sizes take any CSS unit
+  font_size: 11px         # size of the button name
   shadow: soft            # none | soft | raised | glow | 3d | soft-ui | any CSS box-shadow
   state_color: '#C9BEFF'  # colour of a button's live entity value
   badge_color: '#FF5252'  # colour of count badges
@@ -65,18 +70,21 @@ custom_presets:           # saved looks, shown as chips under General → Look
     active_indicator: dot
 
 # --- Buttons --------------------------------------------------------------
+# One entry per button. Fields: name, icon (mdi:... from pictogrammers.com/library/mdi), what it does (path, url, action...),
+# and any style key from `defaults`, which then applies to just that button.
+# `id` is optional: it's how `parent` and per-user overrides find a button, so give one to anything they refer to.
 buttons:
   - id: home
     name: Home
     icon: mdi:home
-    path: /lovelace/0
+    path: /lovelace/0                 # the dashboard path in your Home Assistant address, e.g. /lovelace/0 or /dashboard-lights/lights
 
   # A section with a page of its own: tapping it opens Energy and shows the buttons inside.
   - id: energy
     name: Energy
     icon: mdi:lightning-bolt
     path: /energy
-    icon_color: '#FFD54F'
+    icon_color: '#FFD54F'             # any style key set on a button overrides `defaults` for that button
     entity: sensor.solar_power        # live value under the name (use your own sensor)
   - name: Battery
     icon: mdi:battery-high
@@ -111,7 +119,7 @@ buttons:
     alert_icon_color: '#FF5252'
   - name: Docs
     icon: mdi:open-in-new
-    url: https://www.home-assistant.io
+    url: https://www.home-assistant.io    # opens in a new tab. Only http, https, mailto and tel links are allowed
 
   # Buttons that do something in Home Assistant when tapped (use your own entities).
   - name: Garage
