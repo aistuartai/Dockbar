@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/aistuartai/Dockbar/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/aistuartai/Dockbar"></a>
+  <a href="https://github.com/aistuartai/Dockbar/releases"><img alt="Total downloads" src="https://img.shields.io/github/downloads/aistuartai/Dockbar/total"></a>
   <a href="#install"><img alt="HACS Default" src="https://img.shields.io/badge/HACS-Default-41BDF5"></a>
   <a href="https://github.com/aistuartai/Dockbar/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/aistuartai/Dockbar"></a>
 </p>
