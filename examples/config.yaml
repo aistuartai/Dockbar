@@ -140,5 +140,5 @@ buttons:
     data:
       brightness_pct: 40
 
-# style: |                # raw CSS inside the bar's shadow root
+# style: |                # your own CSS, added inside the bar
 #   .btn.active { box-shadow: 0 0 12px #9C88FF; }
