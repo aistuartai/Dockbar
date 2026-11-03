@@ -109,7 +109,7 @@ Everything is in a settings dialog with a live preview, or in YAML if you prefer
 - It follows your theme by default.
 - It has a switch (`switch.dockbar`) and can be disabled or enabled from **Settings → Devices & services** without a restart.
 
-> Tested on Home Assistant 2026.10.0, 2026.10.1 and 2026.10.4.
+> A check runs every night against Home Assistant's beta and development builds, so a change that breaks Dockbar shows up before the release does.
 
 ## Install
 
@@ -126,11 +126,11 @@ Dockbar is in the HACS default store, so there's no YAML to edit.
 
 Already installed it as a custom repository? It keeps updating as before.
 
+Dockbar needs Home Assistant 2026.10.0 or newer.
+
 ### Manual
 
 Unzip `dockbar.zip` from the latest [release](https://github.com/aistuartai/Dockbar/releases) into `/config/custom_components/dockbar/`, restart, then add the integration as above.
-
-Dockbar needs Home Assistant 2026.10.0 or newer.
 
 ## Get started
 

@@ -16,11 +16,11 @@ Please include:
 - The Dockbar and Home Assistant versions, and the browser or app.
 - Steps to reproduce it, or a proof of concept.
 
-Dockbar is maintained by one person, so I can't promise fixed response times. I'll acknowledge a report as soon as I can, keep you updated, and credit you in the release notes if you'd like.
+Dockbar has a single maintainer, so there are no fixed response times. Reports are acknowledged as soon as possible, reporters are kept updated, and they're credited in the release notes if they'd like.
 
 ## What counts
 
-Dockbar runs JavaScript in Home Assistant's own page, so these are the kinds of problems I'm most interested in:
+Dockbar runs JavaScript in Home Assistant's own page, so these are the kinds of problems that matter most:
 
 - Script or HTML injection through a button name, icon, link, entity value or any other setting.
 - A link or action that runs code or navigates somewhere unintended (for example a `javascript:` URL).
