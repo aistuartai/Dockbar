@@ -44,7 +44,7 @@ Pick a look with one click, then change anything you like.
 
 | Preset | Look |
 |---|---|
-| **Glass** | See-through with blur and soft edges, lifts on hover |
+| **Glass** | See-through and frosted, with soft edges, lifts on hover |
 | **Flat** | Solid colours, no borders, current page filled with your theme colour |
 | **Neon** | Dark with a coloured glow |
 | **Material** | Clean, with a pill behind the current page's icon |
@@ -54,7 +54,7 @@ Pick a look with one click, then change anything you like.
 | **Dock** | Icons only, growing on hover, a dot under the current page |
 
 - Choose how the current page is marked (fill, line, pill, dot or glow), the hover effect and the button shadow.
-- Set colours, corners, fonts and label styles for every button, or for just one.
+- Set colours, corners, fonts and label styles for every button, or for just one. Names can be turned off for an icons-only bar.
 - Save your own looks under a name, and offer them to everyone or keep them to yourself.
 - Add your own CSS for anything else.
 
@@ -75,6 +75,11 @@ A button can do more than open a page. Toggle a light, open the garage door, run
 
 On a small screen the bar can move to the top or bottom, with its own size, or hide so Home Assistant's own menu comes back. It keeps clear of the status bar and home indicator, and the page lays itself out around it.
 
+- **Icons only** when space is tight: turn the names off.
+- **Your own font** for the whole bar, or for a single button.
+- **The page can end at the bar** instead of scrolling under it (experimental).
+- **Lift the bar clear** of a phone's own navigation bar with an edge offset.
+
 <p align="center">
   <img alt="Dockbar on a phone: an icons-only Glass bar at the top, and Soft and 3D bars at the bottom" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phones.png" width="800">
 </p>
@@ -89,6 +94,7 @@ On a small screen the bar can move to the top or bottom, with its own size, or h
 - **New dashboards appear by themselves.** Turn on one setting and a button for each dashboard you create is added to the end of the bar.
 - **Three levels.** Set the bar for **everyone**, **just for you**, or **just for this device**, so a wall tablet can have its own layout.
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with a switch you can use in automations.
+- **Kiosk-friendly.** With the Settings button hidden, hold a finger on the bar for two seconds to open the settings.
 
 ### ⚙️ Easy to set up
 
