@@ -92,7 +92,7 @@ On a small screen the bar can move to the top or bottom, with its own size, or h
 
 - **Sections.** Group buttons under one that opens in place, like folders. A closed section adds up its buttons' badges.
 - **New dashboards appear by themselves.** Turn on one setting and a button for each dashboard you create is added to the end of the bar.
-- **Three levels.** Set the bar for **everyone**, **just for you**, or **just for this device**, so a wall tablet can have its own layout.
+- **Three levels.** Set the bar for **everyone**, **just for you**, or **just for this device**, so a wall tablet can have its own layout, and its own opinions.
 - **Hide it where you don't want it.** Per dashboard (for a kiosk view), per device, or everywhere with a switch you can use in automations.
 - **Kiosk-friendly.** With the Settings button hidden, hold a finger on the bar for two seconds to open the settings.
 
@@ -147,7 +147,7 @@ Unzip `dockbar.zip` from the latest [release](https://github.com/aistuartai/Dock
 1. Click the **Dockbar settings** button (the sliders icon) at the end of the bar.
 2. Under **General → Look**, pick a preset.
 3. Under **Buttons**, add, reorder or hide buttons.
-4. Click **Save**. Nothing changes for good until you do.
+4. Click **Save**. Nothing changes for good until you do, so poke at anything.
 
 Choose **Everyone**, **Just me** or **This device** at the top of the dialog to decide who a change applies to.
 

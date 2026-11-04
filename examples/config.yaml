@@ -7,6 +7,8 @@
 # Unquoted, YAML treats " #9C88FF" as a comment and the colour is lost.
 #
 # Every setting here is optional. Leave one out and Dockbar uses its default.
+# With this file in place the bar shows only the buttons listed under `buttons:` below. Without it, a new
+# install starts from a copy of your Home Assistant sidebar.
 # Sizes without a unit (size, padding, gap...) are pixels.
 
 # --- Layout ---------------------------------------------------------------

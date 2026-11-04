@@ -46,7 +46,7 @@ A ● next to a setting means it's changed at the level you're editing. Click it
 
 **Make a garage button safe to tap**
 
-Set up a **Toggle an entity** button for the garage door and tick **Ask before running**. The bar asks first, every time.
+Set up a **Toggle an entity** button for the garage door and tick **Ask before running**. The bar asks first, every time, so a stray thumb can't open the garage at 3 a.m.
 
 **Put the bar at the bottom on phones**
 
