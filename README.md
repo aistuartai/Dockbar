@@ -28,7 +28,7 @@
 
 ## What is Dockbar?
 
-Home Assistant's sidebar and header are small, fixed and hard to style. **Dockbar adds a navigation bar of your own** that stays in place on every dashboard, so you can move around your home without hunting for the menu. Choose where it sits, how it looks, and what each button does.
+The sidebar and header in Home Assistant (HA) are small, fixed and hard to style. **Dockbar adds a navigation bar of your own** that stays in place on every dashboard, so you can move around your home without hunting for the menu. Choose where it sits, how it looks, and what each button does.
 
 It isn't a card you add to each dashboard. It loads once and works everywhere, and it can tuck Home Assistant's own sidebar and header out of the way.
 
@@ -77,6 +77,10 @@ On a small screen the bar can move to the top or bottom, with its own size, or h
 
 <p align="center">
   <img alt="Dockbar on a phone: a Glass bar at the top, and Soft and 3D bars at the bottom" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phones.png" width="800">
+</p>
+
+<p align="center">
+  <img alt="Dockbar on a phone: a Glass bar where the page ends at the bar, a Soft bar in a monospace font, and a short top bar in a serif font" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phones-fonts.png" width="800">
 </p>
 
 ### 🗂️ Stay organised
