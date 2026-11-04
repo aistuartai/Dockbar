@@ -213,6 +213,7 @@
 
   const phoneParams = new URLSearchParams(location.search);
   if (phoneParams.get("phone")) (await import("/phone.js")).setup(layer, phoneParams);
+  if (phoneParams.get("hero")) (await import("/hero.js")).setup(layer, phoneParams);
 
   window.__ready = import("/dockbar.js");
 </script>

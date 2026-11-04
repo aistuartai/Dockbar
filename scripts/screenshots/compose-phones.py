@@ -75,7 +75,7 @@ def phone(shot_path, scr_w=270):
 
 
 TITLES = {
-    "phone-c": ("New: the page ends at the bar, fonts, and tidy footer buttons", "Dashboards stop at the bar even when you scroll, and the pinned buttons sit inside it."),
+    "phone-c": ("Fonts, a page that ends at the bar, and tidy footer buttons", "Dashboards stop at the bar even when you scroll, and the pinned buttons sit inside it."),
 }
 DEFAULT_TITLE = ("On a phone, the bar goes top or bottom", "It keeps clear of the status bar and home indicator, and the page lays itself out around it.")
 

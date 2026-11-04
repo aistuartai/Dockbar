@@ -1,5 +1,5 @@
 // Phone screenshots: applies a look and a bar position to the demo layer, and draws a stand-in dashboard behind the bar.
-const PRESETS = {
+export const PRESETS = {
   glass: {
     background: "rgba(255, 255, 255, 0.06)", backdrop_filter: "blur(16px) saturate(140%)", show_names: true, active_indicator: "fill", hover_effect: "lift",
     defaults: { background: "rgba(255, 255, 255, 0.08)", border: "1px solid rgba(255, 255, 255, 0.14)", border_radius: "14px", shadow: "soft" },

@@ -10,6 +10,7 @@ const files = {
   "/": [join(here, "page.html"), "text/html"],
   "/dockbar.js": [join(repo, "custom_components/dockbar/frontend/dockbar.js"), "text/javascript"],
   "/phone.js": [join(here, "phone.js"), "text/javascript"],
+  "/hero.js": [join(here, "hero.js"), "text/javascript"],
   "/mdi.js": [join(here, "node_modules/@mdi/js/mdi.js"), "text/javascript"],
 };
 

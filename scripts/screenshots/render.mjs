@@ -19,12 +19,13 @@ if (!existsSync(join(repo, "custom_components/dockbar/frontend/dockbar.js"))) {
 for (const d of ["out", "framed", "phones", "built"]) mkdirSync(join(here, d), { recursive: true });
 
 console.log("Rendering the settings dialog, the bar and the phones in Chrome...");
-for (const script of ["shoot.mjs", "shoot-bar.mjs", "shoot-phones.mjs"]) run(process.execPath, [script]);
+for (const script of ["shoot.mjs", "shoot-bar.mjs", "shoot-phones.mjs", "shoot-hero.mjs"]) run(process.execPath, [script]);
 
 console.log("Framing them...");
 run(python, ["compose.py", "out", "framed"]);
 run(python, ["compose-phones.py", "out", "phones"]);
 run(python, ["compose-page.py", "out/bar-page.png", join(repo, "custom_components/dockbar/brand"), "built/hero-page.png"]);
+run(python, ["compose-hero.py", "out", join(repo, "custom_components/dockbar/brand"), "built/hero.png"]);
 
 if (process.argv.includes("--copy")) {
   const copies = [
@@ -33,7 +34,8 @@ if (process.argv.includes("--copy")) {
     ["framed/settings-toggle.png", "settings-toggle.png"],
     ["framed/settings-actions.png", "settings-actions.png"],
     ["phones/phone-a.png", "phones.png"],
-    ["phones/phone-c.png", "phones-new.png"],
+    ["phones/phone-c.png", "phones-fonts.png"],
+    ["built/hero.png", "hero.png"],
     ["built/hero-page.png", "hero-page.png"],
   ];
   for (const [from, to] of copies) copyFileSync(join(here, from), join(repo, "docs", to));
