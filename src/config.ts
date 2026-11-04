@@ -1,3 +1,5 @@
+// The shape of the config and what it may hold: the types, the defaults, the lists of valid values, and the
+// sanitiser that turns anything read from YAML or storage into a valid layer.
 import { load } from "js-yaml";
 
 export type Position = "left" | "right" | "top" | "bottom";
@@ -145,7 +147,6 @@ export const BUTTON_KEYS = [
 
 export interface Settings {
   position: Position;
-  /** null keeps `position` on small screens. */
   /** Position below mobile_breakpoint: an edge, "hidden" for no bar on phones, or null to keep `position`. */
   mobile_position: Position | "hidden" | null;
   mobile_breakpoint: number;
@@ -256,13 +257,13 @@ export interface ButtonOverrides {
   edits?: Record<string, { [K in keyof Omit<DockbarButton, "id">]?: DockbarButton[K] | null }>;
 }
 
+/** Bumped when a saved layer's shape changes, so an older bundle can tell it is looking at newer data. */
+export const LAYER_VERSION = 2;
+
 /**
  * One layer of config. Only the fields it changes are present.
  * `buttons` is the base list (YAML or shared layer); `button_overrides` is for user and device layers.
  */
-/** Bumped when a saved layer's shape changes, so an older bundle can tell it is looking at newer data. */
-export const LAYER_VERSION = 2;
-
 export type Layer = Partial<Settings> & {
   version?: number;
   buttons?: DockbarButton[];
@@ -453,7 +454,6 @@ function position(v: unknown, field: string, warn: Warn): Position | undefined {
   return undefined;
 }
 
-/** `min` is 0 for spacing (padding, gap) and 1 for sizes, which can't be zero. */
 /** Generous upper bounds, so a stray extra zero doesn't draw a bar wider than the screen. */
 const LIMITS: Record<string, number> = {
   mobile_breakpoint: 5000,
@@ -466,6 +466,7 @@ const LIMITS: Record<string, number> = {
   button_min_length: 600,
 };
 
+/** `min` is 0 for spacing (padding, gap) and 1 for sizes, which can't be zero. */
 function num(v: unknown, field: string, warn: Warn, min = 0): number | undefined {
   const n = Number(v);
   const max = LIMITS[field] ?? Infinity;

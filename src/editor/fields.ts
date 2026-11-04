@@ -1,3 +1,4 @@
+// The form controls the editor's tabs share. Each reads and writes one setting by its path and marks it when it differs from the level below.
 import { html, nothing, type TemplateResult } from "lit";
 import { STYLE_KEYS, type ButtonStyle } from "../config.ts";
 import { clone, same } from "../merge.ts";

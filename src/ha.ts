@@ -126,7 +126,7 @@ export function dockbarSwitchState(): "on" | "off" | null {
 
 /**
  * HA tells open browsers when an integration adds or removes a frontend module.
- * Disabling the Dockbar integration removes ours, so the bar can step aside without a reload.
+ * Disabling the Dockbar integration removes Dockbar's, so the bar can step aside without a reload.
  */
 export function watchOwnModule(onChange: (loaded: boolean) => void) {
   const own = new URL(import.meta.url).pathname;
@@ -397,7 +397,7 @@ export function setReserve(space: BarSpace | null) {
   }
   // The room above already counts the device inset, so Home Assistant's own padding for it is zeroed.
   // The page scrolls inside this box: dashboards and the energy page scroll the page itself rather than an inner
-  // panel, so clipping it (as beta 3 did) left nothing able to scroll.
+  // panel, so clipping that box would leave nothing able to scroll.
   style.textContent = `home-assistant {
     display: block !important;
     position: fixed !important;

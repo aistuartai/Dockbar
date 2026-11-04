@@ -1,3 +1,4 @@
+// The Advanced tab: the level as YAML with Apply, and the custom CSS box.
 import { html } from "lit";
 import { dump, load } from "js-yaml";
 import { sanitiseLayer, type Layer } from "../config.ts";

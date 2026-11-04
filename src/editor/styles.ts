@@ -1,3 +1,4 @@
+// The settings dialog's CSS.
 import { css } from "lit";
 
 export const editorStyles = css`

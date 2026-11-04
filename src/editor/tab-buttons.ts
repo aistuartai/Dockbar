@@ -1,3 +1,4 @@
+// The Buttons tab: the button list with drag to reorder, hide and delete, and the form for one button.
 import { html, nothing } from "lit";
 import { dump, load } from "js-yaml";
 import { ACTIONS, BADGE_SOURCES, sanitiseLayer, uniqueId, type ButtonStyle, type DockbarButton } from "../config.ts";

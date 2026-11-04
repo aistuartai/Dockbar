@@ -1,3 +1,4 @@
+// What the reset buttons put back at a level. Plain functions, so they can be tested.
 import { pickLook, type DockbarConfig } from "./config.ts";
 import { clone } from "./merge.ts";
 import { groupOrder } from "./sections.ts";

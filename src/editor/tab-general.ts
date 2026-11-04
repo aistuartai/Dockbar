@@ -1,3 +1,4 @@
+// The General tab: looks and saved looks, layout, what Home Assistant shows, where the bar is hidden, and the pinned buttons.
 import { html, nothing } from "lit";
 import { FOOTER_TOOLS, isHorizontal, POSITIONS, STYLE_KEYS, ACTIVE_INDICATORS, HOVER_EFFECTS } from "../config.ts";
 import { clone, same } from "../merge.ts";

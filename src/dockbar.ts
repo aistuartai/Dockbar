@@ -1,3 +1,5 @@
+// Start-up and wiring: loads the config layers, merges them, hands the result to the bar, runs button actions,
+// and keeps the page (header, sidebar, reserved space, live values) in step with it.
 import { DockbarNav, type ButtonClickDetail } from "./bar.ts";
 import {
   ConfigError,
@@ -46,7 +48,7 @@ class Dockbar implements EditorHost {
   private deviceOff = LayerStore.isOff();
   /** switch.dockbar, for every screen at once. */
   private switchOn = true;
-  /** False once the integration is disabled and HA drops our module. */
+  /** False once the integration is disabled and HA drops Dockbar's module. */
   private moduleLoaded = true;
   /** Session-only override from the Header button; null follows the config. */
   private headerToggle: boolean | null = null;

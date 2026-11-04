@@ -1,3 +1,5 @@
+// The settings dialog: holds the working copy of the config, previews changes on the bar, and handles saving and the reset buttons.
+// The tabs and the form controls live in the files beside it.
 import { LitElement, html, nothing } from "lit";
 import { type DockbarConfig, type Layer } from "../config.ts";
 import { clone, diffLayer, merge } from "../merge.ts";
@@ -76,7 +78,7 @@ export class DockbarEditor extends LitElement {
   private pristine = "";
   /** What had focus when the dialog opened, so closing it puts focus back there. */
   private opener: HTMLElement | null = null;
-  /** "Reset to defaults" was clicked and not yet saved: Save clears the Everyone level rather than writing a layer. */
+  /** "Reset everything" was clicked at Everyone and not yet saved: Save clears that level rather than writing a layer. */
   private resetPending = false;
 
   constructor() {

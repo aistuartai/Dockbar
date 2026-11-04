@@ -1,3 +1,5 @@
+// How the config layers combine: defaults, then Everyone, Just me and This device, field by field.
+// Also the reverse: the smallest layer that turns what a level inherits into what the editor shows.
 import {
   BUTTON_KEYS,
   CLEARABLE_KEYS,

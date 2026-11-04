@@ -1,3 +1,5 @@
+// The bar itself: a Lit element that draws the buttons, footer and badges, and carries the CSS for every look.
+// It holds no config logic. dockbar.ts gives it the merged config and handles its clicks.
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { styleMap } from "lit/directives/style-map.js";
 import type { DockbarButton, DockbarConfig, FooterTool, Position } from "./config.ts";

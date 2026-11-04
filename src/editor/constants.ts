@@ -1,3 +1,4 @@
+// The labels, choices and one-click buttons the editor shows, kept apart from the layout code.
 import { type BadgeSource, type ActiveIndicator, type HoverEffect, type ButtonAction, type ButtonStyle, type DockbarButton, type FooterTool } from "../config.ts";
 import { type Scope } from "../storage.ts";
 
