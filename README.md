@@ -76,7 +76,7 @@ A button can do more than open a page. Toggle a light, open the garage door, run
 On a small screen the bar can move to the top or bottom, with its own size, or hide so Home Assistant's own menu comes back. It keeps clear of the status bar and home indicator, and the page lays itself out around it.
 
 <p align="center">
-  <img alt="Dockbar on a phone: a Glass bar at the top, and Soft and 3D bars at the bottom" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phones.png" width="800">
+  <img alt="Dockbar on a phone: an icons-only Glass bar at the top, and Soft and 3D bars at the bottom" src="https://raw.githubusercontent.com/aistuartai/Dockbar/main/docs/phones.png" width="800">
 </p>
 
 <p align="center">

@@ -21,9 +21,9 @@ export const PRESETS = {
     active: { icon_color: "#D6CCFF", name_color: "#FFFFFF" },
   },
   "3d": {
-    background: "rgba(20, 14, 40, 0.9)", backdrop_filter: "blur(8px)", show_names: true, active_indicator: "fill", hover_effect: "lift",
-    defaults: { background: "#3B2A86", border: "none", border_radius: "12px", name_color: "#FFFFFF", shadow: "3d" },
-    active: { background: "#5B45C8" },
+    background: "rgba(10, 22, 44, 0.9)", backdrop_filter: "blur(8px)", show_names: true, active_indicator: "fill", hover_effect: "lift",
+    defaults: { background: "#1D5FA8", border: "none", border_radius: "12px", name_color: "#FFFFFF", shadow: "3d" },
+    active: { background: "#3B8BE0" },
   },
   dock: {
     background: "rgba(255, 255, 255, 0.08)", backdrop_filter: "blur(20px) saturate(160%)", show_names: false, active_indicator: "dot", hover_effect: "grow",
@@ -42,6 +42,7 @@ export function setup(layer, params) {
   if (!footer) layer.footer = [];   // otherwise a phone example keeps its room for the buttons
   if (params.get("font")) layer.defaults = { ...layer.defaults, font_family: params.get("font") };
   if (params.has("reserve")) layer.reserve_space = true;
+  if (params.get("names") === "off") layer.show_names = false;   // icons only
   if (layer.defaults && layer.defaults.text_transform) Object.assign(layer.defaults, { font_size: "9px", letter_spacing: "0.05em" });
   Object.assign(layer, { mobile_position: pos, mobile_breakpoint: 600, mobile_size: look === "dock" ? 64 : 72, padding: 10, gap: 8, button_min_length: 44, button_length: 62, auto_add_dashboards: false });
   const byId = Object.fromEntries(layer.buttons.map((b) => [b.id, b]));
@@ -53,7 +54,7 @@ export function setup(layer, params) {
   style.textContent = `
     :root { --ink: ${light ? "#4F6B62" : "#ffffff"}; --ink2: ${light ? "rgba(79,107,98,.72)" : "rgba(255,255,255,.62)"}; }
     html, body { margin: 0; height: 100%; overflow: hidden; }
-    body { background: ${light ? "#E6E9EE" : "radial-gradient(circle at 18% 8%, rgba(125,92,255,.60), transparent 46%), radial-gradient(circle at 92% 42%, rgba(40,170,205,.38), transparent 42%), radial-gradient(circle at 20% 92%, rgba(190,70,160,.30), transparent 40%), linear-gradient(170deg,#1b1c3d,#0d1022)"}; color: var(--ink); font-family: Roboto, "Segoe UI", sans-serif; }
+    body { background: ${light ? "#E6E9EE" : "radial-gradient(circle at 18% 8%, rgba(56,140,200,.55), transparent 46%), radial-gradient(circle at 92% 42%, rgba(30,190,170,.35), transparent 42%), radial-gradient(circle at 20% 92%, rgba(40,100,190,.30), transparent 40%), linear-gradient(170deg,#12243d,#0a1424)"}; color: var(--ink); font-family: Roboto, "Segoe UI", sans-serif; }
     #status { position: fixed; top: 0; left: 0; right: 0; height: 30px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; box-sizing: border-box; font-size: 13px; font-weight: 500; color: var(--ink); z-index: 1; }
     #status .icons { display: flex; gap: 6px; align-items: center; }
     #home { position: fixed; bottom: 7px; left: 50%; width: 120px; height: 4px; margin-left: -60px; border-radius: 3px; background: ${light ? "rgba(79,107,98,.55)" : "rgba(255,255,255,.7)"}; z-index: 1; }
@@ -79,7 +80,7 @@ export function setup(layer, params) {
   document.head.appendChild(style);
   if (params.has("reserve")) style.textContent += " main { height: auto; min-height: 100%; overflow: visible; }";
 
-  const stroke = light ? "#4F6B62" : "#B9A8FF";
+  const stroke = light ? "#4F6B62" : "#7DD3FC";
   document.body.insertAdjacentHTML("afterbegin", `
     <div id="status"><span>9:41</span><span class="icons">
       <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>

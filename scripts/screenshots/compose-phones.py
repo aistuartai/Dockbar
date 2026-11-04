@@ -10,7 +10,7 @@ S = 2
 SS = 4
 
 SETS = {
-    "phone-a": [("phone-glass-top", "Glass", "Top bar"), ("phone-soft-bottom", "Soft", "Bottom bar"), ("phone-3d-bottom", "3D", "Bottom bar")],
+    "phone-a": [("phone-glass-top", "Glass", "Top bar, icons only"), ("phone-soft-bottom", "Soft", "Bottom bar"), ("phone-3d-bottom", "3D", "Bottom bar")],
     "phone-c": [("phone-glass-reserve", "Page ends at the bar", "Bottom bar, scrolled"), ("phone-soft-font", "Choose a font", "Monospace, bottom bar"), ("phone-neon-serif", "Fits short bars", "Serif, top bar")],
     "phone-b": [("phone-neon-top", "Neon", "Top bar"), ("phone-softdark-bottom", "Soft Dark", "Bottom bar"), ("phone-dock-bottom", "Dock", "Bottom bar")],
 }

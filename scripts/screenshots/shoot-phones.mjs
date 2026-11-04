@@ -10,7 +10,7 @@ const SHOTS = [
   { name: "phone-neon-top", look: "neon", pos: "top", theme: "dark" },
   { name: "phone-soft-bottom", look: "soft", pos: "bottom", theme: "light" },
   { name: "phone-3d-bottom", look: "3d", pos: "bottom", theme: "dark" },
-  { name: "phone-glass-top", look: "glass", pos: "top", theme: "dark" },
+  { name: "phone-glass-top", look: "glass", pos: "top", theme: "dark", extra: "&names=off" },
   { name: "phone-dock-bottom", look: "dock", pos: "bottom", theme: "dark" },
   { name: "phone-softdark-bottom", look: "soft-dark", pos: "bottom", theme: "dark" },
   // New in 0.9: the page ends at the bar, fonts, and the pinned buttons fitting a short bar.
