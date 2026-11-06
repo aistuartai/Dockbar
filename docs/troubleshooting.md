@@ -8,6 +8,8 @@ Fixes for the usual problems, and the URL switches that get you out of trouble.
 
 ---
 
+**The bar vanished after a Home Assistant update.** Hard-refresh the browser (Ctrl+Shift+R), or clear the app's cache on a phone or tablet. After an update the browser can keep running the old Home Assistant page, which doesn't load Dockbar. If it's still gone, check Settings → Devices & services that Dockbar is listed, then try `?dockbar=on` below.
+
 **The bar isn't showing.** Add `?dockbar=on` to any Home Assistant address and reload. This clears the "off" settings a browser can keep from an earlier install or the Turn off button.
 
 **The Settings button is hidden and the settings won't open.** Add `?dockbar=edit` to any address. On a kiosk with no address bar, hold a finger on the bar for two seconds, or add a [dashboard button](https://github.com/aistuartai/Dockbar/blob/main/docs/using.md#a-dashboard-button-for-the-settings) that opens the settings.

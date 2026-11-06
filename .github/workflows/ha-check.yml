@@ -1,6 +1,6 @@
 name: Home Assistant check
 
-# Starts the newest Home Assistant (beta, and the nightly dev build), installs Dockbar into it,
+# Starts the newest Home Assistant (stable, beta, and the nightly dev build), installs Dockbar into it,
 # and checks the bar appears with every Home Assistant hook still in place. A failure means a
 # coming Home Assistant release broke something, before anyone upgrades into it.
 # Scheduled runs only start from the default branch; run it by hand with "Run workflow".
@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [beta, dev]
+        image: [stable, beta, dev]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7

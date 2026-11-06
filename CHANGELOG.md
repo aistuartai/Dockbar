@@ -3,6 +3,7 @@
 ## Unreleased
 
 **Tooling**
+- The nightly Home Assistant check now tests the stable image as well as beta and dev.
 - Every GitHub Action in the workflows is pinned to a commit, with Dependabot keeping them current, so a moved tag can't change what builds a release.
 
 ## 0.9.0
